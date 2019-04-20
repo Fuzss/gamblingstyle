@@ -1,16 +1,14 @@
-package fuzs.tradinggui;
+package fuzs.tradinggui.inventory;
 
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiMerchant;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.IMerchant;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.ContainerMerchant;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.play.client.CPacketCustomPayload;
@@ -82,7 +80,6 @@ public class GuiVillager extends GuiContainer
     {
         super.updateScreen();
         MerchantRecipeList merchantrecipelist = this.merchant.getRecipes(this.mc.player);
-        System.out.println("updateScreen" + merchantrecipelist);
 
         if (merchantrecipelist != null)
         {
@@ -102,7 +99,6 @@ public class GuiVillager extends GuiContainer
         {
             ++this.selectedMerchantRecipe;
             MerchantRecipeList merchantrecipelist = this.merchant.getRecipes(this.mc.player);
-            System.out.println("actionPerformed" + merchantrecipelist);
 
             if (merchantrecipelist != null && this.selectedMerchantRecipe >= merchantrecipelist.size())
             {
@@ -125,7 +121,7 @@ public class GuiVillager extends GuiContainer
 
         if (flag)
         {
-            ((ContainerMerchant)this.inventorySlots).setCurrentRecipeIndex(this.selectedMerchantRecipe);
+            ((ContainerVillager)this.inventorySlots).setCurrentRecipeIndex(this.selectedMerchantRecipe);
             PacketBuffer packetbuffer = new PacketBuffer(Unpooled.buffer());
             packetbuffer.writeInt(this.selectedMerchantRecipe);
             this.mc.getConnection().sendPacket(new CPacketCustomPayload("MC|TrSel", packetbuffer));
@@ -143,7 +139,6 @@ public class GuiVillager extends GuiContainer
         int j = (this.height - this.ySize) / 2;
         this.drawTexturedModalRect(i, j, 0, 0, this.xSize, this.ySize);
         MerchantRecipeList merchantrecipelist = this.merchant.getRecipes(this.mc.player);
-        System.out.println("drawGuiContainerBackground" + merchantrecipelist);
 
         if (merchantrecipelist != null && !merchantrecipelist.isEmpty())
         {
@@ -175,7 +170,6 @@ public class GuiVillager extends GuiContainer
         this.drawDefaultBackground();
         super.drawScreen(mouseX, mouseY, partialTicks);
         MerchantRecipeList merchantrecipelist = this.merchant.getRecipes(this.mc.player);
-        System.out.println("drawScreen" + merchantrecipelist);
 
         if (merchantrecipelist != null && !merchantrecipelist.isEmpty())
         {
