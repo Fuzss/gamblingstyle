@@ -4,10 +4,12 @@ import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.IMerchant;
+import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
@@ -27,11 +29,15 @@ import java.io.IOException;
 @SideOnly(Side.CLIENT)
 public class GuiVillager extends GuiContainer
 {
-    private static final Logger LOGGER = LogManager.getLogger();
+    /** The old x position of the mouse pointer */
+    private float oldMouseX;
+    /** The old y position of the mouse pointer */
+    private float oldMouseY;
     /** The GUI texture for the villager merchant GUI. */
     private static final ResourceLocation MERCHANT_GUI_TEXTURE = new ResourceLocation("textures/gui/container/merchant.png");
     /** The current IMerchant instance in use for this specific merchant. */
     private final IMerchant merchant;
+    private final EntityVillager entityVillager;
     /** The button which proceeds to the next available merchant recipe. */
     private GuiVillager.MerchantButton nextButton;
     /** Returns to the previous Merchant recipe if one is applicable. */
@@ -41,10 +47,11 @@ public class GuiVillager extends GuiContainer
     /** The chat component utilized by this GuiVillager instance. */
     private final ITextComponent chatComponent;
 
-    public GuiVillager(InventoryPlayer p_i45500_1_, IMerchant p_i45500_2_, World worldIn)
+    public GuiVillager(InventoryPlayer p_i45500_1_, IMerchant p_i45500_2_, EntityVillager entityVillager, World worldIn)
     {
         super(new ContainerVillager(p_i45500_1_, p_i45500_2_, worldIn));
         this.merchant = p_i45500_2_;
+        this.entityVillager = entityVillager;
         this.chatComponent = p_i45500_2_.getDisplayName();
     }
 
@@ -55,8 +62,9 @@ public class GuiVillager extends GuiContainer
     public void initGui()
     {
         super.initGui();
-        int i = (this.width - this.xSize) / 2;
-        int j = (this.height - this.ySize) / 2;
+        this.guiLeft = (this.width - this.xSize) / 2 + 75;
+        int i = this.guiLeft;
+        int j = this.guiTop;
         this.nextButton = (GuiVillager.MerchantButton)this.addButton(new GuiVillager.MerchantButton(1, i + 120 + 27, j + 24 - 1, true));
         this.previousButton = (GuiVillager.MerchantButton)this.addButton(new GuiVillager.MerchantButton(2, i + 36 - 19, j + 24 - 1, false));
         this.nextButton.enabled = false;
@@ -135,8 +143,8 @@ public class GuiVillager extends GuiContainer
     {
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         this.mc.getTextureManager().bindTexture(MERCHANT_GUI_TEXTURE);
-        int i = (this.width - this.xSize) / 2;
-        int j = (this.height - this.ySize) / 2;
+        int i = this.guiLeft;
+        int j = this.guiTop;
         this.drawTexturedModalRect(i, j, 0, 0, this.xSize, this.ySize);
         MerchantRecipeList merchantrecipelist = this.merchant.getRecipes(this.mc.player);
 
@@ -156,10 +164,12 @@ public class GuiVillager extends GuiContainer
                 this.mc.getTextureManager().bindTexture(MERCHANT_GUI_TEXTURE);
                 GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                 GlStateManager.disableLighting();
-                this.drawTexturedModalRect(this.guiLeft + 83, this.guiTop + 21, 212, 0, 28, 21);
-                this.drawTexturedModalRect(this.guiLeft + 83, this.guiTop + 51, 212, 0, 28, 21);
+                this.drawTexturedModalRect(i + 83, j + 21, 212, 0, 28, 21);
+                this.drawTexturedModalRect(i + 83, j + 51, 212, 0, 28, 21);
             }
         }
+
+        GuiInventory.drawEntityOnScreen(i + 33, j + 75, 30, (float)(i + 33) - this.oldMouseX, (float)(j + 75 - 50) - this.oldMouseY, (EntityVillager) this.entityVillager);
     }
 
     /**
@@ -173,8 +183,8 @@ public class GuiVillager extends GuiContainer
 
         if (merchantrecipelist != null && !merchantrecipelist.isEmpty())
         {
-            int i = (this.width - this.xSize) / 2;
-            int j = (this.height - this.ySize) / 2;
+            int i = this.guiLeft;
+            int j = this.guiTop;
             int k = this.selectedMerchantRecipe;
             MerchantRecipe merchantrecipe = (MerchantRecipe)merchantrecipelist.get(k);
             ItemStack itemstack = merchantrecipe.getItemToBuy();
@@ -225,6 +235,8 @@ public class GuiVillager extends GuiContainer
         }
 
         this.renderHoveredToolTip(mouseX, mouseY);
+        this.oldMouseX = (float)mouseX;
+        this.oldMouseY = (float)mouseY;
     }
 
     public IMerchant getMerchant()

@@ -138,19 +138,7 @@ public class ContainerVillager extends Container
 
         if (!this.world.isRemote)
         {
-            ItemStack itemstack = this.merchantInventory.removeStackFromSlot(0);
-
-            if (!itemstack.isEmpty())
-            {
-                playerIn.dropItem(itemstack, false);
-            }
-
-            itemstack = this.merchantInventory.removeStackFromSlot(1);
-
-            if (!itemstack.isEmpty())
-            {
-                playerIn.dropItem(itemstack, false);
-            }
+            this.clearContainer(playerIn, this.world, this.merchantInventory);
         }
     }
 }

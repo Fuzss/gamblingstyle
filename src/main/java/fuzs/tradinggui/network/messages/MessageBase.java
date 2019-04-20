@@ -1,5 +1,6 @@
 package fuzs.tradinggui.network.messages;
 
+import fuzs.tradinggui.TradingGUI;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
@@ -12,7 +13,7 @@ public abstract class MessageBase<T extends IMessage> implements IMessage, IMess
     @Override
     public T onMessage(T message, MessageContext context){
         if(context.side == Side.CLIENT) {
-            handleClientSide(message, Minecraft.getMinecraft().player);
+            handleClientSide(message, TradingGUI.proxy.getClientPlayer());
         } else {
             handleServerSide(message, context.getServerHandler().player);
         }

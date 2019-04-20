@@ -16,6 +16,7 @@ import net.minecraft.village.MerchantRecipeList;
 import net.minecraft.world.World;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.registry.VillagerRegistry;
 
 public class EventHandler {
 
@@ -36,7 +37,7 @@ public class EventHandler {
         }
     }
 
-    private void displayVillagerTradeGui(EntityPlayerMP player, IMerchant villager)
+    private void displayVillagerTradeGui(EntityPlayerMP player, EntityVillager villager)
     {
         player.getNextWindowId();
         player.openContainer = new ContainerVillager(player.inventory, villager, player.world);
@@ -44,10 +45,10 @@ public class EventHandler {
         player.openContainer.addListener(player);
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.event.entity.player.PlayerContainerEvent.Open(player, player.openContainer));
         IInventory iinventory = ((ContainerVillager) player.openContainer).getMerchantInventory();
-        ITextComponent itextcomponent = villager.getDisplayName();
-        NetworkHandler.sendTo(new MessageOpenWindow(player.currentWindowId, itextcomponent, iinventory.getSizeInventory()), player);
+        ITextComponent itextcomponent = ((IMerchant) villager).getDisplayName();
+        NetworkHandler.sendTo(new MessageOpenWindow(player.currentWindowId, itextcomponent, iinventory.getSizeInventory(), villager.getEntityId()), player);
 
-        MerchantRecipeList merchantrecipelist = villager.getRecipes(player);
+        MerchantRecipeList merchantrecipelist = ((IMerchant) villager).getRecipes(player);
 
         if (merchantrecipelist != null) {
             PacketBuffer packetbuffer = new PacketBuffer(Unpooled.buffer());
