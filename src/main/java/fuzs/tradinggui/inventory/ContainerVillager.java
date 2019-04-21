@@ -90,14 +90,7 @@ public class ContainerVillager extends Container
             }
             else if (index != 0 && index != 1)
             {
-                if (index >= 3 && index < 30)
-                {
-                    if (!this.mergeItemStack(itemstack1, 30, 39, false))
-                    {
-                        return ItemStack.EMPTY;
-                    }
-                }
-                else if (index >= 30 && index < 39 && !this.mergeItemStack(itemstack1, 3, 30, false))
+                if (index >= 3 && index < 39 && !this.mergeItemStack(itemstack1, 0, 2, false))
                 {
                     return ItemStack.EMPTY;
                 }

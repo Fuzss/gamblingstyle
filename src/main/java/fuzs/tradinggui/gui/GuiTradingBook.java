@@ -3,16 +3,21 @@ package fuzs.tradinggui.gui;
 import com.google.common.collect.Lists;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.settings.GameSettings;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.village.MerchantRecipe;
 import net.minecraft.village.MerchantRecipeList;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import org.lwjgl.input.Keyboard;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
 
 @SideOnly(Side.CLIENT)
 public class GuiTradingBook extends Gui
@@ -27,6 +32,8 @@ public class GuiTradingBook extends Gui
 
     private GuiButtonTradingRecipe hoveredButton;
     private List<GuiButtonTradingRecipe> buttons = Lists.<GuiButtonTradingRecipe>newArrayListWithCapacity(20);
+    private GuiTextField searchField;
+    private String lastSearch = "";
     private int guiLeft;
     private int guiTop;
 
@@ -38,11 +45,23 @@ public class GuiTradingBook extends Gui
         this.guiLeft = (this.width - xSize) / 2 - this.xOffset;
         this.guiTop = (this.height - ySize) / 2;
 
+        Keyboard.enableRepeatEvents(true);
+        this.searchField = new GuiTextField(0, mc.fontRenderer, this.guiLeft + 9, this.guiTop + 9, 80, mc.fontRenderer.FONT_HEIGHT);
+        this.searchField.setMaxStringLength(50);
+        this.searchField.setEnableBackgroundDrawing(false);
+        this.searchField.setVisible(true);
+        this.searchField.setTextColor(16777215);
+
         for (int i = 0; i < 20; ++i)
         {
             this.buttons.add(new GuiButtonTradingRecipe());
         }
 
+    }
+
+    public void removed()
+    {
+        Keyboard.enableRepeatEvents(false);
     }
 
     public void update(MerchantRecipeList merchantrecipelist)
@@ -64,13 +83,18 @@ public class GuiTradingBook extends Gui
         this.mc.getTextureManager().bindTexture(RECIPE_BOOK);
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         this.drawTexturedModalRect(this.guiLeft, this.guiTop, 0, 0, this.xSize, this.ySize);
+        this.searchField.drawTextBox();
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderHelper.disableStandardItemLighting();
 
         this.hoveredButton = null;
         for (GuiButtonTradingRecipe guiButtonTradingRecipe : this.buttons) {
             if (guiButtonTradingRecipe.hasRecipe()) {
-                guiButtonTradingRecipe.drawButton(this.mc, mouseX, mouseY, partialTicks);
+                if (guiButtonTradingRecipe.visible) {
+                    guiButtonTradingRecipe.drawButton(this.mc, mouseX, mouseY, partialTicks);
+                }
 
-                if (guiButtonTradingRecipe.visible && guiButtonTradingRecipe.isMouseOver())
+                if (guiButtonTradingRecipe.isMouseOver())
                 {
                     this.hoveredButton = guiButtonTradingRecipe;
                 }
@@ -79,7 +103,6 @@ public class GuiTradingBook extends Gui
             }
         }
 
-        RenderHelper.disableStandardItemLighting();
         GlStateManager.popMatrix();
     }
 
@@ -94,10 +117,55 @@ public class GuiTradingBook extends Gui
         }
     }
 
+    public boolean mouseClicked(int mouseX, int mouseY, int mouseButton)
+    {
+        if (this.searchField.mouseClicked(mouseX, mouseY, mouseButton))
+        {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     public boolean hasClickedOutside(int mouseX, int mouseY, int guiLeft, int guiTop, int xSize, int ySize)
     {
         boolean flag = mouseX < guiLeft || mouseY < guiTop || mouseX >= guiLeft + xSize || mouseY >= guiTop + ySize;
         boolean flag1 = guiLeft - this.xSize < mouseX && mouseX < guiLeft && guiTop < mouseY && mouseY < guiTop + ySize;
         return flag && !flag1;
+    }
+
+    public boolean keyPressed(char typedChar, int keycode)
+    {
+        if (GameSettings.isKeyDown(this.mc.gameSettings.keyBindChat) && !this.searchField.isFocused())
+        {
+            this.searchField.setFocused(true);
+        }
+        else if (this.searchField.textboxKeyTyped(typedChar, keycode))
+        {
+            String s1 = this.searchField.getText().toLowerCase(Locale.ROOT);
+
+            if (!s1.equals(this.lastSearch))
+            {
+                this.updateVisibility(s1);
+                this.lastSearch = s1;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private void updateVisibility(String s) {
+        for (GuiButtonTradingRecipe guiButtonTradingRecipe : this.buttons) {
+            if (guiButtonTradingRecipe.getCombinedTooltip() != null) {
+                if (!s.isEmpty()) {
+                    List<String> list = guiButtonTradingRecipe.getCombinedTooltip().stream().map(it -> it.toLowerCase(Locale.ROOT)).collect(Collectors.toList());
+                    guiButtonTradingRecipe.visible = !list.stream().filter(it -> it.contains(s)).collect(Collectors.toList()).isEmpty();
+                } else {
+                    guiButtonTradingRecipe.visible = true;
+                }
+            }
+        }
     }
 }

@@ -62,6 +62,15 @@ public class GuiVillager extends GuiContainer
     }
 
     /**
+     * Called when the screen is unloaded. Used to disable keyboard repeat events
+     */
+    public void onGuiClosed()
+    {
+        this.tradingBookGui.removed();
+        super.onGuiClosed();
+    }
+
+    /**
      * Draw the foreground layer for the GuiContainer (everything in front of the items)
      */
     protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY)
@@ -143,6 +152,17 @@ public class GuiVillager extends GuiContainer
     }
 
     /**
+     * Called when the mouse is clicked. Args : mouseX, mouseY, clickedButton
+     */
+    protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException
+    {
+        if (!this.tradingBookGui.mouseClicked(mouseX, mouseY, mouseButton))
+        {
+            super.mouseClicked(mouseX, mouseY, mouseButton);
+        }
+    }
+
+    /**
      * Draws the screen and all the components in it.
      */
     public void drawScreen(int mouseX, int mouseY, float partialTicks)
@@ -179,6 +199,18 @@ public class GuiVillager extends GuiContainer
         this.tradingBookGui.renderTooltip(mouseX, mouseY);
         this.oldMouseX = (float)mouseX;
         this.oldMouseY = (float)mouseY;
+    }
+
+    /**
+     * Fired when a key is typed (except F11 which toggles full screen). This is the equivalent of
+     * KeyListener.keyTyped(KeyEvent e). Args : character (character on the key), keyCode (lwjgl Keyboard key code)
+     */
+    protected void keyTyped(char typedChar, int keyCode) throws IOException
+    {
+        if (!this.tradingBookGui.keyPressed(typedChar, keyCode))
+        {
+            super.keyTyped(typedChar, keyCode);
+        }
     }
 
     public IMerchant getMerchant()
