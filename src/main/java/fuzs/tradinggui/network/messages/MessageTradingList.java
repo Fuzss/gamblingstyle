@@ -1,6 +1,6 @@
 package fuzs.tradinggui.network.messages;
 
-import fuzs.tradinggui.inventory.GuiVillager;
+import fuzs.tradinggui.gui.GuiVillager;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;

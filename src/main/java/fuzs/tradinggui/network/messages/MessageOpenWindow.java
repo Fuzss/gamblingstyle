@@ -1,13 +1,13 @@
 package fuzs.tradinggui.network.messages;
 
-import fuzs.tradinggui.inventory.GuiVillager;
+import fuzs.tradinggui.gui.GuiVillager;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.IMerchant;
 import net.minecraft.entity.NpcMerchant;
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.network.PacketThreadUtil;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
@@ -51,9 +51,11 @@ public class MessageOpenWindow extends MessageBase<MessageOpenWindow>
 
     @Override
     public void handleClientSide(MessageOpenWindow message, EntityPlayer player) {
+        Minecraft mc = Minecraft.getMinecraft();
+        //PacketThreadUtil.checkThreadAndEnqueue(message, this, mc);
         World worldIn = player.world;
         Entity entity = worldIn.getEntityByID(message.entityId);
-        Minecraft.getMinecraft().displayGuiScreen(new GuiVillager(player.inventory, new NpcMerchant(player, message.getWindowTitle()), (EntityVillager) entity, worldIn));
+        mc.displayGuiScreen(new GuiVillager(player.inventory, new NpcMerchant(player, message.getWindowTitle()), (EntityVillager) entity, worldIn));
         player.openContainer.windowId = message.getWindowId();
     }
 
