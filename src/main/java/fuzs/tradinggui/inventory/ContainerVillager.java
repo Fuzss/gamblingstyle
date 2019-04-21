@@ -134,7 +134,6 @@ public class ContainerVillager extends Container
     {
         super.onContainerClosed(playerIn);
         this.merchant.setCustomer((EntityPlayer)null);
-        super.onContainerClosed(playerIn);
 
         if (!this.world.isRemote)
         {

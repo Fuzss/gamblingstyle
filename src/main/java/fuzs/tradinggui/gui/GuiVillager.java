@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.IMerchant;
 import net.minecraft.entity.passive.EntityVillager;
@@ -56,8 +57,8 @@ public class GuiVillager extends GuiContainer
     public void initGui()
     {
         super.initGui();
+        this.guiLeft = (this.width - this.xSize) / 2 + 57;
         this.tradingBookGui.initGui(this.mc, this.width, this.height);
-        this.tradingBookGui.setVisible(false);
     }
 
     /**
@@ -81,9 +82,13 @@ public class GuiVillager extends GuiContainer
         if (merchantrecipelist != null)
         {
             this.tradingBookGui.update(merchantrecipelist);
-            this.guiLeft = (this.width - this.xSize) / 2 + 57;
-            this.tradingBookGui.setVisible(true);
         }
+    }
+
+    protected boolean hasClickedOutside(int mouseX, int mouseY, int guiLeft, int guiTop)
+    {
+        boolean flag = mouseX < guiLeft || mouseY < guiTop || mouseX >= guiLeft + this.xSize || mouseY >= guiTop + this.ySize;
+        return this.tradingBookGui.hasClickedOutside(mouseX, mouseY, this.guiLeft, this.guiTop, this.xSize, this.ySize) && flag;
     }
 
     /**
@@ -123,7 +128,7 @@ public class GuiVillager extends GuiContainer
                 return;
             }
 
-            MerchantRecipe merchantrecipe = (MerchantRecipe)merchantrecipelist.get(k);
+            MerchantRecipe merchantrecipe = merchantrecipelist.get(k);
 
             if (merchantrecipe.isRecipeDisabled())
             {
@@ -143,11 +148,35 @@ public class GuiVillager extends GuiContainer
     public void drawScreen(int mouseX, int mouseY, float partialTicks)
     {
         this.drawDefaultBackground();
-        super.drawScreen(mouseX, mouseY, partialTicks);
 
         this.tradingBookGui.render(mouseX, mouseY, partialTicks);
+        super.drawScreen(mouseX, mouseY, partialTicks);
+
+        MerchantRecipeList merchantrecipelist = this.merchant.getRecipes(this.mc.player);
+
+        if (merchantrecipelist != null && !merchantrecipelist.isEmpty())
+        {
+
+            int k = this.selectedMerchantRecipe;
+            MerchantRecipe merchantrecipe = merchantrecipelist.get(k);
+            GlStateManager.pushMatrix();
+            RenderHelper.enableGUIStandardItemLighting();
+            GlStateManager.disableLighting();
+            GlStateManager.enableRescaleNormal();
+            GlStateManager.enableColorMaterial();
+            if (merchantrecipe.isRecipeDisabled() && this.isPointInRegion(97, 32, 28, 21, mouseX, mouseY))
+            {
+                this.drawHoveringText(I18n.format("merchant.deprecated"), mouseX, mouseY);
+            }
+
+            GlStateManager.popMatrix();
+            GlStateManager.enableLighting();
+            GlStateManager.enableDepth();
+            RenderHelper.enableStandardItemLighting();
+        }
 
         this.renderHoveredToolTip(mouseX, mouseY);
+        this.tradingBookGui.renderTooltip(mouseX, mouseY);
         this.oldMouseX = (float)mouseX;
         this.oldMouseY = (float)mouseY;
     }
