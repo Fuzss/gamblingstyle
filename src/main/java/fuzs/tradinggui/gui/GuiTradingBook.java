@@ -17,7 +17,6 @@ import org.lwjgl.input.Keyboard;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 @SideOnly(Side.CLIENT)
 public class GuiTradingBook extends Gui
@@ -160,8 +159,8 @@ public class GuiTradingBook extends Gui
         for (GuiButtonTradingRecipe guiButtonTradingRecipe : this.buttons) {
             if (guiButtonTradingRecipe.getCombinedTooltip() != null) {
                 if (!s.isEmpty()) {
-                    List<String> list = guiButtonTradingRecipe.getCombinedTooltip().stream().map(it -> it.toLowerCase(Locale.ROOT)).collect(Collectors.toList());
-                    guiButtonTradingRecipe.visible = !list.stream().filter(it -> it.contains(s)).collect(Collectors.toList()).isEmpty();
+                    guiButtonTradingRecipe.visible = guiButtonTradingRecipe.getCombinedTooltip().stream()
+                            .map(it -> it.toLowerCase(Locale.ROOT)).anyMatch(it -> it.contains(s));
                 } else {
                     guiButtonTradingRecipe.visible = true;
                 }
