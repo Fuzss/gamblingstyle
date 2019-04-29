@@ -7,7 +7,6 @@ import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.settings.GameSettings;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.village.MerchantRecipe;
 import net.minecraft.village.MerchantRecipeList;
@@ -54,6 +53,7 @@ public class GuiTradingBook extends Gui
         for (int i = 0; i < 20; ++i)
         {
             this.buttons.add(new GuiButtonTradingRecipe());
+            this.buttons.get(i).setPosition(this.guiLeft + 8, this.guiTop + 21 + 25 * i);
         }
 
     }
@@ -68,8 +68,7 @@ public class GuiTradingBook extends Gui
         for (int i = 0; i < merchantrecipelist.size(); ++i)
         {
             MerchantRecipe activemerchantrecipe = merchantrecipelist.get(i);
-            this.buttons.get(i).init(activemerchantrecipe.getItemToBuy(), activemerchantrecipe.hasSecondItemToBuy() ? activemerchantrecipe.getSecondItemToBuy() : ItemStack.EMPTY, activemerchantrecipe.getItemToSell(), activemerchantrecipe.isRecipeDisabled());
-            this.buttons.get(i).setPosition(this.guiLeft + 8, this.guiTop + 21 + 25 * i);
+            this.buttons.get(i).init(activemerchantrecipe.getItemToBuy(), activemerchantrecipe.getSecondItemToBuy(), activemerchantrecipe.getItemToSell(), activemerchantrecipe.isRecipeDisabled());
         }
     }
 
