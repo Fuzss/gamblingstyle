@@ -29,11 +29,14 @@ public class GuiTradingBook extends Gui
     private Minecraft mc;
 
     private GuiButtonTradingRecipe hoveredButton;
-    private List<GuiButtonTradingRecipe> buttons = Lists.<GuiButtonTradingRecipe>newArrayListWithCapacity(20);
+    private List<GuiButtonTradingRecipe> buttons = Lists.newArrayListWithCapacity(4);
     private GuiTextField searchField;
     private String lastSearch = "";
     private int guiLeft;
     private int guiTop;
+    private boolean sentRecipeList;
+    private boolean populate;
+    private TradingRecipeList tradingRecipeList;
 
     public void initGui(Minecraft mc, int width, int height)
     {
@@ -44,16 +47,20 @@ public class GuiTradingBook extends Gui
         this.guiTop = (this.height - ySize) / 2;
 
         Keyboard.enableRepeatEvents(true);
-        this.searchField = new GuiTextField(0, mc.fontRenderer, this.guiLeft + 9, this.guiTop + 9, 80, mc.fontRenderer.FONT_HEIGHT);
+        this.searchField = new GuiTextField(0, mc.fontRenderer, this.guiLeft + 9, this.guiTop + 9,
+                80, mc.fontRenderer.FONT_HEIGHT);
         this.searchField.setMaxStringLength(50);
         this.searchField.setEnableBackgroundDrawing(false);
         this.searchField.setVisible(true);
         this.searchField.setTextColor(16777215);
+        this.sentRecipeList = false;
+        this.populate = false;
 
-        for (int i = 0; i < 20; ++i)
+        for (int i = 0; i <= 4; ++i)
         {
             this.buttons.add(new GuiButtonTradingRecipe());
             this.buttons.get(i).setPosition(this.guiLeft + 8, this.guiTop + 21 + 25 * i);
+            this.buttons.get(i).visible = false;
         }
 
     }
@@ -65,10 +72,36 @@ public class GuiTradingBook extends Gui
 
     public void update(MerchantRecipeList merchantrecipelist)
     {
-        for (int i = 0; i < merchantrecipelist.size(); ++i)
-        {
-            MerchantRecipe activemerchantrecipe = merchantrecipelist.get(i);
-            this.buttons.get(i).init(activemerchantrecipe.getItemToBuy(), activemerchantrecipe.getSecondItemToBuy(), activemerchantrecipe.getItemToSell(), activemerchantrecipe.isRecipeDisabled());
+        if (!this.sentRecipeList) {
+            this.tradingRecipeList = new TradingRecipeList(merchantrecipelist);
+            this.sentRecipeList = true;
+            this.populate = true;
+        }
+
+        if (this.tradingRecipeList != null && this.populate) {
+
+            int i = 0;
+
+            for (GuiButtonTradingRecipe guiButtonTradingRecipe : this.buttons) {
+
+                guiButtonTradingRecipe.visible = false;
+
+                for (int j = i; j < this.tradingRecipeList.size(); j++) {
+
+                    TradingRecipe tradingRecipe = this.tradingRecipeList.get(j);
+                    
+                    if (tradingRecipe.isValidRecipe() && tradingRecipe.getIsSearchResult()) {
+                        guiButtonTradingRecipe.setContents(tradingRecipe.getItemToBuy(),
+                                tradingRecipe.getSecondItemToBuy(), tradingRecipe.getItemToSell(), false);
+                        i = j + 1;
+                        guiButtonTradingRecipe.visible = true;
+                        break;
+                    } else {
+                        i++;
+                    }
+                }
+
+            }
         }
     }
 
@@ -86,19 +119,16 @@ public class GuiTradingBook extends Gui
         RenderHelper.disableStandardItemLighting();
 
         this.hoveredButton = null;
-        for (GuiButtonTradingRecipe guiButtonTradingRecipe : this.buttons) {
-            if (guiButtonTradingRecipe.hasRecipe()) {
-                if (guiButtonTradingRecipe.visible) {
-                    guiButtonTradingRecipe.drawButton(this.mc, mouseX, mouseY, partialTicks);
-                }
 
-                if (guiButtonTradingRecipe.isMouseOver())
-                {
-                    this.hoveredButton = guiButtonTradingRecipe;
-                }
-            } else {
-                break;
+        for (GuiButtonTradingRecipe guiButtonTradingRecipe : this.buttons) {
+
+            guiButtonTradingRecipe.drawButton(this.mc, mouseX, mouseY, partialTicks);
+
+            if (guiButtonTradingRecipe.isMouseOver() && guiButtonTradingRecipe.visible)
+            {
+                this.hoveredButton = guiButtonTradingRecipe;
             }
+
         }
 
         GlStateManager.popMatrix();
@@ -117,12 +147,7 @@ public class GuiTradingBook extends Gui
 
     public boolean mouseClicked(int mouseX, int mouseY, int mouseButton)
     {
-        if (this.searchField.mouseClicked(mouseX, mouseY, mouseButton))
-        {
-            return true;
-        } else {
-            return false;
-        }
+        return this.searchField.mouseClicked(mouseX, mouseY, mouseButton);
     }
 
     public boolean hasClickedOutside(int mouseX, int mouseY, int guiLeft, int guiTop, int xSize, int ySize)
@@ -144,26 +169,14 @@ public class GuiTradingBook extends Gui
 
             if (!s1.equals(this.lastSearch))
             {
-                this.updateVisibility(s1);
+                this.tradingRecipeList.searchQuery(s1, this.mc);
                 this.lastSearch = s1;
+                this.populate = true;
             }
 
             return true;
         }
 
         return false;
-    }
-
-    private void updateVisibility(String s) {
-        for (GuiButtonTradingRecipe guiButtonTradingRecipe : this.buttons) {
-            if (guiButtonTradingRecipe.getCombinedTooltip() != null) {
-                if (!s.isEmpty()) {
-                    guiButtonTradingRecipe.visible = guiButtonTradingRecipe.getCombinedTooltip().stream()
-                            .map(it -> it.toLowerCase(Locale.ROOT)).anyMatch(it -> it.contains(s));
-                } else {
-                    guiButtonTradingRecipe.visible = true;
-                }
-            }
-        }
     }
 }

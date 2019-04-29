@@ -20,9 +20,9 @@ public class GuiButtonTradingRecipe extends GuiButton
 {
     private static final ResourceLocation RECIPE_BOOK = new ResourceLocation("textures/gui/container/merchant_book.png");
 
-    private ItemStack input1;
-    private ItemStack input2;
-    private ItemStack output;
+    private ItemStack input1 = ItemStack.EMPTY;
+    private ItemStack input2 = ItemStack.EMPTY;
+    private ItemStack output = ItemStack.EMPTY;
     private boolean soldOut;
 
     public GuiButtonTradingRecipe()
@@ -30,7 +30,7 @@ public class GuiButtonTradingRecipe extends GuiButton
         super(0, 0, 0, 88, 25, "");
     }
 
-    public void init(ItemStack itemStack, ItemStack itemStack1, ItemStack itemStack2, boolean soldOut)
+    public void setContents(ItemStack itemStack, ItemStack itemStack1, ItemStack itemStack2, boolean soldOut)
     {
         this.input1 = itemStack;
         this.input2 = itemStack1;
@@ -40,27 +40,13 @@ public class GuiButtonTradingRecipe extends GuiButton
 
     public boolean hasRecipe()
     {
-        return this.output != null && this.input1 != null;
+        return !this.output.isEmpty() && !this.input1.isEmpty();
     }
 
     public void setPosition(int posX, int posY)
     {
         this.x = posX;
         this.y = posY;
-    }
-
-    public List<String> getCombinedTooltip() {
-        if (hasRecipe()) {
-            ITooltipFlag tooltipFlag = ITooltipFlag.TooltipFlags.NORMAL;
-            List<String> list = input1.getTooltip(null, tooltipFlag);
-            list.addAll(output.getTooltip(null, tooltipFlag));
-            if (!input2.isEmpty()) {
-                list.addAll(input2.getTooltip(null, tooltipFlag));
-            }
-            return list;
-        } else {
-            return null;
-        }
     }
 
     /**
