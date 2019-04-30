@@ -4,6 +4,7 @@ import fuzs.tradinggui.inventory.ContainerVillager;
 import fuzs.tradinggui.network.NetworkHandler;
 import fuzs.tradinggui.network.messages.MessageOpenWindow;
 import fuzs.tradinggui.network.messages.MessageTradingList;
+import fuzs.tradinggui.util.IPrivateAccessor;
 import io.netty.buffer.Unpooled;
 import net.minecraft.entity.IMerchant;
 import net.minecraft.entity.passive.EntityVillager;
@@ -14,10 +15,11 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.village.MerchantRecipeList;
 import net.minecraft.world.World;
+import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-public class EventHandler {
+public class EventHandler implements IPrivateAccessor {
 
     @SubscribeEvent
     public void interact(PlayerInteractEvent.EntityInteract evt) {
@@ -45,7 +47,7 @@ public class EventHandler {
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.event.entity.player.PlayerContainerEvent.Open(player, player.openContainer));
         IInventory iinventory = ((ContainerVillager) player.openContainer).getMerchantInventory();
         ITextComponent itextcomponent = ((IMerchant) villager).getDisplayName();
-        NetworkHandler.sendTo(new MessageOpenWindow(player.currentWindowId, itextcomponent, iinventory.getSizeInventory(), villager.getEntityId()), player);
+        NetworkHandler.sendTo(new MessageOpenWindow(player.currentWindowId, itextcomponent, iinventory.getSizeInventory(), villager), player);
 
         MerchantRecipeList merchantrecipelist = ((IMerchant) villager).getRecipes(player);
 
@@ -54,6 +56,16 @@ public class EventHandler {
             packetbuffer.writeInt(player.currentWindowId);
             merchantrecipelist.writeToBuf(packetbuffer);
             NetworkHandler.sendTo(new MessageTradingList(packetbuffer), player);
+        }
+    }
+
+    public void updateEvent(LivingEvent.LivingUpdateEvent evt) {
+        if (evt.getEntity() instanceof EntityVillager) {
+            if (!evt.getEntity().world.isRemote) {
+                System.out.println("Server says: " + this.getWealth((EntityVillager) evt.getEntity()));
+            } else {
+                System.out.println("Client says: " + this.getWealth((EntityVillager) evt.getEntity()));
+            }
         }
     }
 

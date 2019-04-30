@@ -1,36 +1,37 @@
 package fuzs.tradinggui.network.messages;
 
 import fuzs.tradinggui.gui.GuiVillager;
+import fuzs.tradinggui.util.IPrivateAccessor;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.NpcMerchant;
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.network.PacketThreadUtil;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-public class MessageOpenWindow extends MessageBase<MessageOpenWindow>
+public class MessageOpenWindow extends MessageBase<MessageOpenWindow> implements IPrivateAccessor
 {
     private int windowId;
     private ITextComponent windowTitle;
     private int slotCount;
+    private int wealth;
     private int entityId;
 
-    //Required because MineMaarten said so :P
     public MessageOpenWindow() {
     }
 
-    public MessageOpenWindow(int windowIdIn, ITextComponent windowTitleIn, int slotCountIn, int entityIdIn)
+    public MessageOpenWindow(int windowIdIn, ITextComponent windowTitleIn, int slotCountIn, EntityVillager entityIn)
     {
         this.windowId = windowIdIn;
         this.windowTitle = windowTitleIn;
         this.slotCount = slotCountIn;
-        this.entityId = entityIdIn;
+        this.wealth = this.getWealth(entityIn);
+        this.entityId = entityIn.getEntityId();
     }
 
     @Override
@@ -38,6 +39,7 @@ public class MessageOpenWindow extends MessageBase<MessageOpenWindow>
         this.windowId = buf.readUnsignedByte();
         this.windowTitle = ITextComponent.Serializer.jsonToComponent(ByteBufUtils.readUTF8String(buf));
         this.slotCount = buf.readUnsignedByte();
+        this.wealth = buf.readUnsignedByte();
         this.entityId = buf.readInt();
     }
 
@@ -46,6 +48,7 @@ public class MessageOpenWindow extends MessageBase<MessageOpenWindow>
         buf.writeByte(this.windowId);
         ByteBufUtils.writeUTF8String(buf, ITextComponent.Serializer.componentToJson(this.windowTitle));
         buf.writeByte(this.slotCount);
+        buf.writeByte(this.wealth);
         buf.writeInt(this.entityId);
     }
 
@@ -55,8 +58,12 @@ public class MessageOpenWindow extends MessageBase<MessageOpenWindow>
         //PacketThreadUtil.checkThreadAndEnqueue(message, this, mc);
         World worldIn = player.world;
         Entity entity = worldIn.getEntityByID(message.entityId);
-        mc.displayGuiScreen(new GuiVillager(player.inventory, new NpcMerchant(player, message.getWindowTitle()), (EntityVillager) entity, worldIn));
-        player.openContainer.windowId = message.getWindowId();
+        if (entity instanceof EntityVillager) {
+            EntityVillager entityVillager = (EntityVillager) entity;
+            this.setWealth(entityVillager, message.getWealth());
+            mc.displayGuiScreen(new GuiVillager(player.inventory, new NpcMerchant(player, message.getWindowTitle()), entityVillager, worldIn));
+            player.openContainer.windowId = message.getWindowId();
+        }
     }
 
     @Override
@@ -64,32 +71,20 @@ public class MessageOpenWindow extends MessageBase<MessageOpenWindow>
     }
 
     @SideOnly(Side.CLIENT)
-    public int getWindowId()
+    private int getWindowId()
     {
         return this.windowId;
     }
 
     @SideOnly(Side.CLIENT)
-    public ITextComponent getWindowTitle()
+    private ITextComponent getWindowTitle()
     {
         return this.windowTitle;
     }
 
     @SideOnly(Side.CLIENT)
-    public int getSlotCount()
+    private int getWealth()
     {
-        return this.slotCount;
-    }
-
-    @SideOnly(Side.CLIENT)
-    public boolean hasSlots()
-    {
-        return this.slotCount > 0;
-    }
-
-    @SideOnly(Side.CLIENT)
-    public int getEntityId()
-    {
-        return this.entityId;
+        return this.wealth;
     }
 }

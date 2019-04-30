@@ -2,6 +2,7 @@ package fuzs.tradinggui.network;
 
 import fuzs.tradinggui.TradingGUI;
 import fuzs.tradinggui.network.messages.MessageOpenWindow;
+import fuzs.tradinggui.network.messages.MessageTradingData;
 import fuzs.tradinggui.network.messages.MessageTradingList;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
@@ -19,6 +20,7 @@ public class NetworkHandler {
 
         INSTANCE.registerMessage(MessageOpenWindow.class, MessageOpenWindow.class, nextDiscriminator(), Side.CLIENT);
         INSTANCE.registerMessage(MessageTradingList.class, MessageTradingList.class, nextDiscriminator(), Side.CLIENT);
+        INSTANCE.registerMessage(MessageTradingData.class, MessageTradingData.class, nextDiscriminator(), Side.SERVER);
     }
 
     public static void sendToServer(IMessage message){

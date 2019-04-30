@@ -20,27 +20,41 @@ public class GuiButtonTradingRecipe extends GuiButton
 {
     private static final ResourceLocation RECIPE_BOOK = new ResourceLocation("textures/gui/container/merchant_book.png");
 
-    private ItemStack input1 = ItemStack.EMPTY;
-    private ItemStack input2 = ItemStack.EMPTY;
-    private ItemStack output = ItemStack.EMPTY;
+    private ItemStack input1;
+    private ItemStack input2;
+    private ItemStack output;
     private boolean soldOut;
+    private int recipeId;
+    private boolean selectedRecipe;
 
-    public GuiButtonTradingRecipe()
+    public GuiButtonTradingRecipe(int id, int posX, int posY)
     {
-        super(0, 0, 0, 88, 25, "");
+        super(id, posX, posY, 88, 25, "");
+        this.recipeId = 0;
+        this.input1 = ItemStack.EMPTY;
+        this.input2 = ItemStack.EMPTY;
+        this.output = ItemStack.EMPTY;
+        this.soldOut = false;
+        this.selectedRecipe = false;
     }
 
-    public void setContents(ItemStack itemStack, ItemStack itemStack1, ItemStack itemStack2, boolean soldOut)
+    public void setContents(int id, ItemStack itemStack, ItemStack itemStack1, ItemStack itemStack2, boolean soldOut, boolean selected)
     {
+        this.recipeId = id;
         this.input1 = itemStack;
         this.input2 = itemStack1;
         this.output = itemStack2;
         this.soldOut = soldOut;
+        this.selectedRecipe = selected;
     }
 
     public boolean hasRecipe()
     {
         return !this.output.isEmpty() && !this.input1.isEmpty();
+    }
+
+    public int getRecipeId() {
+        return this.recipeId;
     }
 
     public void setPosition(int posX, int posY)
@@ -60,8 +74,17 @@ public class GuiButtonTradingRecipe extends GuiButton
             RenderHelper.enableGUIStandardItemLighting();
             mc.getTextureManager().bindTexture(RECIPE_BOOK);
             GlStateManager.disableLighting();
+
             int i = 112;
             int j = 0;
+
+            if (this.hovered) {
+                j += 25;
+            }
+
+            if (this.selectedRecipe) {
+                j += 100;
+            }
 
             this.drawTexturedModalRect(this.x, this.y, i, j, this.width, this.height);
 
@@ -78,7 +101,7 @@ public class GuiButtonTradingRecipe extends GuiButton
                 mc.getTextureManager().bindTexture(RECIPE_BOOK);
                 GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                 GlStateManager.disableLighting();
-                this.drawTexturedModalRect(this.x + 51, this.y + 5, 112, 50, 10, 15);
+                this.drawTexturedModalRect(this.x + 51, this.y + 5, 112, 150, 10, 15);
             }
 
             GlStateManager.enableLighting();

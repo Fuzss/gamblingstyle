@@ -20,7 +20,6 @@ public class MessageTradingList extends MessageBase<MessageTradingList> {
     private static final Logger LOGGER = LogManager.getLogger();
     private PacketBuffer data;
 
-    //Required because MineMaarten said so :P
     public MessageTradingList()
     {
     }
@@ -43,13 +42,19 @@ public class MessageTradingList extends MessageBase<MessageTradingList> {
         {
             this.data = new PacketBuffer(buf.readBytes(i));
         }
+        else
+        {
+            throw new IllegalArgumentException("Payload may not be larger than 1048576 bytes");
+        }
     }
 
     @Override
     public void toBytes(ByteBuf buf) {
-        this.data.markReaderIndex();
-        buf.writeBytes(this.data);
-        this.data.resetReaderIndex();
+        synchronized(this.data) {
+            this.data.markReaderIndex();
+            buf.writeBytes(this.data);
+            this.data.resetReaderIndex();
+        }
     }
 
     @Override
@@ -82,7 +87,7 @@ public class MessageTradingList extends MessageBase<MessageTradingList> {
     }
 
     @SideOnly(Side.CLIENT)
-    public PacketBuffer getBufferData()
+    private PacketBuffer getBufferData()
     {
         return this.data;
     }

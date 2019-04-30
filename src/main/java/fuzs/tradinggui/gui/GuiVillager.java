@@ -1,6 +1,9 @@
 package fuzs.tradinggui.gui;
 
 import fuzs.tradinggui.inventory.ContainerVillager;
+import fuzs.tradinggui.network.NetworkHandler;
+import fuzs.tradinggui.network.messages.MessageTradingData;
+import fuzs.tradinggui.util.IPrivateAccessor;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -12,7 +15,6 @@ import net.minecraft.entity.IMerchant;
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.network.play.client.CPacketCustomPayload;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.village.MerchantRecipe;
@@ -24,7 +26,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import java.io.IOException;
 
 @SideOnly(Side.CLIENT)
-public class GuiVillager extends GuiContainer
+public class GuiVillager extends GuiContainer implements IPrivateAccessor
 {
     /** The old x position of the mouse pointer */
     private float oldMouseX;
@@ -59,6 +61,8 @@ public class GuiVillager extends GuiContainer
         super.initGui();
         this.guiLeft = (this.width - this.xSize) / 2 + 57;
         this.tradingBookGui.initGui(this.mc, this.width, this.height);
+        this.selectedMerchantRecipe = this.getWealth(entityVillager);
+        this.sendSelectedRecipe();
     }
 
     /**
@@ -67,6 +71,12 @@ public class GuiVillager extends GuiContainer
     public void onGuiClosed()
     {
         this.tradingBookGui.removed();
+        PacketBuffer packetbuffer = new PacketBuffer(Unpooled.buffer());
+        packetbuffer.writeByte(this.selectedMerchantRecipe);
+        packetbuffer.writeInt(this.entityVillager.getEntityId());
+        NetworkHandler.sendToServer(new MessageTradingData(1, packetbuffer));
+        System.out.println("Package sent: Set wealth");
+        this.setWealth(this.entityVillager, this.selectedMerchantRecipe);
         super.onGuiClosed();
     }
 
@@ -98,22 +108,6 @@ public class GuiVillager extends GuiContainer
     {
         boolean flag = mouseX < guiLeft || mouseY < guiTop || mouseX >= guiLeft + this.xSize || mouseY >= guiTop + this.ySize;
         return this.tradingBookGui.hasClickedOutside(mouseX, mouseY, this.guiLeft, this.guiTop, this.xSize, this.ySize) && flag;
-    }
-
-    /**
-     * Called by the controls from the buttonList when activated. (Mouse pressed for buttons)
-     */
-    protected void actionPerformed(GuiButton button) throws IOException
-    {
-        boolean flag = false;
-
-        if (flag)
-        {
-            ((ContainerVillager)this.inventorySlots).setCurrentRecipeIndex(this.selectedMerchantRecipe);
-            PacketBuffer packetbuffer = new PacketBuffer(Unpooled.buffer());
-            packetbuffer.writeInt(this.selectedMerchantRecipe);
-            this.mc.getConnection().sendPacket(new CPacketCustomPayload("MC|TrSel", packetbuffer));
-        }
     }
 
     /**
@@ -156,10 +150,33 @@ public class GuiVillager extends GuiContainer
      */
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException
     {
-        if (!this.tradingBookGui.mouseClicked(mouseX, mouseY, mouseButton))
+        int i = this.tradingBookGui.mouseClicked(mouseX, mouseY, mouseButton);
+        if (i >= -1)
         {
+            if (i >= 0 && this.selectedMerchantRecipe != i) {
+                this.selectedMerchantRecipe = i;
+                this.sendSelectedRecipe();
+            }
             super.mouseClicked(mouseX, mouseY, mouseButton);
         }
+    }
+
+    private void sendSelectedRecipe() {
+        ((ContainerVillager)this.inventorySlots).setCurrentRecipeIndex(this.selectedMerchantRecipe);
+        this.tradingBookGui.setSelectedTradingRecipe(this.selectedMerchantRecipe);
+        PacketBuffer packetbuffer = new PacketBuffer(Unpooled.buffer());
+        packetbuffer.writeInt(this.selectedMerchantRecipe);
+        NetworkHandler.sendToServer(new MessageTradingData(0, packetbuffer));
+        System.out.println("Package sent: Set trades");
+    }
+
+    /**
+     * Called when a mouse button is released.
+     */
+    protected void mouseReleased(int mouseX, int mouseY, int state)
+    {
+        this.tradingBookGui.mouseReleased(mouseX, mouseY, state);
+        super.mouseReleased(mouseX, mouseY, state);
     }
 
     /**

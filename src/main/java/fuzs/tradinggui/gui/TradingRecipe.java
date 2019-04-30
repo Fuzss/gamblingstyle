@@ -30,6 +30,7 @@ public class TradingRecipe {
         this.secondItemToBuy = buy2;
         this.itemToSell = sell;
         this.isSearchResult = true;
+        this.isSelected = false;
     }
 
     /**
@@ -70,6 +71,14 @@ public class TradingRecipe {
 
     public void setIsSearchResult(boolean flag) {
         this.isSearchResult = flag;
+    }
+
+    public boolean getIsSelected() {
+        return isSelected;
+    }
+
+    public void setIsSelected(boolean flag) {
+        this.isSelected = flag;
     }
 
     public boolean isValidRecipe()
