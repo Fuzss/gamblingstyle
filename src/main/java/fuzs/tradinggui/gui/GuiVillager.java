@@ -5,7 +5,6 @@ import fuzs.tradinggui.network.NetworkHandler;
 import fuzs.tradinggui.network.messages.MessageTradingData;
 import fuzs.tradinggui.util.IPrivateAccessor;
 import io.netty.buffer.Unpooled;
-import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.renderer.GlStateManager;
@@ -14,6 +13,7 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.IMerchant;
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.inventory.Slot;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
@@ -28,10 +28,6 @@ import java.io.IOException;
 @SideOnly(Side.CLIENT)
 public class GuiVillager extends GuiContainer implements IPrivateAccessor
 {
-    /** The old x position of the mouse pointer */
-    private float oldMouseX;
-    /** The old y position of the mouse pointer */
-    private float oldMouseY;
     /** The GUI texture for the villager merchant GUI. */
     private static final ResourceLocation MERCHANT_GUI_TEXTURE = new ResourceLocation("textures/gui/container/merchant.png");
     /** The current IMerchant instance in use for this specific merchant. */
@@ -102,6 +98,9 @@ public class GuiVillager extends GuiContainer implements IPrivateAccessor
         {
             this.tradingBookGui.update(merchantrecipelist);
         }
+
+        Slot hoveredSlot = this.getSlotUnderMouse();
+        this.tradingBookGui.hoveredSlot = hoveredSlot != null ? hoveredSlot.getHasStack() ? 2 : 1 : 0;
     }
 
     protected boolean hasClickedOutside(int mouseX, int mouseY, int guiLeft, int guiTop)
@@ -122,15 +121,9 @@ public class GuiVillager extends GuiContainer implements IPrivateAccessor
         this.drawTexturedModalRect(i, j, 0, 0, this.xSize, this.ySize);
         MerchantRecipeList merchantrecipelist = this.merchant.getRecipes(this.mc.player);
 
-        if (merchantrecipelist != null && !merchantrecipelist.isEmpty())
+        if (merchantrecipelist != null)
         {
             int k = this.selectedMerchantRecipe;
-
-            if (k < 0 || k >= merchantrecipelist.size())
-            {
-                return;
-            }
-
             MerchantRecipe merchantrecipe = merchantrecipelist.get(k);
 
             if (merchantrecipe.isRecipeDisabled())
@@ -142,7 +135,8 @@ public class GuiVillager extends GuiContainer implements IPrivateAccessor
             }
         }
 
-        GuiInventory.drawEntityOnScreen(i + 33, j + 75, 30, (float)(i + 33) - this.oldMouseX, (float)(j + 75 - 50) - this.oldMouseY, (EntityVillager) this.entityVillager);
+        GuiInventory.drawEntityOnScreen(i + 33, j + 75, 30, i + 33 - mouseX,
+                j + 75 - 50 - mouseY, this.entityVillager);
     }
 
     /**
@@ -191,7 +185,7 @@ public class GuiVillager extends GuiContainer implements IPrivateAccessor
 
         MerchantRecipeList merchantrecipelist = this.merchant.getRecipes(this.mc.player);
 
-        if (merchantrecipelist != null && !merchantrecipelist.isEmpty())
+        if (merchantrecipelist != null)
         {
 
             int k = this.selectedMerchantRecipe;
@@ -214,8 +208,6 @@ public class GuiVillager extends GuiContainer implements IPrivateAccessor
 
         this.renderHoveredToolTip(mouseX, mouseY);
         this.tradingBookGui.renderTooltip(mouseX, mouseY);
-        this.oldMouseX = (float)mouseX;
-        this.oldMouseY = (float)mouseY;
     }
 
     /**

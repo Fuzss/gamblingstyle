@@ -2,6 +2,7 @@ package fuzs.tradinggui.inventory;
 
 import net.minecraft.entity.IMerchant;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.*;
 import net.minecraft.item.ItemStack;
@@ -131,6 +132,27 @@ public class ContainerVillager extends Container
         if (!this.world.isRemote)
         {
             this.clearContainer(playerIn, this.world, this.merchantInventory);
+        }
+    }
+
+    /**
+     * Clears leftover contents inside of the container.
+     */
+    protected void clearContainer(EntityPlayer playerIn, World worldIn, IInventory inventoryIn)
+    {
+        if (!playerIn.isEntityAlive() || playerIn instanceof EntityPlayerMP && ((EntityPlayerMP)playerIn).hasDisconnected())
+        {
+            for (int j = 0; j < inventoryIn.getSizeInventory() - 1; ++j)
+            {
+                playerIn.dropItem(inventoryIn.removeStackFromSlot(j), false);
+            }
+        }
+        else
+        {
+            for (int i = 0; i < inventoryIn.getSizeInventory() - 1; ++i)
+            {
+                playerIn.inventory.placeItemBackInInventory(worldIn, inventoryIn.removeStackFromSlot(i));
+            }
         }
     }
 }

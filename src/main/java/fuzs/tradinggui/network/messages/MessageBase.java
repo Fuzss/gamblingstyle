@@ -1,7 +1,6 @@
 package fuzs.tradinggui.network.messages;
 
 import fuzs.tradinggui.TradingGUI;
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;

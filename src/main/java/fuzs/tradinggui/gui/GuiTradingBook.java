@@ -40,6 +40,8 @@ public class GuiTradingBook extends Gui
     /** The button that was just pressed. */
     protected GuiButton selectedButton;
     private int selectedTradingRecipe;
+    private boolean clearSearch;
+    public int hoveredSlot;
 
     public void initGui(Minecraft mc, int width, int height)
     {
@@ -56,12 +58,14 @@ public class GuiTradingBook extends Gui
                 80, mc.fontRenderer.FONT_HEIGHT);
         this.searchField.setMaxStringLength(50);
         this.searchField.setEnableBackgroundDrawing(false);
-        this.searchField.setVisible(true);
+        this.searchField.setFocused(true);
+        this.searchField.setCanLoseFocus(false);
         this.searchField.setTextColor(16777215);
 
         this.sentRecipeList = false;
         this.populate = false;
         this.selectedTradingRecipe = 0;
+        this.clearSearch = false;
 
         for (int i = 0; i <= 4; ++i)
         {
@@ -127,6 +131,11 @@ public class GuiTradingBook extends Gui
 
             }
         }
+
+        if (this.clearSearch) {
+            this.searchField.setCursorPositionEnd();
+            this.searchField.setSelectionPos(0);
+        }
     }
 
     public void render(int mouseX, int mouseY, float partialTicks)
@@ -182,6 +191,7 @@ public class GuiTradingBook extends Gui
             for (GuiButtonTradingRecipe guiButtonTradingRecipe : this.buttonList) {
 
                 if (guiButtonTradingRecipe.mousePressed(this.mc, mouseX, mouseY)) {
+                    this.clearSearch = true;
                     this.selectedButton = guiButtonTradingRecipe;
                     guiButtonTradingRecipe.playPressSound(this.mc.getSoundHandler());
                     return guiButtonTradingRecipe.getRecipeId();
@@ -212,24 +222,48 @@ public class GuiTradingBook extends Gui
         return flag && !flag1;
     }
 
-    public boolean keyPressed(char typedChar, int keycode)
+    public boolean keyPressed(char typedChar, int keyCode)
     {
-        if (GameSettings.isKeyDown(this.mc.gameSettings.keyBindChat) && !this.searchField.isFocused())
-        {
-            this.searchField.setFocused(true);
+        if (this.checkValidKeys(keyCode)) {
+            return false;
         }
-        else if (this.searchField.textboxKeyTyped(typedChar, keycode))
+
+        if (this.clearSearch)
         {
+            this.searchField.setText("");
+            this.clearSearch = false;
+        }
+
+        if (this.searchField.textboxKeyTyped(typedChar, keyCode)) {
             String s1 = this.searchField.getText().toLowerCase(Locale.ROOT);
 
-            if (!s1.equals(this.lastSearch) && this.tradingRecipeList != null)
-            {
+            if (!s1.equals(this.lastSearch) && this.tradingRecipeList != null) {
                 this.tradingRecipeList.searchQuery(s1, this.mc);
                 this.lastSearch = s1;
                 this.populate = true;
             }
 
             return true;
+        }
+
+        return false;
+    }
+
+    private boolean checkValidKeys(int keyCode)
+    {
+        if (this.mc.player.inventory.getItemStack().isEmpty() && this.hoveredSlot > 0)
+        {
+            GameSettings settings = this.mc.gameSettings;
+            for (int i = 0; i < 9; ++i)
+            {
+                if (settings.keyBindsHotbar[i].isActiveAndMatches(keyCode)) {
+                    return true;
+                }
+            }
+
+            if (this.hoveredSlot > 1) {
+                return settings.keyBindDrop.isActiveAndMatches(keyCode);
+            }
         }
 
         return false;

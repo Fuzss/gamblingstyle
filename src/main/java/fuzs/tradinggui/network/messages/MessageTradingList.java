@@ -63,22 +63,20 @@ public class MessageTradingList extends MessageBase<MessageTradingList> {
         Minecraft gameController = Minecraft.getMinecraft();
         PacketBuffer packetbuffer = message.getBufferData();
 
-        try
-        {
-            int k = packetbuffer.readInt();
-            GuiScreen guiscreen = gameController.currentScreen;
+        gameController.addScheduledTask(() -> {
+            try {
+                int k = packetbuffer.readInt();
+                GuiScreen guiscreen = gameController.currentScreen;
 
-            if (guiscreen instanceof GuiVillager && k == gameController.player.openContainer.windowId)
-            {
-                IMerchant imerchant = ((GuiVillager)guiscreen).getMerchant();
-                MerchantRecipeList merchantrecipelist = MerchantRecipeList.readFromBuf(packetbuffer);
-                imerchant.setRecipes(merchantrecipelist);
+                if (guiscreen instanceof GuiVillager && k == gameController.player.openContainer.windowId) {
+                    IMerchant imerchant = ((GuiVillager) guiscreen).getMerchant();
+                    MerchantRecipeList merchantrecipelist = MerchantRecipeList.readFromBuf(packetbuffer);
+                    imerchant.setRecipes(merchantrecipelist);
+                }
+            } catch (IOException ioexception) {
+                LOGGER.error("Couldn't load trade info", ioexception);
             }
-        }
-        catch (IOException ioexception)
-        {
-            LOGGER.error("Couldn't load trade info", ioexception);
-        }
+        });
 
     }
 

@@ -19,19 +19,19 @@ public class MessageOpenWindow extends MessageBase<MessageOpenWindow> implements
     private int windowId;
     private ITextComponent windowTitle;
     private int slotCount;
-    private int wealth;
     private int entityId;
+    private int wealth;
 
     public MessageOpenWindow() {
     }
 
-    public MessageOpenWindow(int windowIdIn, ITextComponent windowTitleIn, int slotCountIn, EntityVillager entityIn)
+    public MessageOpenWindow(int windowIdIn, ITextComponent windowTitleIn, int slotCountIn, int entityIdIn, int wealth)
     {
         this.windowId = windowIdIn;
         this.windowTitle = windowTitleIn;
         this.slotCount = slotCountIn;
-        this.wealth = this.getWealth(entityIn);
-        this.entityId = entityIn.getEntityId();
+        this.entityId = entityIdIn;
+        this.wealth = wealth;
     }
 
     @Override
@@ -55,14 +55,16 @@ public class MessageOpenWindow extends MessageBase<MessageOpenWindow> implements
     @Override
     public void handleClientSide(MessageOpenWindow message, EntityPlayer player) {
         Minecraft mc = Minecraft.getMinecraft();
-        //PacketThreadUtil.checkThreadAndEnqueue(message, this, mc);
         World worldIn = player.world;
         Entity entity = worldIn.getEntityByID(message.entityId);
         if (entity instanceof EntityVillager) {
             EntityVillager entityVillager = (EntityVillager) entity;
             this.setWealth(entityVillager, message.getWealth());
-            mc.displayGuiScreen(new GuiVillager(player.inventory, new NpcMerchant(player, message.getWindowTitle()), entityVillager, worldIn));
+            mc.addScheduledTask(() -> {
+                mc.displayGuiScreen(new GuiVillager(player.inventory, new NpcMerchant(player, message.getWindowTitle()),
+                        entityVillager, worldIn));
             player.openContainer.windowId = message.getWindowId();
+            });
         }
     }
 
