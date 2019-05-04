@@ -65,17 +65,17 @@ public class MessageTradingData extends MessageBase<MessageTradingData> implemen
 
         switch (message.getChannelId()) {
 
+            //Select trade
             case 0:
 
                 try
                 {
-                    int k = message.getBufferData().readInt();
+                    int k = message.getBufferData().readUnsignedByte();
                     Container container = player.openContainer;
 
                     if (container instanceof ContainerVillager)
                     {
                         ((ContainerVillager)container).setCurrentRecipeIndex(k);
-                        System.out.println("Package received: Select trade");
                     }
                 }
                 catch (Exception exception5)
@@ -84,6 +84,7 @@ public class MessageTradingData extends MessageBase<MessageTradingData> implemen
                 }
                 break;
 
+            //Set wealth for storing last trade
             case 1:
 
                 try
@@ -94,12 +95,33 @@ public class MessageTradingData extends MessageBase<MessageTradingData> implemen
 
                     if (entity instanceof EntityVillager) {
                         this.setWealth((EntityVillager) entity, k);
-                        System.out.println("Package received: Set wealth");
                     }
                 }
                 catch (Exception exception5)
                 {
                     LOGGER.error("Couldn't set wealth", exception5);
+                }
+                break;
+
+            //Populate trading slots
+            case 2:
+
+                try
+                {
+                    int k = message.getBufferData().readUnsignedByte();
+                    boolean flag = message.getBufferData().readBoolean();
+                    boolean flag1 = message.getBufferData().readBoolean();
+                    boolean flag2 = message.getBufferData().readBoolean();
+                    Container container = player.openContainer;
+
+                    if (container instanceof ContainerVillager)
+                    {
+                        ((ContainerVillager) container).handleClickedButtonItems(k, flag, flag1, flag2);
+                    }
+                }
+                catch (Exception exception5)
+                {
+                    LOGGER.error("Couldn't populate trading slots", exception5);
                 }
                 break;
 

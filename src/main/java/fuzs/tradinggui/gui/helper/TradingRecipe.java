@@ -1,10 +1,12 @@
-package fuzs.tradinggui.gui;
+package fuzs.tradinggui.gui.helper;
 
 import com.google.common.collect.Lists;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.ItemStack;
+import scala.Array;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class TradingRecipe {
@@ -18,8 +20,8 @@ public class TradingRecipe {
 
     private boolean isSearchResult;
     private boolean isSelected;
-    private boolean hasIngredients;
-    private boolean isDisabled;
+    public int ingredients;
+    public int secoundIngredients;
 
     public TradingRecipe(ItemStack buy1, ItemStack buy2, ItemStack sell)
     {
@@ -31,6 +33,8 @@ public class TradingRecipe {
         this.itemToSell = sell;
         this.isSearchResult = true;
         this.isSelected = false;
+        this.ingredients = 0;
+        this.secoundIngredients = 0;
     }
 
     /**
@@ -81,14 +85,29 @@ public class TradingRecipe {
         this.isSelected = flag;
     }
 
+    /**
+     * Checks if a trading recipe has an input and output, used to determine if the recipe should be rendered
+     */
     public boolean isValidRecipe()
     {
         return !this.itemToBuy.isEmpty() && !this.itemToSell.isEmpty();
     }
 
-    public List<String> getCombinedTooltip(Minecraft mc) {
+    /**
+     * Returns if the player has enough items for a trade in their inventory
+     */
+    public boolean hasRecipeContents() {
+        boolean flag = !this.hasSecondItemToBuy() || (this.secoundIngredients >= this.secondItemToBuy.getCount());
+        return flag && this.ingredients >= this.itemToBuy.getCount();
+    }
+
+    /**
+     * @param advancedItemTooltips Get this setting from the game controller
+     * @return List containing all tooltips of the items involved with this trading recipe
+     */
+    public List<String> getCombinedTooltip(boolean advancedItemTooltips) {
         if (isValidRecipe()) {
-            ITooltipFlag tooltipFlag = mc.gameSettings.advancedItemTooltips ? ITooltipFlag.TooltipFlags.ADVANCED : ITooltipFlag.TooltipFlags.NORMAL;
+            ITooltipFlag tooltipFlag = advancedItemTooltips ? ITooltipFlag.TooltipFlags.ADVANCED : ITooltipFlag.TooltipFlags.NORMAL;
             List<String> list = Lists.newArrayList();
             list.addAll(this.itemToBuy.getTooltip(null, tooltipFlag));
             list.addAll(this.itemToSell.getTooltip(null, tooltipFlag));

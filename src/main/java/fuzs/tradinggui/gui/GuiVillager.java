@@ -5,6 +5,7 @@ import fuzs.tradinggui.network.NetworkHandler;
 import fuzs.tradinggui.network.messages.MessageTradingData;
 import fuzs.tradinggui.util.IPrivateAccessor;
 import io.netty.buffer.Unpooled;
+import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.renderer.GlStateManager;
@@ -71,7 +72,6 @@ public class GuiVillager extends GuiContainer implements IPrivateAccessor
         packetbuffer.writeByte(this.selectedMerchantRecipe);
         packetbuffer.writeInt(this.entityVillager.getEntityId());
         NetworkHandler.sendToServer(new MessageTradingData(1, packetbuffer));
-        System.out.println("Package sent: Set wealth");
         this.setWealth(this.entityVillager, this.selectedMerchantRecipe);
         super.onGuiClosed();
     }
@@ -96,7 +96,7 @@ public class GuiVillager extends GuiContainer implements IPrivateAccessor
 
         if (merchantrecipelist != null)
         {
-            this.tradingBookGui.update(merchantrecipelist);
+            this.tradingBookGui.update(merchantrecipelist, (ContainerVillager)this.inventorySlots);
         }
 
         Slot hoveredSlot = this.getSlotUnderMouse();
@@ -145,13 +145,23 @@ public class GuiVillager extends GuiContainer implements IPrivateAccessor
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException
     {
         int i = this.tradingBookGui.mouseClicked(mouseX, mouseY, mouseButton);
-        if (i >= -1)
-        {
-            if (i >= 0 && this.selectedMerchantRecipe != i) {
-                this.selectedMerchantRecipe = i;
-                this.sendSelectedRecipe();
-            }
-            super.mouseClicked(mouseX, mouseY, mouseButton);
+
+        switch (i) {
+            case -2:
+                return;
+            case -1:
+                super.mouseClicked(mouseX, mouseY, mouseButton);
+                break;
+            default:
+                boolean flag = this.selectedMerchantRecipe != i;
+                if (flag) {
+                    this.selectedMerchantRecipe = i;
+                    this.sendSelectedRecipe();
+                }
+                if (this.tradingBookGui.hasRecipeContents(i)) {
+                    this.moveRecipeIngredients(flag, GuiScreen.isShiftKeyDown(), mouseButton == 1);
+                }
+
         }
     }
 
@@ -159,9 +169,23 @@ public class GuiVillager extends GuiContainer implements IPrivateAccessor
         ((ContainerVillager)this.inventorySlots).setCurrentRecipeIndex(this.selectedMerchantRecipe);
         this.tradingBookGui.setSelectedTradingRecipe(this.selectedMerchantRecipe);
         PacketBuffer packetbuffer = new PacketBuffer(Unpooled.buffer());
-        packetbuffer.writeInt(this.selectedMerchantRecipe);
+        packetbuffer.writeByte(this.selectedMerchantRecipe);
         NetworkHandler.sendToServer(new MessageTradingData(0, packetbuffer));
-        System.out.println("Package sent: Set trades");
+    }
+
+    private void moveRecipeIngredients(boolean clear, boolean quickMove, boolean skipMove) {
+
+        MerchantRecipeList merchantrecipelist = this.merchant.getRecipes(this.mc.player);
+
+        if (merchantrecipelist != null && !merchantrecipelist.get(this.selectedMerchantRecipe).isRecipeDisabled()) {
+            ((ContainerVillager)this.inventorySlots).handleClickedButtonItems(this.selectedMerchantRecipe, clear, quickMove, skipMove);
+            PacketBuffer packetbuffer = new PacketBuffer(Unpooled.buffer());
+            packetbuffer.writeByte(this.selectedMerchantRecipe);
+            packetbuffer.writeBoolean(clear);
+            packetbuffer.writeBoolean(quickMove);
+            packetbuffer.writeBoolean(skipMove);
+            NetworkHandler.sendToServer(new MessageTradingData(2, packetbuffer));
+        }
     }
 
     /**

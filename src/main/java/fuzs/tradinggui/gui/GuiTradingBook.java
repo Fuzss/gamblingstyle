@@ -1,6 +1,9 @@
 package fuzs.tradinggui.gui;
 
 import com.google.common.collect.Lists;
+import fuzs.tradinggui.gui.helper.TradingRecipe;
+import fuzs.tradinggui.gui.helper.TradingRecipeList;
+import fuzs.tradinggui.inventory.ContainerVillager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiButton;
@@ -20,7 +23,7 @@ import java.util.Locale;
 @SideOnly(Side.CLIENT)
 public class GuiTradingBook extends Gui
 {
-    protected static final ResourceLocation RECIPE_BOOK = new ResourceLocation("textures/gui/container/merchant_book.png");
+    private static final ResourceLocation RECIPE_BOOK = new ResourceLocation("textures/gui/container/merchant_book.png");
     private final int xOffset = 88;
     private int width;
     private int height;
@@ -38,10 +41,11 @@ public class GuiTradingBook extends Gui
     private boolean populate;
     private TradingRecipeList tradingRecipeList;
     /** The button that was just pressed. */
-    protected GuiButton selectedButton;
+    private GuiButton selectedButton;
     private int selectedTradingRecipe;
     private boolean clearSearch;
     public int hoveredSlot;
+    private int timesInventoryChanged;
 
     public void initGui(Minecraft mc, int width, int height)
     {
@@ -53,6 +57,7 @@ public class GuiTradingBook extends Gui
 
         this.buttonList.clear();
         Keyboard.enableRepeatEvents(true);
+        this.timesInventoryChanged = mc.player.inventory.getTimesChanged();
 
         this.searchField = new GuiTextField(0, mc.fontRenderer, this.guiLeft + 9, this.guiTop + 9,
                 80, mc.fontRenderer.FONT_HEIGHT);
@@ -69,7 +74,7 @@ public class GuiTradingBook extends Gui
 
         for (int i = 0; i <= 4; ++i)
         {
-            this.buttonList.add(new GuiButtonTradingRecipe(i, this.guiLeft + 8, this.guiTop + 21 + 25 * i));
+            this.buttonList.add(new GuiButtonTradingRecipe(i, this.guiLeft + 10, this.guiTop + 27 + 25 * i));
             this.buttonList.get(i).visible = false;
         }
 
@@ -93,11 +98,12 @@ public class GuiTradingBook extends Gui
 
     }
 
-    public void update(MerchantRecipeList merchantrecipelist)
+    public void update(MerchantRecipeList merchantrecipelist, ContainerVillager container)
     {
         if (!this.sentRecipeList) {
             this.tradingRecipeList = new TradingRecipeList(merchantrecipelist);
             this.tradingRecipeList.get(this.selectedTradingRecipe).setIsSelected(true);
+            this.tradingRecipeList.countRecipeContents(container);
             this.sentRecipeList = true;
             this.populate = true;
         }
@@ -119,8 +125,7 @@ public class GuiTradingBook extends Gui
                     TradingRecipe tradingRecipe = this.tradingRecipeList.get(j);
 
                     if (tradingRecipe.isValidRecipe() && tradingRecipe.getIsSearchResult()) {
-                        guiButtonTradingRecipe.setContents(j, tradingRecipe.getItemToBuy(),
-                                tradingRecipe.getSecondItemToBuy(), tradingRecipe.getItemToSell(), merchantrecipelist.get(j).isRecipeDisabled(), tradingRecipe.getIsSelected());
+                        guiButtonTradingRecipe.setContents(j, tradingRecipe, merchantrecipelist.get(j).isRecipeDisabled());
                         i = j + 1;
                         guiButtonTradingRecipe.visible = true;
                         break;
@@ -130,6 +135,12 @@ public class GuiTradingBook extends Gui
                 }
 
             }
+        }
+
+        if (this.tradingRecipeList != null && this.timesInventoryChanged != this.mc.player.inventory.getTimesChanged())
+        {
+            this.tradingRecipeList.countRecipeContents(container);
+            this.timesInventoryChanged = this.mc.player.inventory.getTimesChanged();
         }
 
         if (this.clearSearch) {
@@ -187,7 +198,7 @@ public class GuiTradingBook extends Gui
             return -2;
         }
 
-        if (mouseButton == 0) {
+        if (mouseButton == 0 || mouseButton == 1) {
             for (GuiButtonTradingRecipe guiButtonTradingRecipe : this.buttonList) {
 
                 if (guiButtonTradingRecipe.mousePressed(this.mc, mouseX, mouseY)) {
@@ -215,6 +226,13 @@ public class GuiTradingBook extends Gui
         }
     }
 
+    public boolean hasRecipeContents(int id) {
+        if (this.tradingRecipeList != null && this.tradingRecipeList.size() > id) {
+            return this.tradingRecipeList.get(id).hasRecipeContents();
+        }
+        return false;
+    }
+
     public boolean hasClickedOutside(int mouseX, int mouseY, int guiLeft, int guiTop, int xSize, int ySize)
     {
         boolean flag = mouseX < guiLeft || mouseY < guiTop || mouseX >= guiLeft + xSize || mouseY >= guiTop + ySize;
@@ -238,7 +256,7 @@ public class GuiTradingBook extends Gui
             String s1 = this.searchField.getText().toLowerCase(Locale.ROOT);
 
             if (!s1.equals(this.lastSearch) && this.tradingRecipeList != null) {
-                this.tradingRecipeList.searchQuery(s1, this.mc);
+                this.tradingRecipeList.searchQuery(s1, this.mc.gameSettings.advancedItemTooltips);
                 this.lastSearch = s1;
                 this.populate = true;
             }

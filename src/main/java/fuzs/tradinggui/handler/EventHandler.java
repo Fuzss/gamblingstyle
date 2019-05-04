@@ -1,4 +1,4 @@
-package fuzs.tradinggui.handlers;
+package fuzs.tradinggui.handler;
 
 import fuzs.tradinggui.inventory.ContainerVillager;
 import fuzs.tradinggui.network.NetworkHandler;
@@ -6,6 +6,7 @@ import fuzs.tradinggui.network.messages.MessageOpenWindow;
 import fuzs.tradinggui.network.messages.MessageTradingList;
 import fuzs.tradinggui.util.IPrivateAccessor;
 import io.netty.buffer.Unpooled;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.IMerchant;
@@ -17,9 +18,10 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemMonsterPlacer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
+import net.minecraft.stats.StatList;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.village.MerchantRecipeList;
-import net.minecraft.world.World;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -29,7 +31,6 @@ public class EventHandler implements IPrivateAccessor {
     public void interact(PlayerInteractEvent.EntityInteract evt) {
         if (evt.getTarget() instanceof EntityVillager) {
 
-            World worldIn = evt.getWorld();
             EntityVillager entityVillager = (EntityVillager) evt.getTarget();
             EntityPlayer player = evt.getEntityPlayer();
             ItemStack itemstack = evt.getItemStack();
@@ -39,10 +40,13 @@ public class EventHandler implements IPrivateAccessor {
             if (!flag) {
                 if (!this.holdingSpawnEggOfClass(itemstack, entityVillager.getClass()) && entityVillager.isEntityAlive()
                         && !entityVillager.isTrading() && !entityVillager.isChild() && !player.isSneaking()) {
-                    if (!worldIn.isRemote)
+                    if (this.displayVillagerTradeGui(player, entityVillager))
                     {
+                        if (evt.getHand() == EnumHand.MAIN_HAND)
+                        {
+                            player.addStat(StatList.TALKED_TO_VILLAGER);
+                        }
                         evt.setCanceled(true);
-                        this.displayVillagerTradeGui((EntityPlayerMP) player, entityVillager);
                     }
                 }
 
@@ -66,31 +70,37 @@ public class EventHandler implements IPrivateAccessor {
         }
     }
 
-    private void displayVillagerTradeGui(EntityPlayerMP player, EntityVillager villager)
+    private boolean displayVillagerTradeGui(EntityPlayer player, EntityVillager villager)
     {
         MerchantRecipeList merchantrecipelist = ((IMerchant) villager).getRecipes(player);
 
         if (merchantrecipelist != null && !merchantrecipelist.isEmpty()) {
+            if (player instanceof EntityPlayerMP) {
+                EntityPlayerMP playerMP = (EntityPlayerMP) player;
+                villager.setCustomer(playerMP);
+                playerMP.getNextWindowId();
+                playerMP.openContainer = new ContainerVillager(playerMP.inventory, villager, playerMP.world);
+                playerMP.openContainer.windowId = playerMP.currentWindowId;
+                playerMP.openContainer.addListener(playerMP);
+                net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
+                        new net.minecraftforge.event.entity.player.PlayerContainerEvent.Open(playerMP, playerMP.openContainer));
+                IInventory iinventory = ((ContainerVillager) playerMP.openContainer).getMerchantInventory();
+                ITextComponent itextcomponent = ((IMerchant) villager).getDisplayName();
 
-            villager.setCustomer(player);
-            player.getNextWindowId();
-            player.openContainer = new ContainerVillager(player.inventory, villager, player.world);
-            player.openContainer.windowId = player.currentWindowId;
-            player.openContainer.addListener(player);
-            net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
-                    new net.minecraftforge.event.entity.player.PlayerContainerEvent.Open(player, player.openContainer));
-            IInventory iinventory = ((ContainerVillager) player.openContainer).getMerchantInventory();
-            ITextComponent itextcomponent = ((IMerchant) villager).getDisplayName();
+                int wealth = this.getWealth(villager);
+                NetworkHandler.sendTo(new MessageOpenWindow(playerMP.currentWindowId, itextcomponent, iinventory.getSizeInventory(),
+                        villager.getEntityId(), wealth < merchantrecipelist.size() && wealth >= 0 ? wealth : 0), playerMP);
 
-            int wealth = this.getWealth(villager);
-            NetworkHandler.sendTo(new MessageOpenWindow(player.currentWindowId, itextcomponent, iinventory.getSizeInventory(),
-                    villager.getEntityId(), wealth < merchantrecipelist.size() && wealth >= 0 ? wealth : 0), player);
-
-            PacketBuffer packetbuffer = new PacketBuffer(Unpooled.buffer());
-            packetbuffer.writeInt(player.currentWindowId);
-            merchantrecipelist.writeToBuf(packetbuffer);
-            NetworkHandler.sendTo(new MessageTradingList(packetbuffer), player);
+                PacketBuffer packetbuffer = new PacketBuffer(Unpooled.buffer());
+                packetbuffer.writeInt(playerMP.currentWindowId);
+                merchantrecipelist.writeToBuf(packetbuffer);
+                NetworkHandler.sendTo(new MessageTradingList(packetbuffer), playerMP);
+            } else if (player instanceof EntityPlayerSP) {
+                player.swingArm(EnumHand.MAIN_HAND);
+            }
+            return true;
         }
+        return false;
     }
 
 }

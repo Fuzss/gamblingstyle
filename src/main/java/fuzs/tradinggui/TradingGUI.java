@@ -23,7 +23,7 @@ public class TradingGUI
     @EventHandler
     public void preInit(FMLPreInitializationEvent event)
     {
-        MinecraftForge.EVENT_BUS.register(new fuzs.tradinggui.handlers.EventHandler());
+        MinecraftForge.EVENT_BUS.register(new fuzs.tradinggui.handler.EventHandler());
         NetworkHandler.init();
     }
 }
