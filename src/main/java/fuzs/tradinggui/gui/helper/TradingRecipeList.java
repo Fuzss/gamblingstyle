@@ -1,6 +1,7 @@
 package fuzs.tradinggui.gui.helper;
 
 import com.sun.istack.internal.NotNull;
+import fuzs.tradinggui.gui.GuiTradingBook;
 import fuzs.tradinggui.inventory.ContainerVillager;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
@@ -20,19 +21,42 @@ public class TradingRecipeList extends ArrayList<TradingRecipe> {
         }
     }
 
+    public int activeRecipeSize() {
+        return Math.toIntExact(this.stream().filter(TradingRecipe::getActive).count());
+    }
+
+    public boolean scrollable()
+    {
+        return this.activeRecipeSize() > GuiTradingBook.BUTTON_SPACE;
+    }
+
     /**
      * Searches trading recipes for a string, hides the ones not containing it
      * @param s String to be searched for
      * @param advancedItemTooltips Get this setting from the game controller
      */
     public void searchQuery(String s, boolean advancedItemTooltips) {
+
+        String s1 = s.trim();
+        int i = 0;
+        if (!s1.isEmpty()) {
+            if (s1.startsWith("\u003C")) { //less than
+                s1 = s1.substring(1);
+                i = 1;
+            } else if (s1.startsWith("\u003E")) { //greater than
+                s1 = s1.substring(1);
+                i = 2;
+            }
+        }
+
+        String s2 = s1.trim();
         for (TradingRecipe recipe : this) {
-            if (recipe.getCombinedTooltip(advancedItemTooltips) != null) {
+            if (recipe.isValidRecipe()) {
                 if (!s.isEmpty()) {
-                    recipe.setIsSearchResult(recipe.getCombinedTooltip(advancedItemTooltips).stream()
-                            .map(it -> it.toLowerCase(Locale.ROOT)).anyMatch(it -> it.contains(s)));
+                    recipe.setActive(recipe.getCombinedTooltip(i, advancedItemTooltips).stream()
+                            .map(it -> it.toLowerCase(Locale.ROOT)).anyMatch(it -> it.contains(s2)));
                 } else {
-                    recipe.setIsSearchResult(true);
+                    recipe.setActive(true);
                 }
             }
         }

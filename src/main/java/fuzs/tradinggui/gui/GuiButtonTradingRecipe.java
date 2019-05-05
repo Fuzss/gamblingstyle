@@ -43,7 +43,7 @@ public class GuiButtonTradingRecipe extends GuiButton
         this.input1 = recipe.getSecondItemToBuy();
         this.output = recipe.getItemToSell();
         this.soldOut = soldOut;
-        this.selectedRecipe = recipe.getIsSelected();
+        this.selectedRecipe = recipe.getSelected();
         this.hasContents = recipe.hasRecipeContents();
     }
 

@@ -214,7 +214,7 @@ public class GuiVillager extends GuiContainer implements IPrivateAccessor
     protected void handleMouseClick(Slot slotIn, int slotId, int mouseButton, ClickType type)
     {
         super.handleMouseClick(slotIn, slotId, mouseButton, type);
-        this.tradingBookGui.countContens((ContainerVillager)this.inventorySlots);
+        this.tradingBookGui.countContents((ContainerVillager)this.inventorySlots);
         if (slotIn != null && slotId <= 2)
         {
             MerchantRecipeList merchantrecipelist = this.merchant.getRecipes(this.mc.player);
@@ -234,6 +234,14 @@ public class GuiVillager extends GuiContainer implements IPrivateAccessor
     {
         this.tradingBookGui.mouseReleased(mouseX, mouseY, state);
         super.mouseReleased(mouseX, mouseY, state);
+    }
+
+    /**
+     * Handles mouse input.
+     */
+    public void handleMouseInput() throws IOException {
+        this.tradingBookGui.handleMouseInput();
+        super.handleMouseInput();
     }
 
     /**

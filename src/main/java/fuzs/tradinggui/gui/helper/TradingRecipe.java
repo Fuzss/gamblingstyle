@@ -1,12 +1,9 @@
 package fuzs.tradinggui.gui.helper;
 
 import com.google.common.collect.Lists;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.ItemStack;
-import scala.Array;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class TradingRecipe {
@@ -17,10 +14,13 @@ public class TradingRecipe {
     private ItemStack secondItemToBuy;
     /** Item the Villager sells. */
     private ItemStack itemToSell;
-
-    private boolean isSearchResult;
-    private boolean isSelected;
+    /** Is the recipe part of the current search. */
+    private boolean active;
+    /** Is the recipe selected. */
+    private boolean selected;
+    /** Amount of ingredients in player inventory. */
     public int ingredients;
+    /** Amount of secound ingredients in player inventory. */
     public int secoundIngredients;
 
     public TradingRecipe(ItemStack buy1, ItemStack buy2, ItemStack sell)
@@ -31,8 +31,8 @@ public class TradingRecipe {
         this.itemToBuy = buy1;
         this.secondItemToBuy = buy2;
         this.itemToSell = sell;
-        this.isSearchResult = true;
-        this.isSelected = false;
+        this.active = true;
+        this.selected = false;
         this.ingredients = 0;
         this.secoundIngredients = 0;
     }
@@ -69,20 +69,20 @@ public class TradingRecipe {
         return this.itemToSell;
     }
 
-    public boolean getIsSearchResult() {
-        return isSearchResult;
+    public boolean getActive() {
+        return active;
     }
 
-    public void setIsSearchResult(boolean flag) {
-        this.isSearchResult = flag;
+    public void setActive(boolean flag) {
+        this.active = flag;
     }
 
-    public boolean getIsSelected() {
-        return isSelected;
+    public boolean getSelected() {
+        return selected;
     }
 
-    public void setIsSelected(boolean flag) {
-        this.isSelected = flag;
+    public void setSelected(boolean flag) {
+        this.selected = flag;
     }
 
     /**
@@ -105,17 +105,20 @@ public class TradingRecipe {
      * @param advancedItemTooltips Get this setting from the game controller
      * @return List containing all tooltips of the items involved with this trading recipe
      */
-    public List<String> getCombinedTooltip(boolean advancedItemTooltips) {
-        if (isValidRecipe()) {
-            ITooltipFlag tooltipFlag = advancedItemTooltips ? ITooltipFlag.TooltipFlags.ADVANCED : ITooltipFlag.TooltipFlags.NORMAL;
-            List<String> list = Lists.newArrayList();
+    public List<String> getCombinedTooltip(int mode, boolean advancedItemTooltips) {
+
+        ITooltipFlag tooltipFlag = advancedItemTooltips ? ITooltipFlag.TooltipFlags.ADVANCED : ITooltipFlag.TooltipFlags.NORMAL;
+        List<String> list = Lists.newArrayList();
+        if (mode < 2) {
             list.addAll(this.itemToBuy.getTooltip(null, tooltipFlag));
-            list.addAll(this.itemToSell.getTooltip(null, tooltipFlag));
             if (this.hasSecondItemToBuy()) {
                 list.addAll(this.secondItemToBuy.getTooltip(null, tooltipFlag));
             }
-            return list;
         }
-        return null;
+        if (mode != 1) {
+            list.addAll(this.itemToSell.getTooltip(null, tooltipFlag));
+        }
+        return list;
+
     }
 }
