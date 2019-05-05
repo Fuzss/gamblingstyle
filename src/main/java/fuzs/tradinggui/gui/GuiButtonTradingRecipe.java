@@ -20,8 +20,8 @@ public class GuiButtonTradingRecipe extends GuiButton
 {
     private static final ResourceLocation RECIPE_BOOK = new ResourceLocation("textures/gui/container/merchant_book.png");
 
+    private ItemStack input;
     private ItemStack input1;
-    private ItemStack input2;
     private ItemStack output;
     private boolean soldOut;
     private int recipeId;
@@ -30,17 +30,17 @@ public class GuiButtonTradingRecipe extends GuiButton
 
     public GuiButtonTradingRecipe(int id, int posX, int posY)
     {
-        super(id, posX, posY, 84, 25, "");
+        super(id, posX, posY, 84, 22, "");
+        this.input = ItemStack.EMPTY;
         this.input1 = ItemStack.EMPTY;
-        this.input2 = ItemStack.EMPTY;
         this.output = ItemStack.EMPTY;
     }
 
     public void setContents(int id, TradingRecipe recipe, boolean soldOut)
     {
         this.recipeId = id;
-        this.input1 = recipe.getItemToBuy();
-        this.input2 = recipe.getSecondItemToBuy();
+        this.input = recipe.getItemToBuy();
+        this.input1 = recipe.getSecondItemToBuy();
         this.output = recipe.getItemToSell();
         this.soldOut = soldOut;
         this.selectedRecipe = recipe.getIsSelected();
@@ -49,12 +49,6 @@ public class GuiButtonTradingRecipe extends GuiButton
 
     public int getRecipeId() {
         return this.recipeId;
-    }
-
-    public void setPosition(int posX, int posY)
-    {
-        this.x = posX;
-        this.y = posY;
     }
 
     /**
@@ -73,33 +67,33 @@ public class GuiButtonTradingRecipe extends GuiButton
             int j = 0;
 
             if (this.hovered) {
-                j += 25;
+                j += 22;
             }
 
             if (!this.hasContents) {
-                j += 100;
+                j += 88;
             }
 
             if (this.selectedRecipe) {
-                j += 50;
+                j += 44;
             }
 
             this.drawTexturedModalRect(this.x, this.y, i, j, this.width, this.height);
 
-            mc.getRenderItem().renderItemAndEffectIntoGUI(this.input1, this.x + 6, this.y + 4);
-            mc.getRenderItem().renderItemOverlays(mc.fontRenderer, this.input1, this.x + 6, this.y + 4);
-            if (!this.input2.isEmpty()) {
-                mc.getRenderItem().renderItemAndEffectIntoGUI(this.input2, this.x + 27, this.y + 4);
-                mc.getRenderItem().renderItemOverlays(mc.fontRenderer, this.input2, this.x + 27, this.y + 4);
+            mc.getRenderItem().renderItemAndEffectIntoGUI(this.input, this.x + 6, this.y + 2);
+            mc.getRenderItem().renderItemOverlays(mc.fontRenderer, this.input, this.x + 6, this.y + 2);
+            if (!this.input1.isEmpty()) {
+                mc.getRenderItem().renderItemAndEffectIntoGUI(this.input1, this.x + 27, this.y + 2);
+                mc.getRenderItem().renderItemOverlays(mc.fontRenderer, this.input1, this.x + 27, this.y + 2);
             }
-            mc.getRenderItem().renderItemAndEffectIntoGUI(this.output, this.x + 61, this.y + 4);
-            mc.getRenderItem().renderItemOverlays(mc.fontRenderer, this.output, this.x + 61, this.y + 4);
+            mc.getRenderItem().renderItemAndEffectIntoGUI(this.output, this.x + 61, this.y + 2);
+            mc.getRenderItem().renderItemOverlays(mc.fontRenderer, this.output, this.x + 61, this.y + 2);
 
             if (soldOut) {
                 mc.getTextureManager().bindTexture(RECIPE_BOOK);
                 GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                 GlStateManager.disableLighting();
-                this.drawTexturedModalRect(this.x + 47, this.y + 5,  this.hasContents ? 0 : 10, 166, 10, 15);
+                this.drawTexturedModalRect(this.x + 47, this.y + 3,  this.hasContents ? 0 : 10, 166, 10, 15);
             }
 
             GlStateManager.enableLighting();
@@ -127,7 +121,7 @@ public class GuiButtonTradingRecipe extends GuiButton
 
         if (!itemstack.isEmpty()) {
             list = screen.getItemToolTip(itemstack);
-        } else if (this.soldOut && this.isPointInRegion(47, 5, 10, 15, mouseX, mouseY))
+        } else if (this.soldOut && this.isPointInRegion(47, 3, 10, 15, mouseX, mouseY))
         {
             list.add(I18n.format("merchant.deprecated"));
         }
@@ -137,15 +131,15 @@ public class GuiButtonTradingRecipe extends GuiButton
 
     private ItemStack getItemStackInRegion(int mouseX, int mouseY) {
 
-        if (this.isPointInRegion(6, 4, 16, 16, mouseX, mouseY) && !this.input1.isEmpty())
+        if (this.isPointInRegion(6, 2, 16, 16, mouseX, mouseY) && !this.input.isEmpty())
+        {
+            return this.input;
+        }
+        else if (this.isPointInRegion(27, 2, 16, 16, mouseX, mouseY) && !this.input1.isEmpty())
         {
             return this.input1;
         }
-        else if (this.isPointInRegion(27, 4, 16, 16, mouseX, mouseY) && !this.input2.isEmpty())
-        {
-            return this.input2;
-        }
-        else if (this.isPointInRegion(61, 4, 16, 16, mouseX, mouseY) && !this.output.isEmpty())
+        else if (this.isPointInRegion(61, 2, 16, 16, mouseX, mouseY) && !this.output.isEmpty())
         {
             return this.output;
         }

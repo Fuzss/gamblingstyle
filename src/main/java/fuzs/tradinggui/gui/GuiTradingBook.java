@@ -11,12 +11,14 @@ import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.settings.GameSettings;
+import net.minecraft.inventory.Slot;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.village.MerchantRecipeList;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.input.Keyboard;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Locale;
 
@@ -24,15 +26,12 @@ import java.util.Locale;
 public class GuiTradingBook extends Gui
 {
     private static final ResourceLocation RECIPE_BOOK = new ResourceLocation("textures/gui/container/merchant_book.png");
-    private final int xOffset = 88;
-    private int width;
-    private int height;
     private final int xSize = 112;
     private final int ySize = 166;
     private Minecraft mc;
 
     private GuiButtonTradingRecipe hoveredButton;
-    private List<GuiButtonTradingRecipe> buttonList = Lists.newArrayListWithCapacity(4);
+    private List<GuiButtonTradingRecipe> buttonList = Lists.newArrayListWithCapacity(5);
     private GuiTextField searchField;
     private String lastSearch = "";
     private int guiLeft;
@@ -50,10 +49,8 @@ public class GuiTradingBook extends Gui
     public void initGui(Minecraft mc, int width, int height)
     {
         this.mc = mc;
-        this.width = width;
-        this.height = height;
-        this.guiLeft = (this.width - xSize) / 2 - this.xOffset;
-        this.guiTop = (this.height - ySize) / 2;
+        this.guiLeft = (width - xSize) / 2 - 88;
+        this.guiTop = (height - ySize) / 2;
 
         this.buttonList.clear();
         Keyboard.enableRepeatEvents(true);
@@ -72,9 +69,9 @@ public class GuiTradingBook extends Gui
         this.selectedTradingRecipe = 0;
         this.clearSearch = false;
 
-        for (int i = 0; i <= 4; ++i)
+        for (int i = 0; i <= 5; ++i)
         {
-            this.buttonList.add(new GuiButtonTradingRecipe(i, this.guiLeft + 10, this.guiTop + 27 + 25 * i));
+            this.buttonList.add(new GuiButtonTradingRecipe(i, this.guiLeft + 10, this.guiTop + 24 + 22 * i));
             this.buttonList.get(i).visible = false;
         }
 
@@ -98,12 +95,19 @@ public class GuiTradingBook extends Gui
 
     }
 
+    public void countContens(ContainerVillager container)
+    {
+        if (this.tradingRecipeList != null) {
+            this.tradingRecipeList.countRecipeContents(container);
+        }
+    }
+
     public void update(MerchantRecipeList merchantrecipelist, ContainerVillager container)
     {
         if (!this.sentRecipeList) {
             this.tradingRecipeList = new TradingRecipeList(merchantrecipelist);
             this.tradingRecipeList.get(this.selectedTradingRecipe).setIsSelected(true);
-            this.tradingRecipeList.countRecipeContents(container);
+            this.countContens(container);
             this.sentRecipeList = true;
             this.populate = true;
         }
@@ -137,9 +141,9 @@ public class GuiTradingBook extends Gui
             }
         }
 
-        if (this.tradingRecipeList != null && this.timesInventoryChanged != this.mc.player.inventory.getTimesChanged())
+        if (this.timesInventoryChanged != this.mc.player.inventory.getTimesChanged())
         {
-            this.tradingRecipeList.countRecipeContents(container);
+            this.countContens(container);
             this.timesInventoryChanged = this.mc.player.inventory.getTimesChanged();
         }
 
@@ -178,7 +182,7 @@ public class GuiTradingBook extends Gui
         GlStateManager.popMatrix();
     }
 
-    public void renderTooltip(int mouseX, int mouseY)
+    public void renderHoveredTooltip(int mouseX, int mouseY)
     {
         if (mc.currentScreen != null && this.hoveredButton != null)
         {

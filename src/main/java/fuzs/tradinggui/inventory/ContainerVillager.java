@@ -7,6 +7,8 @@ import net.minecraft.inventory.*;
 import net.minecraft.item.ItemStack;
 import net.minecraft.village.MerchantRecipeList;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class ContainerVillager extends Container
 {
@@ -67,11 +69,6 @@ public class ContainerVillager extends Container
     public boolean canInteractWith(EntityPlayer playerIn)
     {
         return this.merchant.getCustomer() == playerIn;
-    }
-
-    public ItemStack slotClick(int slotId, int dragType, ClickType clickTypeIn, EntityPlayer player){
-        this.player.inventory.markDirty();
-        return super.slotClick(slotId, dragType, clickTypeIn, player);
     }
 
     /**
@@ -141,6 +138,25 @@ public class ContainerVillager extends Container
         }
 
         return itemstack;
+    }
+
+    @SideOnly(Side.CLIENT)
+    public boolean areTradingSlotsFilled() {
+        return !this.merchantInventory.getStackInSlot(0).isEmpty() || !this.merchantInventory.getStackInSlot(1).isEmpty();
+    }
+
+    public void clearTradingSlots() {
+
+        ItemStack itemstack1 = this.merchantInventory.getStackInSlot(0);
+        ItemStack itemstack2 = this.merchantInventory.getStackInSlot(1);
+
+        if(!itemstack1.isEmpty()) {
+            this.mergeItemStack(itemstack1, 3, 39, true);
+        }
+        if(!itemstack2.isEmpty()) {
+            this.mergeItemStack(itemstack2, 3, 39, true);
+        }
+
     }
 
     /**
@@ -241,7 +257,8 @@ public class ContainerVillager extends Container
                 ItemStack inventorystack = this.inventorySlots.get(i).getStack();
                 if (!inventorystack.isEmpty() && ItemStack.areItemsEqual(itemstack, inventorystack)) {
                     ItemStack currentitemstack = this.merchantInventory.getStackInSlot(targetSlot);
-                    if (!currentitemstack.isEmpty() && !ItemStack.areItemStackTagsEqual(currentitemstack, inventorystack) && !skipMove) {
+                    if (!currentitemstack.isEmpty() && !ItemStack.areItemStackTagsEqual(currentitemstack, inventorystack)
+                            && !skipMove) { //mainly handles renamed items, !skipMove is a bit hacky as it might rename items involved with the trade
                         continue;
                     }
                     int int_3 = currentitemstack.isEmpty() ? 0 : currentitemstack.getCount();

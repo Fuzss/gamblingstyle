@@ -71,11 +71,15 @@ public class MessageTradingData extends MessageBase<MessageTradingData> implemen
                 try
                 {
                     int k = message.getBufferData().readUnsignedByte();
+                    boolean flag = message.getBufferData().readBoolean();
                     Container container = player.openContainer;
 
                     if (container instanceof ContainerVillager)
                     {
                         ((ContainerVillager)container).setCurrentRecipeIndex(k);
+                        if (flag) {
+                            ((ContainerVillager)container).clearTradingSlots();
+                        }
                     }
                 }
                 catch (Exception exception5)
