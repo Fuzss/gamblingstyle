@@ -105,7 +105,7 @@ public class GuiVillager extends GuiContainer implements IPrivateAccessor
         Slot hoveredSlot = this.getSlotUnderMouse();
         this.tradingBookGui.hoveredSlot = hoveredSlot != null ? hoveredSlot.getHasStack() ? 2 : 1 : 0;
 
-        if (((ContainerVillager)this.inventorySlots).areTradingSlotsFilled()) {
+        if (((ContainerVillager)this.inventorySlots).haveTradingSlotsContents()) {
             this.ghostTrade.hide();
         }
     }
@@ -177,7 +177,7 @@ public class GuiVillager extends GuiContainer implements IPrivateAccessor
                         }
                     } else {
                         this.ghostTrade.setRecipe(recipe.getItemToBuy(), recipe.getSecondItemToBuy(), recipe.getItemToSell());
-                        if (((ContainerVillager) this.inventorySlots).areTradingSlotsFilled()) {
+                        if (((ContainerVillager) this.inventorySlots).haveTradingSlotsContents()) {
                             this.sendSelectedRecipe(true);
                         }
                     }

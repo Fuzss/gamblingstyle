@@ -19,9 +19,9 @@ public class TradingRecipe {
     /** Is the recipe selected. */
     private boolean selected;
     /** Amount of ingredients in player inventory. */
-    public int ingredients;
+    int ingredients;
     /** Amount of secound ingredients in player inventory. */
-    public int secoundIngredients;
+    int secoundIngredients;
 
     public TradingRecipe(ItemStack buy1, ItemStack buy2, ItemStack sell)
     {
@@ -83,14 +83,6 @@ public class TradingRecipe {
 
     public void setSelected(boolean flag) {
         this.selected = flag;
-    }
-
-    /**
-     * Checks if a trading recipe has an input and output, used to determine if the recipe should be rendered
-     */
-    public boolean isValidRecipe()
-    {
-        return !this.itemToBuy.isEmpty() && !this.itemToSell.isEmpty();
     }
 
     /**

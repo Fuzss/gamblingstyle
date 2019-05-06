@@ -5,6 +5,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.*;
 import net.minecraft.item.ItemStack;
+import net.minecraft.village.MerchantRecipe;
 import net.minecraft.village.MerchantRecipeList;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
@@ -19,6 +20,7 @@ public class ContainerVillager extends Container
     private final World world;
 
     private final EntityPlayer player;
+    private int lastIndex = 3;
 
     public ContainerVillager(InventoryPlayer playerInventory, IMerchant merchant, World worldIn)
     {
@@ -141,7 +143,7 @@ public class ContainerVillager extends Container
     }
 
     @SideOnly(Side.CLIENT)
-    public boolean areTradingSlotsFilled() {
+    public boolean haveTradingSlotsContents() {
         return !this.merchantInventory.getStackInSlot(0).isEmpty() || !this.merchantInventory.getStackInSlot(1).isEmpty();
     }
 
@@ -161,22 +163,23 @@ public class ContainerVillager extends Container
 
     /**
      * Handle item moving when a recipe button is clicked
-     * @param recipeId Id of the recipe belonging to the clicked button
+     * @param recipeIndex Id of the recipe belonging to the clicked button
      * @param clear Force clearing trading slots
      * @param quickMove Move as many items as possible
      * @param skipMove Move output directly to player inventory
      */
-    public void handleClickedButtonItems(int recipeId, boolean clear, boolean quickMove, boolean skipMove)
+    public void handleClickedButtonItems(int recipeIndex, boolean clear, boolean quickMove, boolean skipMove)
     {
         MerchantRecipeList merchantrecipelist = this.merchant.getRecipes(player);
 
-        if (merchantrecipelist != null && merchantrecipelist.size() > recipeId) {
+        if (merchantrecipelist != null && merchantrecipelist.size() > recipeIndex) {
 
+            boolean flag = false;
+            MerchantRecipe recipe = merchantrecipelist.get(recipeIndex);
             ItemStack itemstack1 = this.merchantInventory.getStackInSlot(0);
             ItemStack itemstack2 = this.merchantInventory.getStackInSlot(1);
-            ItemStack itemstack3 = merchantrecipelist.get(recipeId).getItemToBuy();
-            ItemStack itemstack4 = merchantrecipelist.get(recipeId).getSecondItemToBuy();
-            boolean flag = false;
+            ItemStack itemstack3 = recipe.getItemToBuy();
+            ItemStack itemstack4 = recipe.getSecondItemToBuy();
 
             if (!itemstack1.isEmpty() && (clear && !skipMove || !ItemStack.areItemsEqual(itemstack1, itemstack3))) {
                 if (ItemStack.areItemsEqual(itemstack1, itemstack4)) {
@@ -222,10 +225,10 @@ public class ContainerVillager extends Container
                 boolean flag1 = this.checkTrade(itemstack3, itemstack4, flag ? itemstack6 : itemstack5, flag ? itemstack5 : itemstack6);
 
                 if (skipMove && flag1) {
-                    this.tradeAutomatically(merchantrecipelist.get(recipeId).getItemToSell());
+                    this.tradeAutomatically(recipe.getItemToSell());
                 }
 
-                loop = quickMove && skipMove && !merchantrecipelist.get(recipeId).isRecipeDisabled() && flag1;
+                loop = quickMove && skipMove && !recipe.isRecipeDisabled() && flag1;
 
                 if (!loop && quickMove && skipMove) {
                     this.mergeItemStack(itemstack5, 3, 39, true);
@@ -253,7 +256,7 @@ public class ContainerVillager extends Container
 
         if (!itemstack.isEmpty()) {
             int leftover = 0;
-            for(int i = 3; i < 39; ++i) {
+            for(int i = this.lastIndex; i < 39; ++i) {
                 ItemStack inventorystack = this.inventorySlots.get(i).getStack();
                 if (!inventorystack.isEmpty() && ItemStack.areItemsEqual(itemstack, inventorystack)) {
                     ItemStack currentitemstack = this.merchantInventory.getStackInSlot(targetSlot);
@@ -274,9 +277,15 @@ public class ContainerVillager extends Container
                     this.merchantInventory.setInventorySlotContents(targetSlot, newitemstack);
                     int int_6 = quickMove ? itemstack.getMaxStackSize() : Math.min(itemstack.getMaxStackSize(), int_32 + int_3);
                     if (int_5 >= int_6) {
+                        this.lastIndex = i;
                         break;
                     }
                 }
+                if (i == (this.lastIndex - 1 + 33) % 36 + 3) {
+                    this.lastIndex = 3;
+                    break;
+                }
+                i = (i - 2) % 36 + 2;
             }
         }
 

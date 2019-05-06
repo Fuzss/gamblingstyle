@@ -21,6 +21,7 @@ import org.lwjgl.input.Mouse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.IntStream;
 
 @SideOnly(Side.CLIENT)
 public class GuiTradingBook extends Gui
@@ -132,7 +133,7 @@ public class GuiTradingBook extends Gui
 
                     TradingRecipe tradingRecipe = this.tradingRecipeList.get(j);
 
-                    if (tradingRecipe.isValidRecipe() && tradingRecipe.getActive()) {
+                    if (tradingRecipe.getActive()) {
                         guiButtonTradingRecipe.setContents(j, tradingRecipe, merchantrecipelist.get(j).isRecipeDisabled());
                         i = j + 1;
                         guiButtonTradingRecipe.visible = true;
@@ -176,7 +177,7 @@ public class GuiTradingBook extends Gui
 
             boolean flag = Mouse.isButtonDown(0);
             float h2 = 1.0F / (float) Math.sqrt((float) Math.max(this.tradingRecipeList.activeRecipeSize() - BUTTON_SPACE + 1, 1));
-            int height = (int) (h2 * 74) * 2; //casting before doubling so it always lines up at the bottom with the added stripe
+            int height = (int) (h2 * 74) * 2; //casting before doubling so it always lines up with the added stripe at the bottom
             int i = this.guiLeft + 98;
             int j = this.guiTop + 8;
             int k = i + 6;
@@ -184,7 +185,7 @@ public class GuiTradingBook extends Gui
             boolean scrollable = this.tradingRecipeList.scrollable();
             this.mc.getTextureManager().bindTexture(RECIPE_BOOK);
             this.drawTexturedModalRect(i, j + (int) ((float) (l - j - height) * this.currentScroll), scrollable ? 196 : 202, 0, 6, height);
-            this.drawTexturedModalRect(i, j + height + (int) ((float) (l - j - height) * this.currentScroll), scrollable ? 196 : 202, 148, 6, 1);
+            this.drawTexturedModalRect(i, j + height + (int) ((float) (l - j - height) * this.currentScroll), scrollable ? 196 : 202, 148, 6, 1); //this is the stripe
 
             if (!this.wasClicking && flag && mouseX >= i && mouseY >= j && mouseX < k && mouseY < l + 1) {
                 this.isScrolling = scrollable;
@@ -367,14 +368,19 @@ public class GuiTradingBook extends Gui
     {
         if (this.tradingRecipeList != null) {
 
-            int i = this.tradingRecipeList.activeRecipeSize(); //size()
+            int i = this.tradingRecipeList.activeRecipeSize();
             int j = (int)((double)(pos * (float)Math.max(i - BUTTON_SPACE, 0)) + 0.5D);
-
             j = Math.max(0, j);
-            //System.out.println("Active size: " + i);
-            //System.out.println("scrollPosition: " + j);
-            if (this.scrollPostion != j) {
-                this.scrollPostion = j;
+
+            int[] activeTradeIndices;
+            if (i < this.tradingRecipeList.size()) {
+                activeTradeIndices = IntStream.range(0, this.tradingRecipeList.size()).map(it -> this.tradingRecipeList.get(it).getActive() ? it : -1).filter(it -> it >= 0).toArray();
+            } else {
+                activeTradeIndices = IntStream.range(0, this.tradingRecipeList.size()).toArray();
+            }
+
+            if (j < activeTradeIndices.length && this.scrollPostion != activeTradeIndices[j]) {
+                this.scrollPostion = activeTradeIndices[j];
                 this.populate = true;
             }
         }

@@ -17,8 +17,15 @@ public class TradingRecipeList extends ArrayList<TradingRecipe> {
     public TradingRecipeList(@NotNull MerchantRecipeList list)
     {
         for (MerchantRecipe recipe : list) {
-            this.add(new TradingRecipe(recipe.getItemToBuy(), recipe.getSecondItemToBuy(), recipe.getItemToSell()));
+            if (this.isValidRecipe(recipe)) {
+                this.add(new TradingRecipe(recipe.getItemToBuy(), recipe.getSecondItemToBuy(), recipe.getItemToSell()));
+            }
         }
+    }
+
+    private boolean isValidRecipe(MerchantRecipe recipe)
+    {
+        return !recipe.getItemToBuy().isEmpty() && !recipe.getItemToSell().isEmpty();
     }
 
     public int activeRecipeSize() {
@@ -51,13 +58,11 @@ public class TradingRecipeList extends ArrayList<TradingRecipe> {
 
         String s2 = s1.trim();
         for (TradingRecipe recipe : this) {
-            if (recipe.isValidRecipe()) {
-                if (!s.isEmpty()) {
-                    recipe.setActive(recipe.getCombinedTooltip(i, advancedItemTooltips).stream()
-                            .map(it -> it.toLowerCase(Locale.ROOT)).anyMatch(it -> it.contains(s2)));
-                } else {
-                    recipe.setActive(true);
-                }
+            if (!s.isEmpty()) {
+                recipe.setActive(recipe.getCombinedTooltip(i, advancedItemTooltips).stream()
+                        .map(it -> it.toLowerCase(Locale.ROOT)).anyMatch(it -> it.contains(s2)));
+            } else {
+                recipe.setActive(true);
             }
         }
 
