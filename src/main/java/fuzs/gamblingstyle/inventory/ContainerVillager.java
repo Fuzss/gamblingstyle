@@ -147,6 +147,9 @@ public class ContainerVillager extends Container
         return !this.merchantInventory.getStackInSlot(0).isEmpty() || !this.merchantInventory.getStackInSlot(1).isEmpty();
     }
 
+    /**
+     * Move trading slot contents to inventory so that a ghost recipe can properly be displayed
+     */
     public void clearTradingSlots() {
 
         ItemStack itemstack1 = this.merchantInventory.getStackInSlot(0);
@@ -162,6 +165,15 @@ public class ContainerVillager extends Container
     }
 
     /**
+     * Are the buy items switched in the trading slots
+     */
+    private boolean areSlotsSwitched(ItemStack itemStack1, ItemStack itemStack2, ItemStack itemStack3, ItemStack itemStack4) {
+        boolean flag = ItemStack.areItemsEqual(itemStack1, itemStack4) && !itemStack1.isEmpty();
+        boolean flag1 = ItemStack.areItemsEqual(itemStack2, itemStack3) && !itemStack2.isEmpty();
+        return flag || flag1;
+    }
+
+    /**
      * Handle item moving when a recipe button is clicked
      * @param recipeIndex Id of the recipe belonging to the clicked button
      * @param clear Force clearing trading slots
@@ -174,25 +186,20 @@ public class ContainerVillager extends Container
 
         if (merchantrecipelist != null && merchantrecipelist.size() > recipeIndex) {
 
-            boolean flag = false;
             MerchantRecipe recipe = merchantrecipelist.get(recipeIndex);
             ItemStack itemstack1 = this.merchantInventory.getStackInSlot(0);
             ItemStack itemstack2 = this.merchantInventory.getStackInSlot(1);
             ItemStack itemstack3 = recipe.getItemToBuy();
             ItemStack itemstack4 = recipe.getSecondItemToBuy();
+            boolean flag = this.areSlotsSwitched(itemstack1, itemstack2, itemstack3, itemstack4);
 
             if (!itemstack1.isEmpty() && (clear && !skipMove || !ItemStack.areItemsEqual(itemstack1, itemstack3))) {
-                if (ItemStack.areItemsEqual(itemstack1, itemstack4)) {
-                    flag = true;
-                }
                 if (clear || !flag) {
                     if (!this.mergeItemStack(itemstack1, 3, 39, true)) {
                         return;
                     }
                     this.merchantInventory.setInventorySlotContents(0, itemstack1);
                 }
-            } else if (ItemStack.areItemsEqual(itemstack2, itemstack3)) {
-                flag = true;
             }
 
             if (!itemstack2.isEmpty() && (clear && !skipMove || !ItemStack.areItemsEqual(itemstack2, itemstack4) || flag)) {

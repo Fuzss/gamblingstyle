@@ -189,13 +189,14 @@ public class GuiTradingBook extends Gui
         if (this.tradingRecipeList != null) {
 
             boolean flag = Mouse.isButtonDown(0);
-            float h2 = 1.0F / (float) Math.sqrt((float) Math.max(this.tradingRecipeList.activeRecipeSize() - BUTTON_SPACE + 1, 1));
-            int height = (int) (h2 * 74) * 2; //casting before doubling so it always lines up with the added stripe at the bottom
+            int h = this.tradingRecipeList.activeRecipeSize();
+            float f = 1.0F / (float) Math.sqrt((float) Math.max(h - BUTTON_SPACE + 1, 1));
+            int height = (int) (f * 74) * 2; //casting before doubling so it always lines up with the added stripe at the bottom
             int i = this.guiLeft + 98;
             int j = this.guiTop + 8;
             int k = i + 6;
             int l = j + 149;
-            boolean scrollable = this.tradingRecipeList.scrollable();
+            boolean scrollable = h > BUTTON_SPACE;
             this.mc.getTextureManager().bindTexture(RECIPE_BOOK);
             this.drawTexturedModalRect(i, j + (int) ((float) (l - j - height) * this.currentScroll), scrollable ? 196 : 202, 0, 6, height);
             this.drawTexturedModalRect(i, j + height + (int) ((float) (l - j - height) * this.currentScroll), scrollable ? 196 : 202, 148, 6, 1); //this is the stripe
@@ -291,23 +292,25 @@ public class GuiTradingBook extends Gui
     {
         int i = Mouse.getEventDWheel();
 
-        if (i != 0 && this.tradingRecipeList != null && this.tradingRecipeList.scrollable())
+        if (i != 0 && this.tradingRecipeList != null)
         {
             int j = this.tradingRecipeList.activeRecipeSize();
 
-            if (i > 0)
-            {
-                i = 1;
-            }
+            if (j > BUTTON_SPACE) {
 
-            if (i < 0)
-            {
-                i = -1;
-            }
+                if (i > 0) {
+                    i = 1;
+                }
 
-            this.currentScroll = (float)((double)this.currentScroll - (double)i / (double)j);
-            this.currentScroll = MathHelper.clamp(this.currentScroll, 0.0F, 1.0F);
-            this.scrollToPosition();
+                if (i < 0) {
+                    i = -1;
+                }
+
+                this.currentScroll = (float) ((double) this.currentScroll - (double) i / (double) j);
+                this.currentScroll = MathHelper.clamp(this.currentScroll, 0.0F, 1.0F);
+                this.scrollToPosition();
+
+            }
         }
     }
 

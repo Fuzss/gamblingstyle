@@ -31,11 +31,6 @@ public class TradingRecipeList extends ArrayList<TradingRecipe> {
         return Math.toIntExact(this.stream().filter(TradingRecipe::getActive).count());
     }
 
-    public boolean scrollable()
-    {
-        return this.activeRecipeSize() > GuiTradingBook.BUTTON_SPACE;
-    }
-
     /**
      * Searches trading recipes for a string, hides the ones not containing it
      * @param s String to be searched for

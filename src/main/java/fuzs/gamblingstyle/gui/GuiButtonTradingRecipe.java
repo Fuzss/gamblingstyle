@@ -34,6 +34,7 @@ public class GuiButtonTradingRecipe extends GuiButton
         this.input = ItemStack.EMPTY;
         this.input1 = ItemStack.EMPTY;
         this.output = ItemStack.EMPTY;
+        this.visible = false;
     }
 
     public void setContents(int id, TradingRecipe recipe, boolean soldOut)
