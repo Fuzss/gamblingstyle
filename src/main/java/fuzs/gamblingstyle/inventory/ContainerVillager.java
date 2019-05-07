@@ -1,4 +1,4 @@
-package fuzs.tradinggui.inventory;
+package fuzs.gamblingstyle.inventory;
 
 import net.minecraft.entity.IMerchant;
 import net.minecraft.entity.player.EntityPlayer;

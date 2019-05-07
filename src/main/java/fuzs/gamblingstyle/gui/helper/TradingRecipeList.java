@@ -1,8 +1,7 @@
-package fuzs.tradinggui.gui.helper;
+package fuzs.gamblingstyle.gui.helper;
 
-import com.sun.istack.internal.NotNull;
-import fuzs.tradinggui.gui.GuiTradingBook;
-import fuzs.tradinggui.inventory.ContainerVillager;
+import fuzs.gamblingstyle.gui.GuiTradingBook;
+import fuzs.gamblingstyle.inventory.ContainerVillager;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.village.MerchantRecipe;
@@ -14,7 +13,7 @@ import java.util.stream.Collectors;
 
 public class TradingRecipeList extends ArrayList<TradingRecipe> {
 
-    public TradingRecipeList(@NotNull MerchantRecipeList list)
+    public TradingRecipeList(MerchantRecipeList list)
     {
         for (MerchantRecipe recipe : list) {
             if (this.isValidRecipe(recipe)) {

@@ -7,7 +7,7 @@
 **    May you find forgiveness for yourself and forgive others.
 **    May you share freely, never taking more than you give.
  */
-package fuzs.tradinggui.util;
+package fuzs.gamblingstyle.util;
 
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;

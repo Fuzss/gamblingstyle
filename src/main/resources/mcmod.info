@@ -1,10 +1,10 @@
 [
 {
-  "modid": "tradinggui",
-  "name": "Trading GUI",
-  "description": "New trading gui for better usability.",
+  "modid": "gamblingstyle",
+  "name": "Gambling Style",
+  "description": "Overhauled villager trading gui for far better usability and a lot of convenient extras.",
   "version": "1.0",
-  "url": "https://minecraft.curseforge.com/projects/???",
+  "url": "https://minecraft.curseforge.com/projects/gambling-style",
   "authorList": ["Fuzs"]
 }
 ]

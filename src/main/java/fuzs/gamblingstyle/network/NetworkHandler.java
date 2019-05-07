@@ -1,9 +1,9 @@
-package fuzs.tradinggui.network;
+package fuzs.gamblingstyle.network;
 
-import fuzs.tradinggui.TradingGUI;
-import fuzs.tradinggui.network.messages.MessageOpenWindow;
-import fuzs.tradinggui.network.messages.MessageTradingData;
-import fuzs.tradinggui.network.messages.MessageTradingList;
+import fuzs.gamblingstyle.GamblingStyle;
+import fuzs.gamblingstyle.network.messages.MessageOpenWindow;
+import fuzs.gamblingstyle.network.messages.MessageTradingData;
+import fuzs.gamblingstyle.network.messages.MessageTradingList;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
@@ -16,7 +16,7 @@ public class NetworkHandler {
     private static int discriminator;
 
     public static void init(){
-        INSTANCE = NetworkRegistry.INSTANCE.newSimpleChannel(TradingGUI.MODID);
+        INSTANCE = NetworkRegistry.INSTANCE.newSimpleChannel(GamblingStyle.MODID);
 
         INSTANCE.registerMessage(MessageOpenWindow.class, MessageOpenWindow.class, nextDiscriminator(), Side.CLIENT);
         INSTANCE.registerMessage(MessageTradingList.class, MessageTradingList.class, nextDiscriminator(), Side.CLIENT);

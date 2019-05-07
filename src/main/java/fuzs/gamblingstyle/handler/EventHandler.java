@@ -1,10 +1,10 @@
-package fuzs.tradinggui.handler;
+package fuzs.gamblingstyle.handler;
 
-import fuzs.tradinggui.inventory.ContainerVillager;
-import fuzs.tradinggui.network.NetworkHandler;
-import fuzs.tradinggui.network.messages.MessageOpenWindow;
-import fuzs.tradinggui.network.messages.MessageTradingList;
-import fuzs.tradinggui.util.IPrivateAccessor;
+import fuzs.gamblingstyle.inventory.ContainerVillager;
+import fuzs.gamblingstyle.network.NetworkHandler;
+import fuzs.gamblingstyle.network.messages.MessageOpenWindow;
+import fuzs.gamblingstyle.network.messages.MessageTradingList;
+import fuzs.gamblingstyle.util.IPrivateAccessor;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;

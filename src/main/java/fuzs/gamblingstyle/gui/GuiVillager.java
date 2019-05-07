@@ -1,10 +1,10 @@
-package fuzs.tradinggui.gui;
+package fuzs.gamblingstyle.gui;
 
-import fuzs.tradinggui.gui.helper.GhostTrade;
-import fuzs.tradinggui.inventory.ContainerVillager;
-import fuzs.tradinggui.network.NetworkHandler;
-import fuzs.tradinggui.network.messages.MessageTradingData;
-import fuzs.tradinggui.util.IPrivateAccessor;
+import fuzs.gamblingstyle.gui.helper.GhostTrade;
+import fuzs.gamblingstyle.inventory.ContainerVillager;
+import fuzs.gamblingstyle.network.NetworkHandler;
+import fuzs.gamblingstyle.network.messages.MessageTradingData;
+import fuzs.gamblingstyle.util.IPrivateAccessor;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -50,6 +50,8 @@ public class GuiVillager extends GuiContainer implements IPrivateAccessor
         this.merchant = p_i45500_2_;
         this.entityVillager = entityVillager;
         this.chatComponent = p_i45500_2_.getDisplayName();
+        this.selectedMerchantRecipe = this.getWealth(entityVillager);
+        this.sendSelectedRecipe(false);
     }
 
     /**
@@ -61,8 +63,6 @@ public class GuiVillager extends GuiContainer implements IPrivateAccessor
         super.initGui();
         this.guiLeft = (this.width - this.xSize) / 2 + 57;
         this.tradingBookGui.initGui(this.mc, this.width, this.height);
-        this.selectedMerchantRecipe = this.getWealth(entityVillager);
-        this.sendSelectedRecipe(false);
     }
 
     /**

@@ -1,6 +1,6 @@
-package fuzs.tradinggui.network.messages;
+package fuzs.gamblingstyle.network.messages;
 
-import fuzs.tradinggui.TradingGUI;
+import fuzs.gamblingstyle.GamblingStyle;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
@@ -12,7 +12,7 @@ public abstract class MessageBase<T extends IMessage> implements IMessage, IMess
     @Override
     public T onMessage(T message, MessageContext context){
         if(context.side == Side.CLIENT) {
-            handleClientSide(message, TradingGUI.proxy.getClientPlayer());
+            handleClientSide(message, GamblingStyle.proxy.getClientPlayer());
         } else {
             handleServerSide(message, context.getServerHandler().player);
         }

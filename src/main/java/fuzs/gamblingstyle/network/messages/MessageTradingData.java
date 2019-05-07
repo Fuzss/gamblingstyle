@@ -1,7 +1,7 @@
-package fuzs.tradinggui.network.messages;
+package fuzs.gamblingstyle.network.messages;
 
-import fuzs.tradinggui.inventory.ContainerVillager;
-import fuzs.tradinggui.util.IPrivateAccessor;
+import fuzs.gamblingstyle.inventory.ContainerVillager;
+import fuzs.gamblingstyle.util.IPrivateAccessor;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.passive.EntityVillager;

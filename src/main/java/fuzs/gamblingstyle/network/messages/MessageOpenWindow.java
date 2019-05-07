@@ -1,7 +1,8 @@
-package fuzs.tradinggui.network.messages;
+package fuzs.gamblingstyle.network.messages;
 
-import fuzs.tradinggui.gui.GuiVillager;
-import fuzs.tradinggui.util.IPrivateAccessor;
+import fuzs.gamblingstyle.GamblingStyle;
+import fuzs.gamblingstyle.gui.GuiVillager;
+import fuzs.gamblingstyle.util.IPrivateAccessor;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -54,15 +55,16 @@ public class MessageOpenWindow extends MessageBase<MessageOpenWindow> implements
 
     @Override
     public void handleClientSide(MessageOpenWindow message, EntityPlayer player) {
-        Minecraft mc = Minecraft.getMinecraft();
+        Minecraft gameController = Minecraft.getMinecraft();
         World worldIn = player.world;
         Entity entity = worldIn.getEntityByID(message.entityId);
         if (entity instanceof EntityVillager) {
             EntityVillager entityVillager = (EntityVillager) entity;
             this.setWealth(entityVillager, message.getWealth());
-            mc.addScheduledTask(() -> {
-                mc.displayGuiScreen(new GuiVillager(player.inventory, new NpcMerchant(player, message.getWindowTitle()),
-                        entityVillager, worldIn));
+            gameController.addScheduledTask(() -> {
+                //crashes on server startup when calling Minecraft#displayGuiScreen directly, @SideOnly and FMLCommonHandler#showGuiScreen seem to solve this as well
+                Object guiContainer = new GuiVillager(player.inventory, new NpcMerchant(player, message.getWindowTitle()), entityVillager, worldIn);
+                GamblingStyle.proxy.showGuiScreen(guiContainer);
             player.openContainer.windowId = message.getWindowId();
             });
         }

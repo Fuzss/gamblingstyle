@@ -1,8 +1,8 @@
-package fuzs.tradinggui.gui;
+package fuzs.gamblingstyle.gui;
 
-import fuzs.tradinggui.gui.helper.TradingRecipe;
-import fuzs.tradinggui.gui.helper.TradingRecipeList;
-import fuzs.tradinggui.inventory.ContainerVillager;
+import fuzs.gamblingstyle.gui.helper.TradingRecipe;
+import fuzs.gamblingstyle.gui.helper.TradingRecipeList;
+import fuzs.gamblingstyle.inventory.ContainerVillager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiButton;
@@ -27,41 +27,52 @@ import java.util.stream.IntStream;
 public class GuiTradingBook extends Gui
 {
     private static final ResourceLocation RECIPE_BOOK = new ResourceLocation("textures/gui/container/merchant_book.png");
+    public static final int BUTTON_SPACE = 6;
     private final int xSize = 112;
     private final int ySize = 166;
     private Minecraft mc;
     private GuiButtonTradingRecipe hoveredButton;
-    public static final int BUTTON_SPACE = 6;
-    private List<GuiButtonTradingRecipe> buttonList = new ArrayList<>(6);
+    private List<GuiButtonTradingRecipe> buttonList;
     private GuiTextField searchField;
     private String lastSearch = "";
     private int guiLeft;
     private int guiTop;
-    private boolean sentRecipeList;
-    private boolean populate;
+    private boolean populate = true;
+    private boolean refresh;
     private TradingRecipeList tradingRecipeList;
     /** Amount scrolled in Creative mode inventory (0 = top, 1 = bottom) */
-    private float currentScroll;
-    private int scrollPostion = 0;
+    private float currentScroll = 0.0F;
+    private int scrollPosition = 0;
     /** True if the scrollbar is being dragged */
     private boolean isScrolling;
     /** True if the left mouse button was held down last time drawScreen was called. */
     private boolean wasClicking;
     /** The button that was just pressed. */
     private GuiButton selectedButton;
-    private int selectedTradingRecipe;
-    private boolean clearSearch;
+    private int selectedTradingRecipe = 0;
+    private boolean clearSearch = false;
     public int hoveredSlot;
     private int timesInventoryChanged;
+
+    public GuiTradingBook() {
+
+        this.buttonList = new ArrayList<>(BUTTON_SPACE);
+        for (int i = 0; i < BUTTON_SPACE; ++i)
+        {
+            this.buttonList.add(new GuiButtonTradingRecipe(i, this.guiLeft + 10, this.guiTop + 24 + 22 * i));
+        }
+
+    }
 
     public void initGui(Minecraft mc, int width, int height)
     {
         this.mc = mc;
+        this.refresh = true;
+        Keyboard.enableRepeatEvents(true);
         this.guiLeft = (width - xSize) / 2 - 88;
         this.guiTop = (height - ySize) / 2;
-        this.buttonList.clear();
-        Keyboard.enableRepeatEvents(true);
         this.timesInventoryChanged = mc.player.inventory.getTimesChanged();
+
         this.searchField = new GuiTextField(0, mc.fontRenderer, this.guiLeft + 9, this.guiTop + 9,
                 80, mc.fontRenderer.FONT_HEIGHT);
         this.searchField.setMaxStringLength(50);
@@ -69,17 +80,18 @@ public class GuiTradingBook extends Gui
         this.searchField.setFocused(true);
         this.searchField.setCanLoseFocus(false);
         this.searchField.setTextColor(16777215);
-        this.sentRecipeList = false;
-        this.populate = false;
-        this.selectedTradingRecipe = 0;
-        this.clearSearch = false;
+        this.refresh = true;
 
-        for (int i = 0; i < BUTTON_SPACE; ++i)
-        {
-            this.buttonList.add(new GuiButtonTradingRecipe(i, this.guiLeft + 10, this.guiTop + 24 + 22 * i));
-            this.buttonList.get(i).visible = false;
+        for (int i = 0; i < BUTTON_SPACE; i++) {
+            this.buttonList.get(i).setPosition(this.guiLeft + 10, this.guiTop + 24 + 22 * i);
         }
 
+        if (!this.lastSearch.isEmpty()) {
+            this.tradingRecipeList.searchQuery("", false);
+            this.lastSearch = "";
+            this.currentScroll = 0.0F;
+            this.scrollToPosition();
+        }
     }
 
     public void removed()
@@ -93,7 +105,7 @@ public class GuiTradingBook extends Gui
             this.tradingRecipeList.get(this.selectedTradingRecipe).setSelected(false);
             this.selectedTradingRecipe = i;
             this.tradingRecipeList.get(this.selectedTradingRecipe).setSelected(true);
-            this.populate = true;
+            this.refresh = true;
         } else {
             this.selectedTradingRecipe = i;
         }
@@ -104,26 +116,33 @@ public class GuiTradingBook extends Gui
     {
         if (this.tradingRecipeList != null) {
             this.tradingRecipeList.countRecipeContents(container);
+            this.refresh = true;
         }
     }
 
     public void update(MerchantRecipeList merchantrecipelist, ContainerVillager container)
     {
-        if (!this.sentRecipeList) {
+        if (this.populate) {
             this.tradingRecipeList = new TradingRecipeList(merchantrecipelist);
             this.tradingRecipeList.get(this.selectedTradingRecipe).setSelected(true);
             this.countContents(container);
-            this.sentRecipeList = true;
-            this.populate = true;
+            this.populate = false;
+            this.refresh = true;
         }
 
-        if (this.tradingRecipeList != null && this.populate) {
+        if (this.timesInventoryChanged != this.mc.player.inventory.getTimesChanged())
+        {
+            this.countContents(container);
+            this.timesInventoryChanged = this.mc.player.inventory.getTimesChanged();
+        }
+
+        if (this.tradingRecipeList != null && this.refresh) {
 
             if (this.tradingRecipeList.size() != merchantrecipelist.size()) {
                 return;
             }
 
-            int i = this.scrollPostion;
+            int i = this.scrollPosition;
 
             for (GuiButtonTradingRecipe guiButtonTradingRecipe : this.buttonList) {
 
@@ -145,14 +164,8 @@ public class GuiTradingBook extends Gui
 
             }
 
-            this.populate = false;
+            this.refresh = false;
 
-        }
-
-        if (this.timesInventoryChanged != this.mc.player.inventory.getTimesChanged())
-        {
-            this.countContents(container);
-            this.timesInventoryChanged = this.mc.player.inventory.getTimesChanged();
         }
 
         if (this.clearSearch) {
@@ -200,7 +213,7 @@ public class GuiTradingBook extends Gui
             if (this.isScrolling) {
                 this.currentScroll = ((float) (mouseY - j) - 7.5F) / ((float) (l - j) - 15.0F);
                 this.currentScroll = MathHelper.clamp(this.currentScroll, 0.0F, 1.0F);
-                this.scrollTo(this.currentScroll);
+                this.scrollToPosition();
             }
 
         }
@@ -294,7 +307,7 @@ public class GuiTradingBook extends Gui
 
             this.currentScroll = (float)((double)this.currentScroll - (double)i / (double)j);
             this.currentScroll = MathHelper.clamp(this.currentScroll, 0.0F, 1.0F);
-            this.scrollTo(this.currentScroll);
+            this.scrollToPosition();
         }
     }
 
@@ -331,8 +344,8 @@ public class GuiTradingBook extends Gui
                 this.tradingRecipeList.searchQuery(s1, this.mc.gameSettings.advancedItemTooltips);
                 this.lastSearch = s1;
                 this.currentScroll = 0.0F;
-                this.scrollTo(0.0F);
-                this.populate = true;
+                this.scrollToPosition();
+                this.refresh = true;
             }
 
             return true;
@@ -362,14 +375,14 @@ public class GuiTradingBook extends Gui
     }
 
     /**
-     * Updates the gui slots ItemStack's based on scroll position.
+     * Updates the scrollPosition value for populating the trading recipe buttons based on scroll position.
      */
-    private void scrollTo(float pos)
+    private void scrollToPosition()
     {
         if (this.tradingRecipeList != null) {
 
             int i = this.tradingRecipeList.activeRecipeSize();
-            int j = (int)((double)(pos * (float)Math.max(i - BUTTON_SPACE, 0)) + 0.5D);
+            int j = (int)((double)(this.currentScroll * (float)Math.max(i - BUTTON_SPACE, 0)) + 0.5D);
             j = Math.max(0, j);
 
             int[] activeTradeIndices;
@@ -379,9 +392,9 @@ public class GuiTradingBook extends Gui
                 activeTradeIndices = IntStream.range(0, this.tradingRecipeList.size()).toArray();
             }
 
-            if (j < activeTradeIndices.length && this.scrollPostion != activeTradeIndices[j]) {
-                this.scrollPostion = activeTradeIndices[j];
-                this.populate = true;
+            if (j < activeTradeIndices.length && this.scrollPosition != activeTradeIndices[j]) {
+                this.scrollPosition = activeTradeIndices[j];
+                this.refresh = true;
             }
         }
     }

@@ -1,7 +1,7 @@
-package fuzs.tradinggui.gui;
+package fuzs.gamblingstyle.gui;
 
 import com.google.common.collect.Lists;
-import fuzs.tradinggui.gui.helper.TradingRecipe;
+import fuzs.gamblingstyle.gui.helper.TradingRecipe;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -49,6 +49,12 @@ public class GuiButtonTradingRecipe extends GuiButton
 
     public int getRecipeId() {
         return this.recipeId;
+    }
+
+    public void setPosition(int posX, int posY)
+    {
+        this.x = posX;
+        this.y = posY;
     }
 
     /**
