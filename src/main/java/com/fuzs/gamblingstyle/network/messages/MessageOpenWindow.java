@@ -1,8 +1,8 @@
-package fuzs.gamblingstyle.network.messages;
+package com.fuzs.gamblingstyle.network.messages;
 
-import fuzs.gamblingstyle.GamblingStyle;
-import fuzs.gamblingstyle.gui.GuiVillager;
-import fuzs.gamblingstyle.util.IPrivateAccessor;
+import com.fuzs.gamblingstyle.GamblingStyle;
+import com.fuzs.gamblingstyle.gui.GuiVillager;
+import com.fuzs.gamblingstyle.util.IPrivateAccessor;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;

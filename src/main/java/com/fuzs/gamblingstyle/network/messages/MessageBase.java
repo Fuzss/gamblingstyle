@@ -1,6 +1,6 @@
-package fuzs.gamblingstyle.network.messages;
+package com.fuzs.gamblingstyle.network.messages;
 
-import fuzs.gamblingstyle.GamblingStyle;
+import com.fuzs.gamblingstyle.GamblingStyle;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;

@@ -1,4 +1,4 @@
-package fuzs.gamblingstyle.inventory;
+package com.fuzs.gamblingstyle.inventory;
 
 import net.minecraft.entity.IMerchant;
 import net.minecraft.entity.player.EntityPlayer;
@@ -168,9 +168,9 @@ public class ContainerVillager extends Container
      * Are the buy items switched in the trading slots
      */
     private boolean areSlotsSwitched(ItemStack itemStack1, ItemStack itemStack2, ItemStack itemStack3, ItemStack itemStack4) {
-        boolean flag = ItemStack.areItemsEqual(itemStack1, itemStack4) && !itemStack1.isEmpty();
-        boolean flag1 = ItemStack.areItemsEqual(itemStack2, itemStack3) && !itemStack2.isEmpty();
-        return flag || flag1;
+        boolean flag = !itemStack1.isEmpty() && ItemStack.areItemsEqual(itemStack1, itemStack4);
+        boolean flag1 = !itemStack2.isEmpty() && ItemStack.areItemsEqual(itemStack2, itemStack3);
+        return (flag || flag1) && !(ItemStack.areItemsEqual(itemStack1, itemStack3) || ItemStack.areItemsEqual(itemStack2, itemStack4));
     }
 
     /**
@@ -193,22 +193,18 @@ public class ContainerVillager extends Container
             ItemStack itemstack4 = recipe.getSecondItemToBuy();
             boolean flag = this.areSlotsSwitched(itemstack1, itemstack2, itemstack3, itemstack4);
 
-            if (!itemstack1.isEmpty() && (clear && !skipMove || !ItemStack.areItemsEqual(itemstack1, itemstack3))) {
-                if (clear || !flag) {
-                    if (!this.mergeItemStack(itemstack1, 3, 39, true)) {
-                        return;
-                    }
-                    this.merchantInventory.setInventorySlotContents(0, itemstack1);
+            if (!itemstack1.isEmpty() && (clear && !skipMove || !ItemStack.areItemsEqual(itemstack1, itemstack3) && !flag || !ItemStack.areItemsEqual(itemstack1, itemstack4) && flag)) {
+                if (!this.mergeItemStack(itemstack1, 3, 39, true)) {
+                    return;
                 }
+                this.merchantInventory.setInventorySlotContents(0, itemstack1);
             }
 
-            if (!itemstack2.isEmpty() && (clear && !skipMove || !ItemStack.areItemsEqual(itemstack2, itemstack4) || flag)) {
-                if (clear && !skipMove || !ItemStack.areItemsEqual(itemstack2, itemstack3)) {
-                    if (!this.mergeItemStack(itemstack2, 3, 39, true)) {
-                        return;
-                    }
-                    this.merchantInventory.setInventorySlotContents(1, itemstack2);
+            if (!itemstack2.isEmpty() && (clear && !skipMove || !ItemStack.areItemsEqual(itemstack2, itemstack4) && !flag || !ItemStack.areItemsEqual(itemstack2, itemstack3) && flag)) {
+                if (!this.mergeItemStack(itemstack2, 3, 39, true)) {
+                    return;
                 }
+                this.merchantInventory.setInventorySlotContents(1, itemstack2);
             }
 
             int mainCount;

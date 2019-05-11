@@ -1,7 +1,7 @@
-package fuzs.gamblingstyle.gui;
+package com.fuzs.gamblingstyle.gui;
 
+import com.fuzs.gamblingstyle.gui.helper.TradingRecipe;
 import com.google.common.collect.Lists;
-import fuzs.gamblingstyle.gui.helper.TradingRecipe;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;

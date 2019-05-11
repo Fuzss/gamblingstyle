@@ -1,4 +1,4 @@
-package fuzs.gamblingstyle.proxy;
+package com.fuzs.gamblingstyle.proxy;
 
 import net.minecraft.entity.player.EntityPlayer;
 

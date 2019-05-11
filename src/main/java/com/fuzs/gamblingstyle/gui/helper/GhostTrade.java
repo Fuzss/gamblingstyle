@@ -1,4 +1,4 @@
-package fuzs.gamblingstyle.gui.helper;
+package com.fuzs.gamblingstyle.gui.helper;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;

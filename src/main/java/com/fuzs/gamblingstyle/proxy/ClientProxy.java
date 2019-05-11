@@ -1,4 +1,4 @@
-package fuzs.gamblingstyle.proxy;
+package com.fuzs.gamblingstyle.proxy;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;

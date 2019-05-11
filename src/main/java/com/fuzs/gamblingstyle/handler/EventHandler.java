@@ -1,10 +1,10 @@
-package fuzs.gamblingstyle.handler;
+package com.fuzs.gamblingstyle.handler;
 
-import fuzs.gamblingstyle.inventory.ContainerVillager;
-import fuzs.gamblingstyle.network.NetworkHandler;
-import fuzs.gamblingstyle.network.messages.MessageOpenWindow;
-import fuzs.gamblingstyle.network.messages.MessageTradingList;
-import fuzs.gamblingstyle.util.IPrivateAccessor;
+import com.fuzs.gamblingstyle.inventory.ContainerVillager;
+import com.fuzs.gamblingstyle.network.NetworkHandler;
+import com.fuzs.gamblingstyle.network.messages.MessageOpenWindow;
+import com.fuzs.gamblingstyle.network.messages.MessageTradingList;
+import com.fuzs.gamblingstyle.util.IPrivateAccessor;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
@@ -19,6 +19,7 @@ import net.minecraft.item.ItemMonsterPlacer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.stats.StatList;
+import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.village.MerchantRecipeList;
@@ -46,6 +47,7 @@ public class EventHandler implements IPrivateAccessor {
                         {
                             player.addStat(StatList.TALKED_TO_VILLAGER);
                         }
+                        evt.setCancellationResult(EnumActionResult.SUCCESS);
                         evt.setCanceled(true);
                     }
                 }

@@ -1,9 +1,9 @@
-package fuzs.gamblingstyle.network;
+package com.fuzs.gamblingstyle.network;
 
-import fuzs.gamblingstyle.GamblingStyle;
-import fuzs.gamblingstyle.network.messages.MessageOpenWindow;
-import fuzs.gamblingstyle.network.messages.MessageTradingData;
-import fuzs.gamblingstyle.network.messages.MessageTradingList;
+import com.fuzs.gamblingstyle.GamblingStyle;
+import com.fuzs.gamblingstyle.network.messages.MessageTradingData;
+import com.fuzs.gamblingstyle.network.messages.MessageTradingList;
+import com.fuzs.gamblingstyle.network.messages.MessageOpenWindow;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;

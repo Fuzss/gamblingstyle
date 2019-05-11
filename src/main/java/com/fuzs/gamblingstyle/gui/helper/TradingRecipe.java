@@ -1,4 +1,4 @@
-package fuzs.gamblingstyle.gui.helper;
+package com.fuzs.gamblingstyle.gui.helper;
 
 import com.google.common.collect.Lists;
 import net.minecraft.client.util.ITooltipFlag;

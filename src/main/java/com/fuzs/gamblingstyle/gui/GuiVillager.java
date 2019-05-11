@@ -1,10 +1,10 @@
-package fuzs.gamblingstyle.gui;
+package com.fuzs.gamblingstyle.gui;
 
-import fuzs.gamblingstyle.gui.helper.GhostTrade;
-import fuzs.gamblingstyle.inventory.ContainerVillager;
-import fuzs.gamblingstyle.network.NetworkHandler;
-import fuzs.gamblingstyle.network.messages.MessageTradingData;
-import fuzs.gamblingstyle.util.IPrivateAccessor;
+import com.fuzs.gamblingstyle.gui.helper.GhostTrade;
+import com.fuzs.gamblingstyle.inventory.ContainerVillager;
+import com.fuzs.gamblingstyle.network.NetworkHandler;
+import com.fuzs.gamblingstyle.network.messages.MessageTradingData;
+import com.fuzs.gamblingstyle.util.IPrivateAccessor;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiContainer;

@@ -1,6 +1,6 @@
 {
     "pack": {
-        "description": "Overhauled villager trading gui for far better usability and a lot of convenient extras.",
+        "description": "${mod_description}",
         "pack_format": 3
     }
 }

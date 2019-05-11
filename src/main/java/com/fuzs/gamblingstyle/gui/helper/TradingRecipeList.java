@@ -1,7 +1,6 @@
-package fuzs.gamblingstyle.gui.helper;
+package com.fuzs.gamblingstyle.gui.helper;
 
-import fuzs.gamblingstyle.gui.GuiTradingBook;
-import fuzs.gamblingstyle.inventory.ContainerVillager;
+import com.fuzs.gamblingstyle.inventory.ContainerVillager;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.village.MerchantRecipe;

@@ -1,8 +1,8 @@
-package fuzs.gamblingstyle.gui;
+package com.fuzs.gamblingstyle.gui;
 
-import fuzs.gamblingstyle.gui.helper.TradingRecipe;
-import fuzs.gamblingstyle.gui.helper.TradingRecipeList;
-import fuzs.gamblingstyle.inventory.ContainerVillager;
+import com.fuzs.gamblingstyle.gui.helper.TradingRecipe;
+import com.fuzs.gamblingstyle.gui.helper.TradingRecipeList;
+import com.fuzs.gamblingstyle.inventory.ContainerVillager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiButton;
