@@ -1,5 +1,6 @@
 package com.fuzs.gamblingstyle.gui;
 
+import com.fuzs.gamblingstyle.GamblingStyle;
 import com.fuzs.gamblingstyle.gui.helper.GhostTrade;
 import com.fuzs.gamblingstyle.inventory.ContainerVillager;
 import com.fuzs.gamblingstyle.network.NetworkHandler;
@@ -32,7 +33,7 @@ import java.io.IOException;
 public class GuiVillager extends GuiContainer implements IPrivateAccessor
 {
     /** The GUI texture for the villager merchant GUI. */
-    private static final ResourceLocation MERCHANT_GUI_TEXTURE = new ResourceLocation("textures/gui/container/merchant.png");
+    private static final ResourceLocation MERCHANT_GUI_TEXTURE = new ResourceLocation(GamblingStyle.MODID, "textures/gui/container/merchant.png");
     /** The current IMerchant instance in use for this specific merchant. */
     private final IMerchant merchant;
     private final EntityVillager entityVillager;

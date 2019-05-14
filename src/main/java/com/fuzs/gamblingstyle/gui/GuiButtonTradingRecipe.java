@@ -1,5 +1,6 @@
 package com.fuzs.gamblingstyle.gui;
 
+import com.fuzs.gamblingstyle.GamblingStyle;
 import com.fuzs.gamblingstyle.gui.helper.TradingRecipe;
 import com.google.common.collect.Lists;
 import net.minecraft.client.Minecraft;
@@ -18,7 +19,7 @@ import java.util.List;
 @SideOnly(Side.CLIENT)
 public class GuiButtonTradingRecipe extends GuiButton
 {
-    private static final ResourceLocation RECIPE_BOOK = new ResourceLocation("textures/gui/container/merchant_book.png");
+    private static final ResourceLocation RECIPE_BOOK = new ResourceLocation(GamblingStyle.MODID, "textures/gui/container/merchant_book.png");
 
     private ItemStack input;
     private ItemStack input1;

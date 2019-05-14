@@ -1,5 +1,6 @@
 package com.fuzs.gamblingstyle;
 
+import com.fuzs.gamblingstyle.handler.ModEventHandler;
 import com.fuzs.gamblingstyle.network.NetworkHandler;
 import com.fuzs.gamblingstyle.proxy.CommonProxy;
 import net.minecraftforge.common.MinecraftForge;
@@ -38,7 +39,7 @@ public class GamblingStyle
     @EventHandler
     public void preInit(FMLPreInitializationEvent event)
     {
-        MinecraftForge.EVENT_BUS.register(new com.fuzs.gamblingstyle.handler.EventHandler());
+        MinecraftForge.EVENT_BUS.register(new ModEventHandler());
         NetworkHandler.init();
     }
 

@@ -26,7 +26,7 @@ import net.minecraft.village.MerchantRecipeList;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-public class EventHandler implements IPrivateAccessor {
+public class ModEventHandler implements IPrivateAccessor {
 
     @SubscribeEvent
     public void interact(PlayerInteractEvent.EntityInteract evt) {

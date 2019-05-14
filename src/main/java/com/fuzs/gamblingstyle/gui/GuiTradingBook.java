@@ -1,5 +1,6 @@
 package com.fuzs.gamblingstyle.gui;
 
+import com.fuzs.gamblingstyle.GamblingStyle;
 import com.fuzs.gamblingstyle.gui.helper.TradingRecipe;
 import com.fuzs.gamblingstyle.gui.helper.TradingRecipeList;
 import com.fuzs.gamblingstyle.inventory.ContainerVillager;
@@ -26,7 +27,7 @@ import java.util.stream.IntStream;
 @SideOnly(Side.CLIENT)
 public class GuiTradingBook extends Gui
 {
-    private static final ResourceLocation RECIPE_BOOK = new ResourceLocation("textures/gui/container/merchant_book.png");
+    private static final ResourceLocation RECIPE_BOOK = new ResourceLocation(GamblingStyle.MODID, "textures/gui/container/merchant_book.png");
     public static final int BUTTON_SPACE = 6;
     private final int xSize = 112;
     private final int ySize = 166;
