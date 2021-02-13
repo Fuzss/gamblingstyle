@@ -6,6 +6,7 @@ import com.fuzs.gamblingstyle.util.IPrivateAccessor;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.IMerchant;
 import net.minecraft.entity.NpcMerchant;
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayer;
@@ -58,9 +59,10 @@ public class MessageOpenWindow extends MessageBase<MessageOpenWindow> implements
         Minecraft gameController = Minecraft.getMinecraft();
         World worldIn = player.world;
         Entity entity = worldIn.getEntityByID(message.entityId);
-        if (entity instanceof EntityVillager) {
-            EntityVillager entityVillager = (EntityVillager) entity;
-            entityVillager.wealth = message.getWealth();
+        if (entity instanceof IMerchant) {
+            IMerchant entityVillager = (IMerchant) entity;
+            if (entity instanceof EntityVillager) ((EntityVillager) entity).wealth = message.getWealth();
+            else this.setField(entity.getClass(), entity, "wealth", message.getWealth(), false);
             gameController.addScheduledTask(() -> {
                 //crashes on server startup when calling Minecraft#displayGuiScreen directly, @SideOnly and FMLCommonHandler#showGuiScreen seem to solve this as well
                 Object guiContainer = new GuiVillager(player.inventory, new NpcMerchant(player, message.getWindowTitle()), entityVillager, worldIn);

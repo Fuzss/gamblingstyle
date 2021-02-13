@@ -46,7 +46,7 @@ public class ModEventHandler implements IPrivateAccessor {
                 boolean trading;
                 if (evt.getTarget() instanceof EntityVillager)
                     trading = ((EntityVillager) evt.getTarget()).isTrading();
-                else {
+                else
                     trading = BooleanUtils.isTrue((boolean) this.invoke(
                             evt.getTarget().getClass(), 
                             evt.getTarget(), 
@@ -54,7 +54,6 @@ public class ModEventHandler implements IPrivateAccessor {
                             false, 
                             new Class[]{ void.class }, 
                             (Object[]) null));
-                }
 
                 if (!this.holdingSpawnEggOfClass(itemstack, evt.getTarget().getClass()) 
                         && evt.getTarget().isEntityAlive()

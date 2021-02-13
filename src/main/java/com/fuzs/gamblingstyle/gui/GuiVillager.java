@@ -48,12 +48,12 @@ public class GuiVillager extends GuiContainer implements IPrivateAccessor
     private final GuiTradingBook tradingBookGui = new GuiTradingBook();
     private final GhostTrade ghostTrade = new GhostTrade();
 
-    public GuiVillager(InventoryPlayer p_i45500_1_, IMerchant p_i45500_2_, IMerchant entityVillager, World worldIn)
+    public GuiVillager(InventoryPlayer invPlayer, IMerchant merchant, IMerchant entityVillager, World worldIn)
     {
-        super(new ContainerVillager(p_i45500_1_, p_i45500_2_, worldIn));
-        this.merchant = p_i45500_2_;
+        super(new ContainerVillager(invPlayer, merchant, worldIn));
+        this.merchant = merchant;
         this.entityVillager = entityVillager;
-        this.chatComponent = p_i45500_2_.getDisplayName();
+        this.chatComponent = merchant.getDisplayName();
         this.selectedMerchantRecipe = entityVillager instanceof EntityVillager ? ((EntityVillager) entityVillager).wealth : 
                                                 this.getField(entityVillager.getClass(), entityVillager, "wealth", 0, false);
         this.sendSelectedRecipe(false);
