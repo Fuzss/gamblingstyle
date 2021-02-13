@@ -60,7 +60,7 @@ public class MessageOpenWindow extends MessageBase<MessageOpenWindow> implements
         Entity entity = worldIn.getEntityByID(message.entityId);
         if (entity instanceof EntityVillager) {
             EntityVillager entityVillager = (EntityVillager) entity;
-            this.setWealth(entityVillager, message.getWealth());
+            entityVillager.wealth = message.getWealth();
             gameController.addScheduledTask(() -> {
                 //crashes on server startup when calling Minecraft#displayGuiScreen directly, @SideOnly and FMLCommonHandler#showGuiScreen seem to solve this as well
                 Object guiContainer = new GuiVillager(player.inventory, new NpcMerchant(player, message.getWindowTitle()), entityVillager, worldIn);

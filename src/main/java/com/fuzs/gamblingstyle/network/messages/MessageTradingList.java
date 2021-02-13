@@ -10,14 +10,13 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.village.MerchantRecipeList;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 
+import static com.fuzs.gamblingstyle.GamblingStyle.LOGGER;
+
 public class MessageTradingList extends MessageBase<MessageTradingList> {
 
-    private static final Logger LOGGER = LogManager.getLogger();
     private PacketBuffer data;
 
     public MessageTradingList()

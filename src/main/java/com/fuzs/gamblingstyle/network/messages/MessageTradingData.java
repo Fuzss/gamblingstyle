@@ -8,12 +8,11 @@ import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.network.PacketBuffer;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import static com.fuzs.gamblingstyle.GamblingStyle.LOGGER;
 
 public class MessageTradingData extends MessageBase<MessageTradingData> implements IPrivateAccessor {
 
-    private static final Logger LOGGER = LogManager.getLogger();
     private int channel;
     private PacketBuffer data;
 
@@ -98,7 +97,7 @@ public class MessageTradingData extends MessageBase<MessageTradingData> implemen
                     Entity entity = player.world.getEntityByID(l);
 
                     if (entity instanceof EntityVillager) {
-                        this.setWealth((EntityVillager) entity, k);
+                        ((EntityVillager) entity).wealth = k;
                     }
                 }
                 catch (Exception exception5)

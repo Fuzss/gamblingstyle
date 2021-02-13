@@ -31,7 +31,7 @@ public class GamblingStyle
     public static final String SERVER_PROXY_CLASS = "com.fuzs.gamblingstyle.proxy.ServerProxy";
     public static final String FINGERPRINT = "@FINGERPRINT@";
 
-    private static final Logger LOGGER = LogManager.getLogger(GamblingStyle.NAME);
+    public static final Logger LOGGER = LogManager.getLogger(GamblingStyle.NAME);
 
     @SidedProxy(clientSide = GamblingStyle.CLIENT_PROXY_CLASS, serverSide = GamblingStyle.SERVER_PROXY_CLASS)
     public static CommonProxy proxy;

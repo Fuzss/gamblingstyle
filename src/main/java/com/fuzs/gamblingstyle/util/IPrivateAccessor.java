@@ -9,10 +9,7 @@
  */
 package com.fuzs.gamblingstyle.util;
 
-import net.minecraft.entity.passive.EntityVillager;
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import static com.fuzs.gamblingstyle.GamblingStyle.LOGGER;
 
 /**
  *
@@ -20,24 +17,64 @@ import org.apache.logging.log4j.Logger;
  */
 public interface IPrivateAccessor {
     
-    Logger LOGGER = LogManager.getLogger();
-
-    String[] ENTITYVILLAGER_WEALTH = new String[]{"wealth", "field_70956_bz"};
-    
-    default void setWealth(EntityVillager instance, int wealth) {
+    /**
+     * Invokes a method that may or may not exist
+     * 
+     * @param objClass the instance class
+     * @param instance the instance object for the method - ignored if static method
+     * @param method the name of the method
+     * @param logError whether to log errors - should be false if invoking methods without knowing if the method exists
+     * @param argClasses an array of the argument classes
+     * @param args a varargs of the arguments passed to the method
+     * @return the object returned by the method, if applicable
+     */
+    default Object invoke(Class<?> objClass, Object instance, String method, boolean logError, Class<?>[] argClasses, Object... args) {
         try {
-            ObfuscationReflectionHelper.setPrivateValue(EntityVillager.class, instance, wealth, ENTITYVILLAGER_WEALTH[1]);
-        } catch (Exception ex) {
-            LOGGER.error("setWealth() failed", ex);
+            objClass.getMethod(method, argClasses).setAccessible(true);
+            return objClass.getMethod(method, argClasses).invoke(instance, args);
+        } catch (Exception e) {
+            if (logError) LOGGER.error("method " + method + " of class " + objClass.getName() + " throws error", e);
+            return null;
         }
     }
 
-    default int getWealth(EntityVillager instance) {
+    /**
+     * Get a field that may or may not exist
+     * 
+     * @param <T> the type of the field to be returned
+     * @param objClass the instance class
+     * @param instance the instance of the field - ignored if static field
+     * @param field the name of the field
+     * @param defaultValue the default value to return if the field does not exist - this also determines the field type, so cast your nulls!
+     * @param logError whether to log errors - should be false if getting fields without knowing if the field exists
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    default <T> T getField(Class<?> objClass, Object instance, String field, T defaultValue, boolean logError) {
         try {
-            return ObfuscationReflectionHelper.getPrivateValue(EntityVillager.class, instance, ENTITYVILLAGER_WEALTH[1]);
-        } catch (Exception ex) {
-            LOGGER.error("getWealth() failed", ex);
+            objClass.getField(field).setAccessible(true);
+            return (T) objClass.getField(field).get(instance);
+        } catch (Exception e) {
+            if (logError) LOGGER.error("field " + field + " of class " + objClass.getName() + " throws error", e);
+            return defaultValue;
         }
-        return 0;
+    }
+
+    /**
+     * Set a field that may or may not exist
+     * 
+     * @param objClass the instance class
+     * @param instance the instance of the field - ignored if static field
+     * @param field the name of the field
+     * @param setValue the value to set the field to
+     * @param logError whether to log errors - should be false if setting fields without knowing if the field exists
+     */
+    default void setField(Class<?> objClass, Object instance, String field, Object setValue, boolean logError) {
+        try {
+            objClass.getField(field).setAccessible(true);
+            objClass.getField(field).set(instance, setValue);
+        } catch (Exception e) {
+            if (logError) LOGGER.error("field " + field + " of class " + objClass.getName() + " throws error", e);
+        }
     }
 }

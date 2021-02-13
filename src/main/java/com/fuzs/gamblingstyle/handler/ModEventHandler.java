@@ -5,9 +5,13 @@ import com.fuzs.gamblingstyle.network.NetworkHandler;
 import com.fuzs.gamblingstyle.network.messages.MessageOpenWindow;
 import com.fuzs.gamblingstyle.network.messages.MessageTradingList;
 import com.fuzs.gamblingstyle.util.IPrivateAccessor;
+
+import org.apache.commons.lang3.BooleanUtils;
+
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityAgeable;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.IMerchant;
 import net.minecraft.entity.passive.EntityVillager;
@@ -30,17 +34,34 @@ public class ModEventHandler implements IPrivateAccessor {
 
     @SubscribeEvent
     public void interact(PlayerInteractEvent.EntityInteract evt) {
-        if (evt.getTarget() instanceof EntityVillager) {
+        if (evt.getTarget() instanceof IMerchant) {
 
-            EntityVillager entityVillager = (EntityVillager) evt.getTarget();
+            IMerchant entityVillager = (IMerchant) evt.getTarget();
             EntityPlayer player = evt.getEntityPlayer();
             ItemStack itemstack = evt.getItemStack();
 
             boolean flag = itemstack.getItem() == Items.NAME_TAG;
 
             if (!flag) {
-                if (!this.holdingSpawnEggOfClass(itemstack, entityVillager.getClass()) && entityVillager.isEntityAlive()
-                        && !entityVillager.isTrading() && !entityVillager.isChild() && !player.isSneaking()) {
+                boolean trading;
+                if (evt.getTarget() instanceof EntityVillager)
+                    trading = ((EntityVillager) evt.getTarget()).isTrading();
+                else {
+                    trading = BooleanUtils.isTrue((boolean) this.invoke(
+                            evt.getTarget().getClass(), 
+                            evt.getTarget(), 
+                            "isTrading", 
+                            false, 
+                            new Class[]{ void.class }, 
+                            (Object[]) null));
+                }
+
+                if (!this.holdingSpawnEggOfClass(itemstack, evt.getTarget().getClass()) 
+                        && evt.getTarget().isEntityAlive()
+                        && !trading
+                        && (evt.getTarget() instanceof EntityAgeable 
+                                && !((EntityAgeable) evt.getTarget()).isChild()) 
+                        && !player.isSneaking()) {
                     if (this.displayVillagerTradeGui(player, entityVillager))
                     {
                         if (evt.getHand() == EnumHand.MAIN_HAND)
@@ -72,9 +93,9 @@ public class ModEventHandler implements IPrivateAccessor {
         }
     }
 
-    private boolean displayVillagerTradeGui(EntityPlayer player, EntityVillager villager)
+    private boolean displayVillagerTradeGui(EntityPlayer player, IMerchant villager)
     {
-        MerchantRecipeList merchantrecipelist = ((IMerchant) villager).getRecipes(player);
+        MerchantRecipeList merchantrecipelist = villager.getRecipes(player);
 
         if (merchantrecipelist != null && !merchantrecipelist.isEmpty()) {
             if (player instanceof EntityPlayerMP) {
@@ -87,11 +108,12 @@ public class ModEventHandler implements IPrivateAccessor {
                 net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
                         new net.minecraftforge.event.entity.player.PlayerContainerEvent.Open(playerMP, playerMP.openContainer));
                 IInventory iinventory = ((ContainerVillager) playerMP.openContainer).getMerchantInventory();
-                ITextComponent itextcomponent = ((IMerchant) villager).getDisplayName();
+                ITextComponent itextcomponent = villager.getDisplayName();
 
-                int wealth = this.getWealth(villager);
+                int wealth = (villager instanceof EntityVillager) ? ((EntityVillager) villager).wealth : 
+                                this.getField(villager.getClass(), villager, "wealth", 0, false);
                 NetworkHandler.sendTo(new MessageOpenWindow(playerMP.currentWindowId, itextcomponent, iinventory.getSizeInventory(),
-                        villager.getEntityId(), wealth < merchantrecipelist.size() && wealth >= 0 ? wealth : 0), playerMP);
+                        ((Entity) villager).getEntityId(), wealth < merchantrecipelist.size() && wealth >= 0 ? wealth : 0), playerMP);
 
                 PacketBuffer packetbuffer = new PacketBuffer(Unpooled.buffer());
                 packetbuffer.writeInt(playerMP.currentWindowId);

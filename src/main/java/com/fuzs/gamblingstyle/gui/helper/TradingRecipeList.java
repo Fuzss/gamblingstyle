@@ -11,6 +11,7 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class TradingRecipeList extends ArrayList<TradingRecipe> {
+    private static final long serialVersionUID = 100000L;
 
     public TradingRecipeList(MerchantRecipeList list)
     {
