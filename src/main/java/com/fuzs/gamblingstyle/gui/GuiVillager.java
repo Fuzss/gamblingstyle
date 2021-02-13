@@ -13,6 +13,8 @@ import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.IMerchant;
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -34,9 +36,10 @@ public class GuiVillager extends GuiContainer implements IPrivateAccessor
 {
     /** The GUI texture for the villager merchant GUI. */
     private static final ResourceLocation MERCHANT_GUI_TEXTURE = new ResourceLocation(GamblingStyle.MODID, "textures/gui/container/merchant.png");
-    /** The current IMerchant instance in use for this specific merchant. */
+    /** The IMerchant instance for the player-merchant trades. */
     private final IMerchant merchant;
-    private final EntityVillager entityVillager;
+    /** The villager itself. */
+    private final IMerchant entityVillager;
     /** The integer value corresponding to the currently selected merchant recipe. */
     private int selectedMerchantRecipe;
     /** The chat component utilized by this GuiVillager instance. */
@@ -45,13 +48,14 @@ public class GuiVillager extends GuiContainer implements IPrivateAccessor
     private final GuiTradingBook tradingBookGui = new GuiTradingBook();
     private final GhostTrade ghostTrade = new GhostTrade();
 
-    public GuiVillager(InventoryPlayer p_i45500_1_, IMerchant p_i45500_2_, EntityVillager entityVillager, World worldIn)
+    public GuiVillager(InventoryPlayer p_i45500_1_, IMerchant p_i45500_2_, IMerchant entityVillager, World worldIn)
     {
         super(new ContainerVillager(p_i45500_1_, p_i45500_2_, worldIn));
         this.merchant = p_i45500_2_;
         this.entityVillager = entityVillager;
         this.chatComponent = p_i45500_2_.getDisplayName();
-        this.selectedMerchantRecipe = entityVillager.wealth;
+        this.selectedMerchantRecipe = entityVillager instanceof EntityVillager ? ((EntityVillager) entityVillager).wealth : 
+                                                this.getField(entityVillager.getClass(), entityVillager, "wealth", 0, false);
         this.sendSelectedRecipe(false);
     }
 
@@ -74,9 +78,9 @@ public class GuiVillager extends GuiContainer implements IPrivateAccessor
         this.tradingBookGui.removed();
         PacketBuffer packetbuffer = new PacketBuffer(Unpooled.buffer());
         packetbuffer.writeByte(this.selectedMerchantRecipe);
-        packetbuffer.writeInt(this.entityVillager.getEntityId());
+        packetbuffer.writeInt(((Entity) this.entityVillager).getEntityId());
         NetworkHandler.sendToServer(new MessageTradingData(1, packetbuffer));
-        this.entityVillager.wealth = this.selectedMerchantRecipe;
+        this.setField(entityVillager.getClass(), entityVillager, "wealth", this.selectedMerchantRecipe, false);
         super.onGuiClosed();
     }
 
@@ -144,7 +148,7 @@ public class GuiVillager extends GuiContainer implements IPrivateAccessor
         }
 
         GuiInventory.drawEntityOnScreen(i + 33, j + 75, 30, i + 33 - mouseX,
-                j + 75 - 50 - mouseY, this.entityVillager);
+                j + 75 - 50 - mouseY, (EntityLivingBase) this.entityVillager);
     }
 
     /**

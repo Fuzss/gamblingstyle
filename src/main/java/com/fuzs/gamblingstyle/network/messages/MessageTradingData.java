@@ -90,20 +90,12 @@ public class MessageTradingData extends MessageBase<MessageTradingData> implemen
             //Set wealth for storing last trade
             case 1:
 
-                try
-                {
-                    int k = message.getBufferData().readUnsignedByte();
-                    int l = message.getBufferData().readInt();
-                    Entity entity = player.world.getEntityByID(l);
+                int p = message.getBufferData().readUnsignedByte();
+                int q = message.getBufferData().readInt();
+                Entity entity = player.world.getEntityByID(q);
 
-                    if (entity instanceof EntityVillager) {
-                        ((EntityVillager) entity).wealth = k;
-                    }
-                }
-                catch (Exception exception5)
-                {
-                    LOGGER.error("Couldn't set wealth", exception5);
-                }
+                if (entity instanceof EntityVillager) ((EntityVillager) entity).wealth = p;
+                else this.setField(entity.getClass(), entity, "wealth", p, false);
                 break;
 
             //Populate trading slots
