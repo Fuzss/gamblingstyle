@@ -51,7 +51,7 @@ public class GuiVillager extends GuiContainer implements IPrivateAccessor
         this.merchant = p_i45500_2_;
         this.entityVillager = entityVillager;
         this.chatComponent = p_i45500_2_.getDisplayName();
-        this.selectedMerchantRecipe = this.getWealth(entityVillager);
+        this.selectedMerchantRecipe = entityVillager.wealth;
         this.sendSelectedRecipe(false);
     }
 
@@ -76,7 +76,7 @@ public class GuiVillager extends GuiContainer implements IPrivateAccessor
         packetbuffer.writeByte(this.selectedMerchantRecipe);
         packetbuffer.writeInt(this.entityVillager.getEntityId());
         NetworkHandler.sendToServer(new MessageTradingData(1, packetbuffer));
-        this.setWealth(this.entityVillager, this.selectedMerchantRecipe);
+        this.entityVillager.wealth = this.selectedMerchantRecipe;
         super.onGuiClosed();
     }
 
