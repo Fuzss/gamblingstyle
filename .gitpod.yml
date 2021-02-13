@@ -1,0 +1,7 @@
+tasks:
+  - before: . /home/gitpod/.sdkman/bin/sdkman-init.sh
+  - init: sdk update
+  - command: sdk uninstall java 11.0.10.fx-zulu
+  - command: sdk install java 11.0.10.hs-adpt
+  - command: sdk install java 8.0.282-open
+  - prebuild: ./gradlew build
