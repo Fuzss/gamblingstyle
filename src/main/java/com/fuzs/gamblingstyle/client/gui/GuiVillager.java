@@ -3,7 +3,7 @@ package com.fuzs.gamblingstyle.client.gui;
 import com.fuzs.gamblingstyle.GamblingStyle;
 import com.fuzs.gamblingstyle.inventory.ContainerVillager;
 import com.fuzs.gamblingstyle.network.NetworkHandler;
-import com.fuzs.gamblingstyle.network.message.MessageTradingData;
+import com.fuzs.gamblingstyle.network.message.TradingDataMessage;
 import com.fuzs.gamblingstyle.util.IPrivateAccessor;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.gui.GuiScreen;
@@ -28,6 +28,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.io.IOException;
 
+@SuppressWarnings("NullableProblems")
 @SideOnly(Side.CLIENT)
 public class GuiVillager extends GuiContainer implements IPrivateAccessor {
     /**
@@ -77,7 +78,7 @@ public class GuiVillager extends GuiContainer implements IPrivateAccessor {
         PacketBuffer packetbuffer = new PacketBuffer(Unpooled.buffer());
         packetbuffer.writeByte(this.selectedMerchantRecipe);
         packetbuffer.writeInt(this.entityVillager.getEntityId());
-        NetworkHandler.get().sendToServer(new MessageTradingData(1, packetbuffer));
+        NetworkHandler.get().sendToServer(new TradingDataMessage(1, packetbuffer));
         this.setWealth(this.entityVillager, this.selectedMerchantRecipe);
         super.onGuiClosed();
     }
@@ -190,7 +191,7 @@ public class GuiVillager extends GuiContainer implements IPrivateAccessor {
         PacketBuffer packetbuffer = new PacketBuffer(Unpooled.buffer());
         packetbuffer.writeByte(this.selectedMerchantRecipe);
         packetbuffer.writeBoolean(clear);
-        NetworkHandler.get().sendToServer(new MessageTradingData(0, packetbuffer));
+        NetworkHandler.get().sendToServer(new TradingDataMessage(0, packetbuffer));
     }
 
     private void moveRecipeIngredients(boolean clear, boolean quickMove, boolean skipMove) {
@@ -200,7 +201,7 @@ public class GuiVillager extends GuiContainer implements IPrivateAccessor {
         packetbuffer.writeBoolean(clear);
         packetbuffer.writeBoolean(quickMove);
         packetbuffer.writeBoolean(skipMove);
-        NetworkHandler.get().sendToServer(new MessageTradingData(2, packetbuffer));
+        NetworkHandler.get().sendToServer(new TradingDataMessage(2, packetbuffer));
     }
 
     /**

@@ -2,10 +2,10 @@ package com.fuzs.gamblingstyle;
 
 import com.fuzs.gamblingstyle.handler.OpenGuiHandler;
 import com.fuzs.gamblingstyle.network.NetworkHandler;
-import com.fuzs.gamblingstyle.network.message.MessageOpenWindow;
-import com.fuzs.gamblingstyle.network.message.MessageTradingData;
-import com.fuzs.gamblingstyle.network.message.MessageTradingList;
-import com.fuzs.gamblingstyle.proxy.CommonProxy;
+import com.fuzs.gamblingstyle.network.message.OpenWindowMessage;
+import com.fuzs.gamblingstyle.network.message.TradingDataMessage;
+import com.fuzs.gamblingstyle.network.message.TradingListMessage;
+import com.fuzs.gamblingstyle.proxy.IProxy;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
@@ -28,19 +28,19 @@ public class GamblingStyle {
     public static final Logger LOGGER = LogManager.getLogger(NAME);
 
     private static final String CLIENT_PROXY = "com.fuzs." + MODID + ".proxy.ClientProxy";
-    private static final String COMMON_PROXY = "com.fuzs." + MODID + ".proxy.CommonProxy";
+    private static final String SERVER_PROXY = "com.fuzs." + MODID + ".proxy.ServerProxy";
 
-    @SidedProxy(clientSide = CLIENT_PROXY, serverSide = COMMON_PROXY)
-    public static CommonProxy proxy;
+    @SidedProxy(clientSide = CLIENT_PROXY, serverSide = SERVER_PROXY)
+    public static IProxy proxy;
 
     @Mod.EventHandler
     public void onInit(final FMLInitializationEvent evt) {
 
         MinecraftForge.EVENT_BUS.register(new OpenGuiHandler());
 
-        NetworkHandler.get().registerMessage(MessageOpenWindow.class, Side.CLIENT);
-        NetworkHandler.get().registerMessage(MessageTradingList.class, Side.CLIENT);
-        NetworkHandler.get().registerMessage(MessageTradingData.class, Side.SERVER);
+        NetworkHandler.get().registerMessage(OpenWindowMessage.class, Side.CLIENT);
+        NetworkHandler.get().registerMessage(TradingListMessage.class, Side.CLIENT);
+        NetworkHandler.get().registerMessage(TradingDataMessage.class, Side.SERVER);
     }
 
 }

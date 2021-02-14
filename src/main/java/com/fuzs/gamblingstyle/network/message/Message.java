@@ -1,45 +1,70 @@
 package com.fuzs.gamblingstyle.network.message;
 
 import com.fuzs.gamblingstyle.GamblingStyle;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.network.NetHandlerPlayServer;
+import net.minecraft.util.IThreadListener;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.fml.relauncher.Side;
 
 import java.util.function.Consumer;
 
-public abstract class Message<T extends IMessage> implements IMessage, IMessageHandler<T, T> {
+public abstract class Message<T extends Message<T>> implements IMessage, IMessageHandler<T, T> {
 
     @Override
-    public T onMessage(T message, MessageContext ctx) {
+    public final T onMessage(T message, MessageContext ctx) {
 
-        if (ctx.side == Side.CLIENT) {
+        EntityPlayerMP serverPlayer = null;
+        IThreadListener minecraftServer = null;
+        if (!ctx.side.isClient()) {
 
-            handleClientSide(message, GamblingStyle.proxy.getClientPlayer());
-        } else {
-
-            handleServerSide(message, ctx.getServerHandler().player);
+            NetHandlerPlayServer netHandlerPlayServer = ctx.getServerHandler();
+            serverPlayer = netHandlerPlayServer.player;
+            minecraftServer = serverPlayer.mcServer;
         }
-        
+
+        IThreadListener threadListener = GamblingStyle.proxy.getInstance(minecraftServer);
+        EntityPlayer player = GamblingStyle.proxy.getPlayer(serverPlayer);
+        threadListener.addScheduledTask(() -> message.process(player));
+
         return null;
     }
 
-    /**
-     * Handle a packet on the client side. Note this occurs after decoding has completed.
-     *
-     * @param message
-     * @param player  the player reference
-     */
-    public abstract void handleClientSide(T message, EntityPlayer player);
+    @Override
+    public final void toBytes(ByteBuf buf) {
+
+        this.write(buf);
+    }
+
+    @Override
+    public final void fromBytes(ByteBuf buf) {
+
+        this.read(buf);
+    }
 
     /**
-     * Handle a packet on the server side. Note this occurs after decoding has completed.
-     *
-     * @param message
-     * @param player  the player reference
+     * writes message data to buffer
+     * @param buf network data byte buffer
      */
-    public abstract void handleServerSide(T message, EntityPlayer player);
+    protected abstract void write(final ByteBuf buf);
+
+    /**
+     * reads message data from buffer
+     * @param buf network data byte buffer
+     */
+    protected abstract void read(final ByteBuf buf);
+
+    /**
+     * handles message on receiving side
+     * @param player server player when sent from client
+     */
+    public final void process(EntityPlayer player) {
+
+        this.createProcessor().accept(player);
+    }
 
     /**
      * @return message processor to run when received

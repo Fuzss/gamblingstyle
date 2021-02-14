@@ -25,12 +25,12 @@ import java.util.Locale;
 import java.util.stream.IntStream;
 
 @SideOnly(Side.CLIENT)
-public class GuiTradingBook extends Gui
-{
-    private static final ResourceLocation RECIPE_BOOK = new ResourceLocation(GamblingStyle.MODID, "textures/gui/container/merchant_book.png");
+public class GuiTradingBook extends Gui {
     public static final int BUTTON_SPACE = 6;
+    private static final ResourceLocation RECIPE_BOOK = new ResourceLocation(GamblingStyle.MODID, "textures/gui/container/merchant_book.png");
     private final int xSize = 112;
     private final int ySize = 166;
+    public int hoveredSlot;
     private Minecraft mc;
     private GuiButtonTradingRecipe hoveredButton;
     private List<GuiButtonTradingRecipe> buttonList;
@@ -41,32 +41,37 @@ public class GuiTradingBook extends Gui
     private boolean populate = true;
     private boolean refresh;
     private TradingRecipeList tradingRecipeList;
-    /** Amount scrolled in Creative mode inventory (0 = top, 1 = bottom) */
+    /**
+     * Amount scrolled in Creative mode inventory (0 = top, 1 = bottom)
+     */
     private float currentScroll = 0.0F;
     private int scrollPosition = 0;
-    /** True if the scrollbar is being dragged */
+    /**
+     * True if the scrollbar is being dragged
+     */
     private boolean isScrolling;
-    /** True if the left mouse button was held down last time drawScreen was called. */
+    /**
+     * True if the left mouse button was held down last time drawScreen was called.
+     */
     private boolean wasClicking;
-    /** The button that was just pressed. */
+    /**
+     * The button that was just pressed.
+     */
     private GuiButton selectedButton;
     private int selectedTradingRecipe = 0;
     private boolean clearSearch = false;
-    public int hoveredSlot;
     private int timesInventoryChanged;
 
     public GuiTradingBook() {
 
         this.buttonList = new ArrayList<>(BUTTON_SPACE);
-        for (int i = 0; i < BUTTON_SPACE; ++i)
-        {
+        for (int i = 0; i < BUTTON_SPACE; ++i) {
             this.buttonList.add(new GuiButtonTradingRecipe(i, this.guiLeft + 10, this.guiTop + 24 + 22 * i));
         }
 
     }
 
-    public void initGui(Minecraft mc, int width, int height)
-    {
+    public void initGui(Minecraft mc, int width, int height) {
         this.mc = mc;
         this.refresh = true;
         Keyboard.enableRepeatEvents(true);
@@ -93,8 +98,7 @@ public class GuiTradingBook extends Gui
         }
     }
 
-    public void removed()
-    {
+    public void removed() {
         Keyboard.enableRepeatEvents(false);
     }
 
@@ -111,16 +115,14 @@ public class GuiTradingBook extends Gui
 
     }
 
-    public void countContents(ContainerVillager container)
-    {
+    public void countContents(ContainerVillager container) {
         if (this.tradingRecipeList != null) {
             this.tradingRecipeList.countRecipeContents(container);
             this.refresh = true;
         }
     }
 
-    public void update(MerchantRecipeList merchantrecipelist, ContainerVillager container)
-    {
+    public void update(MerchantRecipeList merchantrecipelist, ContainerVillager container) {
         if (this.populate) {
             this.tradingRecipeList = new TradingRecipeList(merchantrecipelist);
             this.tradingRecipeList.get(this.selectedTradingRecipe).setSelected(true);
@@ -129,8 +131,7 @@ public class GuiTradingBook extends Gui
             this.refresh = true;
         }
 
-        if (this.timesInventoryChanged != this.mc.player.inventory.getTimesChanged())
-        {
+        if (this.timesInventoryChanged != this.mc.player.inventory.getTimesChanged()) {
             this.countContents(container);
             this.timesInventoryChanged = this.mc.player.inventory.getTimesChanged();
         }
@@ -173,8 +174,7 @@ public class GuiTradingBook extends Gui
         }
     }
 
-    public void render(int mouseX, int mouseY, float partialTicks)
-    {
+    public void render(int mouseX, int mouseY, float partialTicks) {
         RenderHelper.enableGUIStandardItemLighting();
         GlStateManager.disableLighting();
         GlStateManager.pushMatrix();
@@ -226,8 +226,7 @@ public class GuiTradingBook extends Gui
 
             guiButtonTradingRecipe.drawButton(this.mc, mouseX, mouseY, partialTicks);
 
-            if (guiButtonTradingRecipe.isMouseOver() && guiButtonTradingRecipe.visible)
-            {
+            if (guiButtonTradingRecipe.isMouseOver() && guiButtonTradingRecipe.visible) {
                 this.hoveredButton = guiButtonTradingRecipe;
             }
 
@@ -236,10 +235,8 @@ public class GuiTradingBook extends Gui
         GlStateManager.popMatrix();
     }
 
-    public void renderHoveredTooltip(int mouseX, int mouseY)
-    {
-        if (mc.currentScreen != null && this.hoveredButton != null)
-        {
+    public void renderHoveredTooltip(int mouseX, int mouseY) {
+        if (mc.currentScreen != null && this.hoveredButton != null) {
             List<String> tooltip = this.hoveredButton.getToolTipText(mc.currentScreen, mouseX, mouseY);
             if (tooltip != null && mc.player.inventory.getItemStack().isEmpty()) {
                 mc.currentScreen.drawHoveringText(tooltip, mouseX, mouseY);
@@ -275,10 +272,8 @@ public class GuiTradingBook extends Gui
     /**
      * Called when a mouse button is released.
      */
-    protected void mouseReleased(int mouseX, int mouseY, int state)
-    {
-        if (this.selectedButton != null && state == 0)
-        {
+    protected void mouseReleased(int mouseX, int mouseY, int state) {
+        if (this.selectedButton != null && state == 0) {
             this.selectedButton.mouseReleased(mouseX, mouseY);
             this.selectedButton = null;
         }
@@ -287,12 +282,10 @@ public class GuiTradingBook extends Gui
     /**
      * Handles mouse input.
      */
-    public void handleMouseInput()
-    {
+    public void handleMouseInput() {
         int i = Mouse.getEventDWheel();
 
-        if (i != 0 && this.tradingRecipeList != null)
-        {
+        if (i != 0 && this.tradingRecipeList != null) {
             int j = this.tradingRecipeList.activeRecipeSize();
 
             if (j > BUTTON_SPACE) {
@@ -320,21 +313,18 @@ public class GuiTradingBook extends Gui
         return false;
     }
 
-    public boolean hasClickedOutside(int mouseX, int mouseY, int guiLeft, int guiTop, int xSize, int ySize)
-    {
+    public boolean hasClickedOutside(int mouseX, int mouseY, int guiLeft, int guiTop, int xSize, int ySize) {
         boolean flag = mouseX < guiLeft || mouseY < guiTop || mouseX >= guiLeft + xSize || mouseY >= guiTop + ySize;
         boolean flag1 = guiLeft - this.xSize < mouseX && mouseX < guiLeft && guiTop < mouseY && mouseY < guiTop + ySize;
         return flag && !flag1;
     }
 
-    public boolean keyPressed(char typedChar, int keyCode)
-    {
+    public boolean keyPressed(char typedChar, int keyCode) {
         if (this.checkValidKeys(keyCode)) {
             return false;
         }
 
-        if (this.clearSearch)
-        {
+        if (this.clearSearch) {
             this.searchField.setText("");
             this.clearSearch = false;
         }
@@ -356,13 +346,10 @@ public class GuiTradingBook extends Gui
         return false;
     }
 
-    private boolean checkValidKeys(int keyCode)
-    {
-        if (this.mc.player.inventory.getItemStack().isEmpty() && this.hoveredSlot > 0)
-        {
+    private boolean checkValidKeys(int keyCode) {
+        if (this.mc.player.inventory.getItemStack().isEmpty() && this.hoveredSlot > 0) {
             GameSettings settings = this.mc.gameSettings;
-            for (int i = 0; i < 9; ++i)
-            {
+            for (int i = 0; i < 9; ++i) {
                 if (settings.keyBindsHotbar[i].isActiveAndMatches(keyCode)) {
                     return true;
                 }
@@ -379,12 +366,11 @@ public class GuiTradingBook extends Gui
     /**
      * Updates the scrollPosition value for populating the trading recipe buttons based on scroll position.
      */
-    private void scrollToPosition()
-    {
+    private void scrollToPosition() {
         if (this.tradingRecipeList != null) {
 
             int i = this.tradingRecipeList.activeRecipeSize();
-            int j = (int)((double)(this.currentScroll * (float)Math.max(i - BUTTON_SPACE, 0)) + 0.5D);
+            int j = (int) ((double) (this.currentScroll * (float) Math.max(i - BUTTON_SPACE, 0)) + 0.5D);
             j = Math.max(0, j);
 
             int[] activeTradeIndices;

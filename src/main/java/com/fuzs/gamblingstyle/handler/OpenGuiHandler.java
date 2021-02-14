@@ -2,8 +2,8 @@ package com.fuzs.gamblingstyle.handler;
 
 import com.fuzs.gamblingstyle.inventory.ContainerVillager;
 import com.fuzs.gamblingstyle.network.NetworkHandler;
-import com.fuzs.gamblingstyle.network.message.MessageOpenWindow;
-import com.fuzs.gamblingstyle.network.message.MessageTradingList;
+import com.fuzs.gamblingstyle.network.message.OpenWindowMessage;
+import com.fuzs.gamblingstyle.network.message.TradingListMessage;
 import com.fuzs.gamblingstyle.util.IPrivateAccessor;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -85,13 +85,13 @@ public class OpenGuiHandler implements IPrivateAccessor {
                 ITextComponent itextcomponent = ((IMerchant) villager).getDisplayName();
 
                 int wealth = this.getWealth(villager);
-                NetworkHandler.get().sendTo(new MessageOpenWindow(playerMP.currentWindowId, itextcomponent, iinventory.getSizeInventory(),
+                NetworkHandler.get().sendTo(new OpenWindowMessage(playerMP.currentWindowId, itextcomponent, iinventory.getSizeInventory(),
                         villager.getEntityId(), wealth < merchantrecipelist.size() && wealth >= 0 ? wealth : 0), playerMP);
 
                 PacketBuffer packetbuffer = new PacketBuffer(Unpooled.buffer());
                 packetbuffer.writeInt(playerMP.currentWindowId);
                 merchantrecipelist.writeToBuf(packetbuffer);
-                NetworkHandler.get().sendTo(new MessageTradingList(packetbuffer), playerMP);
+                NetworkHandler.get().sendTo(new TradingListMessage(packetbuffer), playerMP);
             } else if (player instanceof EntityPlayerSP) {
                 player.swingArm(EnumHand.MAIN_HAND);
             }
