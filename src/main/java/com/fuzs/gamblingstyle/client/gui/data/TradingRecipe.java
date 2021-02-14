@@ -1,4 +1,4 @@
-package com.fuzs.gamblingstyle.gui.helper;
+package com.fuzs.gamblingstyle.client.gui.data;
 
 import com.google.common.collect.Lists;
 import net.minecraft.client.util.ITooltipFlag;
@@ -8,23 +8,36 @@ import java.util.List;
 
 public class TradingRecipe {
 
-    /** Item the Villager buys. */
-    private ItemStack itemToBuy;
-    /** Second Item the Villager buys. */
-    private ItemStack secondItemToBuy;
-    /** Item the Villager sells. */
-    private ItemStack itemToSell;
-    /** Is the recipe part of the current search. */
-    private boolean active;
-    /** Is the recipe selected. */
-    private boolean selected;
-    /** Amount of ingredients in player inventory. */
+    /**
+     * Amount of ingredients in player inventory.
+     */
     int ingredients;
-    /** Amount of secound ingredients in player inventory. */
+    /**
+     * Amount of secound ingredients in player inventory.
+     */
     int secoundIngredients;
+    /**
+     * Item the Villager buys.
+     */
+    private ItemStack itemToBuy;
+    /**
+     * Second Item the Villager buys.
+     */
+    private ItemStack secondItemToBuy;
+    /**
+     * Item the Villager sells.
+     */
+    private ItemStack itemToSell;
+    /**
+     * Is the recipe part of the current search.
+     */
+    private boolean active;
+    /**
+     * Is the recipe selected.
+     */
+    private boolean selected;
 
-    public TradingRecipe(ItemStack buy1, ItemStack buy2, ItemStack sell)
-    {
+    public TradingRecipe(ItemStack buy1, ItemStack buy2, ItemStack sell) {
         this.itemToBuy = ItemStack.EMPTY;
         this.secondItemToBuy = ItemStack.EMPTY;
         this.itemToSell = ItemStack.EMPTY;
@@ -40,32 +53,28 @@ public class TradingRecipe {
     /**
      * Gets the itemToBuy.
      */
-    public ItemStack getItemToBuy()
-    {
+    public ItemStack getItemToBuy() {
         return this.itemToBuy;
     }
 
     /**
      * Gets secondItemToBuy.
      */
-    public ItemStack getSecondItemToBuy()
-    {
+    public ItemStack getSecondItemToBuy() {
         return this.secondItemToBuy;
     }
 
     /**
      * Gets if Villager has secondItemToBuy.
      */
-    public boolean hasSecondItemToBuy()
-    {
+    public boolean hasSecondItemToBuy() {
         return !this.secondItemToBuy.isEmpty();
     }
 
     /**
      * Gets itemToSell.
      */
-    public ItemStack getItemToSell()
-    {
+    public ItemStack getItemToSell() {
         return this.itemToSell;
     }
 

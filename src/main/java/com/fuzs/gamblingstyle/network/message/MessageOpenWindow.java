@@ -1,7 +1,7 @@
-package com.fuzs.gamblingstyle.network.messages;
+package com.fuzs.gamblingstyle.network.message;
 
 import com.fuzs.gamblingstyle.GamblingStyle;
-import com.fuzs.gamblingstyle.gui.GuiVillager;
+import com.fuzs.gamblingstyle.client.gui.GuiVillager;
 import com.fuzs.gamblingstyle.util.IPrivateAccessor;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
@@ -15,8 +15,7 @@ import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-public class MessageOpenWindow extends MessageBase<MessageOpenWindow> implements IPrivateAccessor
-{
+public class MessageOpenWindow extends Message<MessageOpenWindow> implements IPrivateAccessor {
     private int windowId;
     private ITextComponent windowTitle;
     private int slotCount;
@@ -26,8 +25,7 @@ public class MessageOpenWindow extends MessageBase<MessageOpenWindow> implements
     public MessageOpenWindow() {
     }
 
-    public MessageOpenWindow(int windowIdIn, ITextComponent windowTitleIn, int slotCountIn, int entityIdIn, int wealth)
-    {
+    public MessageOpenWindow(int windowIdIn, ITextComponent windowTitleIn, int slotCountIn, int entityIdIn, int wealth) {
         this.windowId = windowIdIn;
         this.windowTitle = windowTitleIn;
         this.slotCount = slotCountIn;
@@ -65,7 +63,7 @@ public class MessageOpenWindow extends MessageBase<MessageOpenWindow> implements
                 //crashes on server startup when calling Minecraft#displayGuiScreen directly, @SideOnly and FMLCommonHandler#showGuiScreen seem to solve this as well
                 Object guiContainer = new GuiVillager(player.inventory, new NpcMerchant(player, message.getWindowTitle()), entityVillager, worldIn);
                 GamblingStyle.proxy.showGuiScreen(guiContainer);
-            player.openContainer.windowId = message.getWindowId();
+                player.openContainer.windowId = message.getWindowId();
             });
         }
     }
@@ -75,20 +73,17 @@ public class MessageOpenWindow extends MessageBase<MessageOpenWindow> implements
     }
 
     @SideOnly(Side.CLIENT)
-    private int getWindowId()
-    {
+    private int getWindowId() {
         return this.windowId;
     }
 
     @SideOnly(Side.CLIENT)
-    private ITextComponent getWindowTitle()
-    {
+    private ITextComponent getWindowTitle() {
         return this.windowTitle;
     }
 
     @SideOnly(Side.CLIENT)
-    private int getWealth()
-    {
+    private int getWealth() {
         return this.wealth;
     }
 }

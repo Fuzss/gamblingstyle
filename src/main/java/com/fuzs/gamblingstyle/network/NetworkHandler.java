@@ -1,50 +1,61 @@
 package com.fuzs.gamblingstyle.network;
 
 import com.fuzs.gamblingstyle.GamblingStyle;
-import com.fuzs.gamblingstyle.network.messages.MessageTradingData;
-import com.fuzs.gamblingstyle.network.messages.MessageTradingList;
-import com.fuzs.gamblingstyle.network.messages.MessageOpenWindow;
+import com.fuzs.gamblingstyle.network.message.Message;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.relauncher.Side;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class NetworkHandler {
 
-    private static SimpleNetworkWrapper INSTANCE;
-    private static int discriminator;
+    private static final SimpleNetworkWrapper MAIN_CHANNEL = NetworkRegistry.INSTANCE.newSimpleChannel(GamblingStyle.MODID);
+    private static final AtomicInteger DISCRIMINATOR = new AtomicInteger();
 
-    public static void init(){
-        INSTANCE = NetworkRegistry.INSTANCE.newSimpleChannel(GamblingStyle.MODID);
+    private static NetworkHandler instance;
 
-        INSTANCE.registerMessage(MessageOpenWindow.class, MessageOpenWindow.class, nextDiscriminator(), Side.CLIENT);
-        INSTANCE.registerMessage(MessageTradingList.class, MessageTradingList.class, nextDiscriminator(), Side.CLIENT);
-        INSTANCE.registerMessage(MessageTradingData.class, MessageTradingData.class, nextDiscriminator(), Side.SERVER);
+    public <T extends Message<T>> void registerMessage(Class<T> messageType, Side side) {
+
+        MAIN_CHANNEL.registerMessage(messageType, messageType, DISCRIMINATOR.getAndIncrement(), side);
     }
 
-    public static void sendToServer(IMessage message){
-        INSTANCE.sendToServer(message);
+    public void sendToServer(Message<?> message) {
+
+        MAIN_CHANNEL.sendToServer(message);
     }
 
-    public static void sendTo(IMessage message, EntityPlayerMP player){
-        INSTANCE.sendTo(message, player);
+    public void sendTo(Message<?> message, EntityPlayerMP player) {
+
+        MAIN_CHANNEL.sendTo(message, player);
     }
 
-    public static void sendToAllAround(IMessage message, NetworkRegistry.TargetPoint point){
-        INSTANCE.sendToAllAround(message, point);
+    public void sendToAll(Message<?> message) {
+
+        MAIN_CHANNEL.sendToAll(message);
     }
 
-    public static void sendToAll(IMessage message){
-        INSTANCE.sendToAll(message);
+    public void sendToAllNear(Message<?> message, int dimensionId, BlockPos pos) {
+
+        NetworkRegistry.TargetPoint targetPoint = new NetworkRegistry.TargetPoint(pos.getX(), pos.getY(), pos.getZ(), 64.0, dimensionId);
+        MAIN_CHANNEL.sendToAllAround(message, targetPoint);
     }
 
-    public static void sendToDimension(IMessage message, int dimensionId){
-        INSTANCE.sendToDimension(message, dimensionId);
+    public void sendToDimension(Message<?> message, int dimensionId) {
+
+        MAIN_CHANNEL.sendToDimension(message, dimensionId);
     }
 
-    private static int nextDiscriminator() {
-        return discriminator++;
+    public static NetworkHandler get() {
+
+        if (instance == null) {
+
+            instance = new NetworkHandler();
+        }
+
+        return instance;
     }
 
 }

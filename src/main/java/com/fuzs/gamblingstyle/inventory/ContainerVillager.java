@@ -11,19 +11,21 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-public class ContainerVillager extends Container
-{
-    /** Instance of Merchant. */
+public class ContainerVillager extends Container {
+    /**
+     * Instance of Merchant.
+     */
     private final IMerchant merchant;
     private final InventoryMerchant merchantInventory;
-    /** Instance of World. */
+    /**
+     * Instance of World.
+     */
     private final World world;
 
     private final EntityPlayer player;
     private int lastIndex = 3;
 
-    public ContainerVillager(InventoryPlayer playerInventory, IMerchant merchant, World worldIn)
-    {
+    public ContainerVillager(InventoryPlayer playerInventory, IMerchant merchant, World worldIn) {
         this.merchant = merchant;
         this.world = worldIn;
         this.player = playerInventory.player;
@@ -32,44 +34,37 @@ public class ContainerVillager extends Container
         this.addSlotToContainer(new Slot(this.merchantInventory, 1, 76, 48));
         this.addSlotToContainer(new SlotMerchantResult(player, merchant, this.merchantInventory, 2, 134, 35));
 
-        for (int i = 0; i < 3; ++i)
-        {
-            for (int j = 0; j < 9; ++j)
-            {
+        for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < 9; ++j) {
                 this.addSlotToContainer(new Slot(playerInventory, j + i * 9 + 9, 8 + j * 18, 84 + i * 18));
             }
         }
 
-        for (int k = 0; k < 9; ++k)
-        {
+        for (int k = 0; k < 9; ++k) {
             this.addSlotToContainer(new Slot(playerInventory, k, 8 + k * 18, 142));
         }
     }
 
-    public InventoryMerchant getMerchantInventory()
-    {
+    public InventoryMerchant getMerchantInventory() {
         return this.merchantInventory;
     }
 
     /**
      * Callback for when the crafting matrix is changed.
      */
-    public void onCraftMatrixChanged(IInventory inventoryIn)
-    {
+    public void onCraftMatrixChanged(IInventory inventoryIn) {
         this.merchantInventory.resetRecipeAndSlots();
         super.onCraftMatrixChanged(inventoryIn);
     }
 
-    public void setCurrentRecipeIndex(int currentRecipeIndex)
-    {
+    public void setCurrentRecipeIndex(int currentRecipeIndex) {
         this.merchantInventory.setCurrentRecipeIndex(currentRecipeIndex);
     }
 
     /**
      * Determines whether supplied player can use this container
      */
-    public boolean canInteractWith(EntityPlayer playerIn)
-    {
+    public boolean canInteractWith(EntityPlayer playerIn) {
         return this.merchant.getCustomer() == playerIn;
     }
 
@@ -77,29 +72,22 @@ public class ContainerVillager extends Container
      * Handle when the stack in slot {@code index} is shift-clicked. Normally this moves the stack between the player
      * inventory and the other inventory(s).
      */
-    public ItemStack transferStackInSlot(EntityPlayer playerIn, int index)
-    {
+    public ItemStack transferStackInSlot(EntityPlayer playerIn, int index) {
         ItemStack itemstack = ItemStack.EMPTY;
         Slot slot = this.inventorySlots.get(index);
 
-        if (slot != null && slot.getHasStack())
-        {
+        if (slot != null && slot.getHasStack()) {
             ItemStack itemstack1 = slot.getStack();
             itemstack = itemstack1.copy();
 
-            if (index == 2)
-            {
-                if (!this.mergeItemStack(itemstack1, 3, 39, true))
-                {
+            if (index == 2) {
+                if (!this.mergeItemStack(itemstack1, 3, 39, true)) {
                     return ItemStack.EMPTY;
                 }
 
                 slot.onSlotChange(itemstack1, itemstack);
-            }
-            else if (index != 0 && index != 1)
-            {
-                if (index >= 3 && index < 39)
-                {
+            } else if (index != 0 && index != 1) {
+                if (index >= 3 && index < 39) {
                     ItemStack tradingstack0 = this.merchantInventory.getStackInSlot(0);
                     ItemStack tradingstack1 = this.merchantInventory.getStackInSlot(1);
                     boolean flag = false;
@@ -116,23 +104,17 @@ public class ContainerVillager extends Container
                         return ItemStack.EMPTY;
                     }
                 }
-            }
-            else if (!this.mergeItemStack(itemstack1, 3, 39, false))
-            {
+            } else if (!this.mergeItemStack(itemstack1, 3, 39, false)) {
                 return ItemStack.EMPTY;
             }
 
-            if (itemstack1.isEmpty())
-            {
+            if (itemstack1.isEmpty()) {
                 slot.putStack(ItemStack.EMPTY);
-            }
-            else
-            {
+            } else {
                 slot.onSlotChanged();
             }
 
-            if (itemstack1.getCount() == itemstack.getCount())
-            {
+            if (itemstack1.getCount() == itemstack.getCount()) {
                 return ItemStack.EMPTY;
             }
 
@@ -155,10 +137,10 @@ public class ContainerVillager extends Container
         ItemStack itemstack1 = this.merchantInventory.getStackInSlot(0);
         ItemStack itemstack2 = this.merchantInventory.getStackInSlot(1);
 
-        if(!itemstack1.isEmpty()) {
+        if (!itemstack1.isEmpty()) {
             this.mergeItemStack(itemstack1, 3, 39, true);
         }
-        if(!itemstack2.isEmpty()) {
+        if (!itemstack2.isEmpty()) {
             this.mergeItemStack(itemstack2, 3, 39, true);
         }
 
@@ -175,13 +157,13 @@ public class ContainerVillager extends Container
 
     /**
      * Handle item moving when a recipe button is clicked
+     *
      * @param recipeIndex Id of the recipe belonging to the clicked button
-     * @param clear Force clearing trading slots
-     * @param quickMove Move as many items as possible
-     * @param skipMove Move output directly to player inventory
+     * @param clear       Force clearing trading slots
+     * @param quickMove   Move as many items as possible
+     * @param skipMove    Move output directly to player inventory
      */
-    public void handleClickedButtonItems(int recipeIndex, boolean clear, boolean quickMove, boolean skipMove)
-    {
+    public void handleClickedButtonItems(int recipeIndex, boolean clear, boolean quickMove, boolean skipMove) {
         MerchantRecipeList merchantrecipelist = this.merchant.getRecipes(player);
 
         if (merchantrecipelist != null && merchantrecipelist.size() > recipeIndex) {
@@ -259,7 +241,7 @@ public class ContainerVillager extends Container
 
         if (!itemstack.isEmpty()) {
             int leftover = 0;
-            for(int i = this.lastIndex; i < 39; ++i) {
+            for (int i = this.lastIndex; i < 39; ++i) {
                 ItemStack inventorystack = this.inventorySlots.get(i).getStack();
                 if (!inventorystack.isEmpty() && ItemStack.areItemsEqual(itemstack, inventorystack)) {
                     ItemStack currentitemstack = this.merchantInventory.getStackInSlot(targetSlot);
@@ -297,13 +279,10 @@ public class ContainerVillager extends Container
     /**
      * Check if trade can be done (modified from {@link SlotMerchantResult})
      */
-    private boolean checkTrade(ItemStack firstRecipeItem, ItemStack secondRecipeItem ,ItemStack firstInvItem, ItemStack secondInvItem)
-    {
+    private boolean checkTrade(ItemStack firstRecipeItem, ItemStack secondRecipeItem, ItemStack firstInvItem, ItemStack secondInvItem) {
 
-        if (firstInvItem.getItem() == firstRecipeItem.getItem() && firstInvItem.getCount() >= firstRecipeItem.getCount())
-        {
-            if (!secondRecipeItem.isEmpty() && !secondInvItem.isEmpty() && secondRecipeItem.getItem() == secondInvItem.getItem() && secondInvItem.getCount() >= secondRecipeItem.getCount())
-            {
+        if (firstInvItem.getItem() == firstRecipeItem.getItem() && firstInvItem.getCount() >= firstRecipeItem.getCount()) {
+            if (!secondRecipeItem.isEmpty() && !secondInvItem.isEmpty() && secondRecipeItem.getItem() == secondInvItem.getItem() && secondInvItem.getCount() >= secondRecipeItem.getCount()) {
                 return true;
             }
 
@@ -319,7 +298,7 @@ public class ContainerVillager extends Container
      */
     private void tradeAutomatically(ItemStack itemstack) {
 
-        ItemStack itemstack1 =  this.getSlot(2).onTake(this.player, itemstack);
+        ItemStack itemstack1 = this.getSlot(2).onTake(this.player, itemstack);
         if (!itemstack1.isEmpty()) {
             ItemStack itemstack2 = itemstack1.copy();
             if (!this.mergeItemStack(itemstack2, 3, 39, true)) {
@@ -332,14 +311,12 @@ public class ContainerVillager extends Container
     /**
      * Called when the container is closed.
      */
-    public void onContainerClosed(EntityPlayer playerIn)
-    {
+    public void onContainerClosed(EntityPlayer playerIn) {
         super.onContainerClosed(playerIn);
         this.merchant.setCustomer(null);
         this.merchantInventory.removeStackFromSlot(2);
 
-        if (!this.world.isRemote)
-        {
+        if (!this.world.isRemote) {
             this.clearContainer(playerIn, this.world, this.merchantInventory);
         }
     }

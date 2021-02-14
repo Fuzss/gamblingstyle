@@ -1,6 +1,6 @@
-package com.fuzs.gamblingstyle.network.messages;
+package com.fuzs.gamblingstyle.network.message;
 
-import com.fuzs.gamblingstyle.gui.GuiVillager;
+import com.fuzs.gamblingstyle.client.gui.GuiVillager;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
@@ -15,21 +15,18 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 
-public class MessageTradingList extends MessageBase<MessageTradingList> {
+public class MessageTradingList extends Message<MessageTradingList> {
 
     private static final Logger LOGGER = LogManager.getLogger();
     private PacketBuffer data;
 
-    public MessageTradingList()
-    {
+    public MessageTradingList() {
     }
 
-    public MessageTradingList(PacketBuffer bufIn)
-    {
+    public MessageTradingList(PacketBuffer bufIn) {
         this.data = bufIn;
 
-        if (bufIn.writerIndex() > 1048576)
-        {
+        if (bufIn.writerIndex() > 1048576) {
             throw new IllegalArgumentException("Payload may not be larger than 1048576 bytes");
         }
     }
@@ -38,19 +35,16 @@ public class MessageTradingList extends MessageBase<MessageTradingList> {
     public void fromBytes(ByteBuf buf) {
         int i = buf.readableBytes();
 
-        if (i >= 0 && i <= 1048576)
-        {
+        if (i >= 0 && i <= 1048576) {
             this.data = new PacketBuffer(buf.readBytes(i));
-        }
-        else
-        {
+        } else {
             throw new IllegalArgumentException("Payload may not be larger than 1048576 bytes");
         }
     }
 
     @Override
     public void toBytes(ByteBuf buf) {
-        synchronized(this.data) {
+        synchronized (this.data) {
             this.data.markReaderIndex();
             buf.writeBytes(this.data);
             this.data.resetReaderIndex();
@@ -85,8 +79,7 @@ public class MessageTradingList extends MessageBase<MessageTradingList> {
     }
 
     @SideOnly(Side.CLIENT)
-    private PacketBuffer getBufferData()
-    {
+    private PacketBuffer getBufferData() {
         return this.data;
     }
 }

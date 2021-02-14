@@ -1,8 +1,8 @@
-package com.fuzs.gamblingstyle.gui;
+package com.fuzs.gamblingstyle.client.gui;
 
 import com.fuzs.gamblingstyle.GamblingStyle;
-import com.fuzs.gamblingstyle.gui.helper.TradingRecipe;
-import com.fuzs.gamblingstyle.gui.helper.TradingRecipeList;
+import com.fuzs.gamblingstyle.client.gui.data.TradingRecipe;
+import com.fuzs.gamblingstyle.client.gui.data.TradingRecipeList;
 import com.fuzs.gamblingstyle.inventory.ContainerVillager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
@@ -78,8 +78,6 @@ public class GuiTradingBook extends Gui
                 80, mc.fontRenderer.FONT_HEIGHT);
         this.searchField.setMaxStringLength(50);
         this.searchField.setEnableBackgroundDrawing(false);
-        this.searchField.setFocused(true);
-        this.searchField.setCanLoseFocus(false);
         this.searchField.setTextColor(16777215);
         this.refresh = true;
 

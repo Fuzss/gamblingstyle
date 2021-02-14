@@ -1,4 +1,4 @@
-package com.fuzs.gamblingstyle.gui.helper;
+package com.fuzs.gamblingstyle.client.gui.data;
 
 import com.fuzs.gamblingstyle.inventory.ContainerVillager;
 import net.minecraft.inventory.Slot;
@@ -12,8 +12,7 @@ import java.util.stream.Collectors;
 
 public class TradingRecipeList extends ArrayList<TradingRecipe> {
 
-    public TradingRecipeList(MerchantRecipeList list)
-    {
+    public TradingRecipeList(MerchantRecipeList list) {
         for (MerchantRecipe recipe : list) {
             if (this.isValidRecipe(recipe)) {
                 this.add(new TradingRecipe(recipe.getItemToBuy(), recipe.getSecondItemToBuy(), recipe.getItemToSell()));
@@ -21,8 +20,7 @@ public class TradingRecipeList extends ArrayList<TradingRecipe> {
         }
     }
 
-    private boolean isValidRecipe(MerchantRecipe recipe)
-    {
+    private boolean isValidRecipe(MerchantRecipe recipe) {
         return !recipe.getItemToBuy().isEmpty() && !recipe.getItemToSell().isEmpty();
     }
 
@@ -32,7 +30,8 @@ public class TradingRecipeList extends ArrayList<TradingRecipe> {
 
     /**
      * Searches trading recipes for a string, hides the ones not containing it
-     * @param s String to be searched for
+     *
+     * @param s                    String to be searched for
      * @param advancedItemTooltips Get this setting from the game controller
      */
     public void searchQuery(String s, boolean advancedItemTooltips) {
@@ -63,6 +62,7 @@ public class TradingRecipeList extends ArrayList<TradingRecipe> {
 
     /**
      * Scans the inventory each time it changes to see if it contains enough items to perform each trade
+     *
      * @param container Current ContainerVillager
      */
     public void countRecipeContents(ContainerVillager container) {

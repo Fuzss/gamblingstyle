@@ -1,8 +1,5 @@
 # Gambling Style
 
-Overhauled villager trading gui for far better usability and a lot of convenient extras.
+A Minecraft mod. Downloads can be found on CurseForge.
 
-![Gambling Style](https://i.imgur.com/Y139EnW.png)
-
-## Downloads
-Check this project out on [Curse](https://minecraft.curseforge.com/projects/gambling-style).
+![](https://i.imgur.com/Y139EnW.png)

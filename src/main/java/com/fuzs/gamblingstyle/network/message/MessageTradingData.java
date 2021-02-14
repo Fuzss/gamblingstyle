@@ -1,4 +1,4 @@
-package com.fuzs.gamblingstyle.network.messages;
+package com.fuzs.gamblingstyle.network.message;
 
 import com.fuzs.gamblingstyle.inventory.ContainerVillager;
 import com.fuzs.gamblingstyle.util.IPrivateAccessor;
@@ -11,7 +11,7 @@ import net.minecraft.network.PacketBuffer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class MessageTradingData extends MessageBase<MessageTradingData> implements IPrivateAccessor {
+public class MessageTradingData extends Message<MessageTradingData> implements IPrivateAccessor {
 
     private static final Logger LOGGER = LogManager.getLogger();
     private int channel;
@@ -24,8 +24,7 @@ public class MessageTradingData extends MessageBase<MessageTradingData> implemen
         this.channel = channelIn;
         this.data = bufIn;
 
-        if (bufIn.writerIndex() > 32767)
-        {
+        if (bufIn.writerIndex() > 32767) {
             throw new IllegalArgumentException("Payload may not be larger than 32767 bytes");
         }
     }
@@ -35,12 +34,9 @@ public class MessageTradingData extends MessageBase<MessageTradingData> implemen
         this.channel = buf.readUnsignedByte();
         int i = buf.readableBytes();
 
-        if (i >= 0 && i <= 32767)
-        {
+        if (i >= 0 && i <= 32767) {
             this.data = new PacketBuffer(buf.readBytes(i));
-        }
-        else
-        {
+        } else {
             throw new IllegalArgumentException("Payload may not be larger than 32767 bytes");
         }
     }
@@ -48,7 +44,7 @@ public class MessageTradingData extends MessageBase<MessageTradingData> implemen
     @Override
     public void toBytes(ByteBuf buf) {
         buf.writeByte(this.channel);
-        synchronized(this.data) {
+        synchronized (this.data) {
             this.data.markReaderIndex();
             buf.writeBytes(this.data);
             this.data.resetReaderIndex();
@@ -68,22 +64,18 @@ public class MessageTradingData extends MessageBase<MessageTradingData> implemen
             //Select trade
             case 0:
 
-                try
-                {
+                try {
                     int k = message.getBufferData().readUnsignedByte();
                     boolean flag = message.getBufferData().readBoolean();
                     Container container = player.openContainer;
 
-                    if (container instanceof ContainerVillager)
-                    {
-                        ((ContainerVillager)container).setCurrentRecipeIndex(k);
+                    if (container instanceof ContainerVillager) {
+                        ((ContainerVillager) container).setCurrentRecipeIndex(k);
                         if (flag) {
-                            ((ContainerVillager)container).clearTradingSlots();
+                            ((ContainerVillager) container).clearTradingSlots();
                         }
                     }
-                }
-                catch (Exception exception5)
-                {
+                } catch (Exception exception5) {
                     LOGGER.error("Couldn't select trade", exception5);
                 }
                 break;
@@ -91,8 +83,7 @@ public class MessageTradingData extends MessageBase<MessageTradingData> implemen
             //Set wealth for storing last trade
             case 1:
 
-                try
-                {
+                try {
                     int k = message.getBufferData().readUnsignedByte();
                     int l = message.getBufferData().readInt();
                     Entity entity = player.world.getEntityByID(l);
@@ -100,9 +91,7 @@ public class MessageTradingData extends MessageBase<MessageTradingData> implemen
                     if (entity instanceof EntityVillager) {
                         this.setWealth((EntityVillager) entity, k);
                     }
-                }
-                catch (Exception exception5)
-                {
+                } catch (Exception exception5) {
                     LOGGER.error("Couldn't set wealth", exception5);
                 }
                 break;
@@ -110,21 +99,17 @@ public class MessageTradingData extends MessageBase<MessageTradingData> implemen
             //Populate trading slots
             case 2:
 
-                try
-                {
+                try {
                     int k = message.getBufferData().readUnsignedByte();
                     boolean flag = message.getBufferData().readBoolean();
                     boolean flag1 = message.getBufferData().readBoolean();
                     boolean flag2 = message.getBufferData().readBoolean();
                     Container container = player.openContainer;
 
-                    if (container instanceof ContainerVillager)
-                    {
+                    if (container instanceof ContainerVillager) {
                         ((ContainerVillager) container).handleClickedButtonItems(k, flag, flag1, flag2);
                     }
-                }
-                catch (Exception exception5)
-                {
+                } catch (Exception exception5) {
                     LOGGER.error("Couldn't populate trading slots", exception5);
                 }
                 break;
@@ -133,13 +118,11 @@ public class MessageTradingData extends MessageBase<MessageTradingData> implemen
 
     }
 
-    private int getChannelId()
-    {
+    private int getChannelId() {
         return this.channel;
     }
 
-    private PacketBuffer getBufferData()
-    {
+    private PacketBuffer getBufferData() {
         return this.data;
     }
 }

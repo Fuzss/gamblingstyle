@@ -1,4 +1,4 @@
-package com.fuzs.gamblingstyle.gui.helper;
+package com.fuzs.gamblingstyle.client.gui;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
@@ -9,28 +9,24 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
-public class GhostTrade
-{
-    private ItemStack[] recipe = {ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY};
+public class GhostTrade {
     private final int[] posX = {76, 76, 134};
     private final int[] posY = {22, 48, 35};
+    private ItemStack[] recipe = {ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY};
     private boolean hidden = true;
 
-    public void hide()
-    {
+    public void hide() {
         this.hidden = true;
     }
 
-    public void setRecipe(ItemStack itemStack, ItemStack itemStack1, ItemStack itemStack2)
-    {
+    public void setRecipe(ItemStack itemStack, ItemStack itemStack1, ItemStack itemStack2) {
         this.recipe[0] = itemStack;
         this.recipe[1] = itemStack1;
         this.recipe[2] = itemStack2;
         this.hidden = false;
     }
 
-    public void render(Minecraft mc, int left, int top)
-    {
+    public void render(Minecraft mc, int left, int top) {
         if (!this.hidden) {
             for (int i = 0; i <= 2; i++) {
 
@@ -60,8 +56,7 @@ public class GhostTrade
         }
     }
 
-    public void renderHoveredTooltip(Minecraft mc, int mouseX, int mouseY, int left, int top)
-    {
+    public void renderHoveredTooltip(Minecraft mc, int mouseX, int mouseY, int left, int top) {
         if (!this.hidden) {
             ItemStack itemstack = ItemStack.EMPTY;
 
