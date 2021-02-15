@@ -19,27 +19,28 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.IntStream;
 
 @SideOnly(Side.CLIENT)
 public class GuiTradingBook extends Gui {
-    public static final int BUTTON_SPACE = 6;
+
     private static final ResourceLocation RECIPE_BOOK = new ResourceLocation(GamblingStyle.MODID, "textures/gui/container/merchant_book.png");
+    public static final int BUTTON_SPACE = 6;
+
+    private Minecraft mc;
     private final int xSize = 112;
     private final int ySize = 166;
     public int hoveredSlot;
-    private Minecraft mc;
     private GuiButtonTradingRecipe hoveredButton;
-    private List<GuiButtonTradingRecipe> buttonList;
+    private final GuiButtonTradingRecipe[] buttonList = new GuiButtonTradingRecipe[BUTTON_SPACE];
     private GuiTextField searchField;
     private String lastSearch = "";
     private int guiLeft;
     private int guiTop;
     private boolean populate = true;
-    private boolean refresh;
+    private boolean requiresRefresh;
     private TradingRecipeList tradingRecipeList;
     /**
      * Amount scrolled in Creative mode inventory (0 = top, 1 = bottom)
@@ -64,16 +65,17 @@ public class GuiTradingBook extends Gui {
 
     public GuiTradingBook() {
 
-        this.buttonList = new ArrayList<>(BUTTON_SPACE);
         for (int i = 0; i < BUTTON_SPACE; ++i) {
+
             this.buttonList.add(new GuiButtonTradingRecipe(i, this.guiLeft + 10, this.guiTop + 24 + 22 * i));
         }
 
     }
 
     public void initGui(Minecraft mc, int width, int height) {
+
         this.mc = mc;
-        this.refresh = true;
+        this.requiresRefresh = true;
         Keyboard.enableRepeatEvents(true);
         this.guiLeft = (width - xSize) / 2 - 88;
         this.guiTop = (height - ySize) / 2;
@@ -84,14 +86,16 @@ public class GuiTradingBook extends Gui {
         this.searchField.setMaxStringLength(50);
         this.searchField.setEnableBackgroundDrawing(false);
         this.searchField.setTextColor(16777215);
-        this.refresh = true;
+        this.requiresRefresh = true;
 
-        for (int i = 0; i < BUTTON_SPACE; i++) {
-            this.buttonList.get(i).setPosition(this.guiLeft + 10, this.guiTop + 24 + 22 * i);
+        for (int i = 0; i < this.buttonList.length; i++) {
+
+            this.buttonList[i].setPosition(this.guiLeft + 10, this.guiTop + 24 + 22 * i);
         }
 
         if (!this.lastSearch.isEmpty()) {
-            this.tradingRecipeList.searchQuery("", false);
+
+            this.tradingRecipeList.search("", false);
             this.lastSearch = "";
             this.currentScroll = 0.0F;
             this.scrollToPosition();
@@ -99,44 +103,52 @@ public class GuiTradingBook extends Gui {
     }
 
     public void removed() {
+
         Keyboard.enableRepeatEvents(false);
     }
 
-    public void setSelectedTradingRecipe(int i) {
+    public void setSelectedTradingRecipe(int recipeIndey) {
 
         if (this.tradingRecipeList != null) {
+
             this.tradingRecipeList.get(this.selectedTradingRecipe).setSelected(false);
-            this.selectedTradingRecipe = i;
+            this.selectedTradingRecipe = recipeIndey;
             this.tradingRecipeList.get(this.selectedTradingRecipe).setSelected(true);
-            this.refresh = true;
+            this.requiresRefresh = true;
         } else {
-            this.selectedTradingRecipe = i;
+
+            this.selectedTradingRecipe = recipeIndey;
         }
 
     }
 
     public void countContents(ContainerVillager container) {
+
         if (this.tradingRecipeList != null) {
+
             this.tradingRecipeList.countRecipeContents(container);
-            this.refresh = true;
+            this.requiresRefresh = true;
         }
     }
 
     public void update(MerchantRecipeList merchantrecipelist, ContainerVillager container) {
+
         if (this.populate) {
+
             this.tradingRecipeList = new TradingRecipeList(merchantrecipelist);
             this.tradingRecipeList.get(this.selectedTradingRecipe).setSelected(true);
             this.countContents(container);
             this.populate = false;
-            this.refresh = true;
+            this.requiresRefresh = true;
         }
 
         if (this.timesInventoryChanged != this.mc.player.inventory.getTimesChanged()) {
+
             this.countContents(container);
             this.timesInventoryChanged = this.mc.player.inventory.getTimesChanged();
         }
 
-        if (this.tradingRecipeList != null && this.refresh) {
+        if (this.tradingRecipeList != null && this.requiresRefresh) {
 
             if (this.tradingRecipeList.size() != merchantrecipelist.size()) {
                 return;
@@ -164,7 +176,7 @@ public class GuiTradingBook extends Gui {
 
             }
 
-            this.refresh = false;
+            this.requiresRefresh = false;
 
         }
 
@@ -333,11 +345,11 @@ public class GuiTradingBook extends Gui {
             String s1 = this.searchField.getText().toLowerCase(Locale.ROOT);
 
             if (!s1.equals(this.lastSearch) && this.tradingRecipeList != null) {
-                this.tradingRecipeList.searchQuery(s1, this.mc.gameSettings.advancedItemTooltips);
+                this.tradingRecipeList.search(s1, this.mc.gameSettings.advancedItemTooltips);
                 this.lastSearch = s1;
                 this.currentScroll = 0.0F;
                 this.scrollToPosition();
-                this.refresh = true;
+                this.requiresRefresh = true;
             }
 
             return true;
@@ -367,22 +379,25 @@ public class GuiTradingBook extends Gui {
      * Updates the scrollPosition value for populating the trading recipe buttons based on scroll position.
      */
     private void scrollToPosition() {
+
         if (this.tradingRecipeList != null) {
 
             int i = this.tradingRecipeList.activeRecipeSize();
-            int j = (int) ((double) (this.currentScroll * (float) Math.max(i - BUTTON_SPACE, 0)) + 0.5D);
+            int j = (int) ((double) (this.currentScroll * (float) Math.max(i - BUTTON_SPACE, 0)) + 0.5);
             j = Math.max(0, j);
-
             int[] activeTradeIndices;
             if (i < this.tradingRecipeList.size()) {
+
                 activeTradeIndices = IntStream.range(0, this.tradingRecipeList.size()).map(it -> this.tradingRecipeList.get(it).getActive() ? it : -1).filter(it -> it >= 0).toArray();
             } else {
+
                 activeTradeIndices = IntStream.range(0, this.tradingRecipeList.size()).toArray();
             }
 
             if (j < activeTradeIndices.length && this.scrollPosition != activeTradeIndices[j]) {
+
                 this.scrollPosition = activeTradeIndices[j];
-                this.refresh = true;
+                this.requiresRefresh = true;
             }
         }
     }

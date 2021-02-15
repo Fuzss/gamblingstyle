@@ -1,5 +1,6 @@
 package com.fuzs.gamblingstyle.client.gui.data;
 
+import com.fuzs.gamblingstyle.capability.container.ITradingInfo;
 import com.google.common.collect.Lists;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.ItemStack;
@@ -8,36 +9,16 @@ import java.util.List;
 
 public class TradingRecipe {
 
-    /**
-     * Amount of ingredients in player inventory.
-     */
     int ingredients;
-    /**
-     * Amount of secound ingredients in player inventory.
-     */
-    int secoundIngredients;
-    /**
-     * Item the Villager buys.
-     */
+    int secondIngredients;
     private ItemStack itemToBuy;
-    /**
-     * Second Item the Villager buys.
-     */
     private ItemStack secondItemToBuy;
-    /**
-     * Item the Villager sells.
-     */
     private ItemStack itemToSell;
-    /**
-     * Is the recipe part of the current search.
-     */
     private boolean active;
-    /**
-     * Is the recipe selected.
-     */
     private boolean selected;
 
     public TradingRecipe(ItemStack buy1, ItemStack buy2, ItemStack sell) {
+
         this.itemToBuy = ItemStack.EMPTY;
         this.secondItemToBuy = ItemStack.EMPTY;
         this.itemToSell = ItemStack.EMPTY;
@@ -47,7 +28,7 @@ public class TradingRecipe {
         this.active = true;
         this.selected = false;
         this.ingredients = 0;
-        this.secoundIngredients = 0;
+        this.secondIngredients = 0;
     }
 
     /**
@@ -98,27 +79,32 @@ public class TradingRecipe {
      * Returns if the player has enough items for a trade in their inventory
      */
     public boolean hasRecipeContents() {
-        boolean flag = !this.hasSecondItemToBuy() || (this.secoundIngredients >= this.secondItemToBuy.getCount());
+
+        boolean flag = !this.hasSecondItemToBuy() || (this.secondIngredients >= this.secondItemToBuy.getCount());
         return flag && this.ingredients >= this.itemToBuy.getCount();
     }
 
     /**
-     * @param advancedItemTooltips Get this setting from the game controller
+     * @param tooltipFlag Get this setting from the game controller
      * @return List containing all tooltips of the items involved with this trading recipe
      */
-    public List<String> getCombinedTooltip(int mode, boolean advancedItemTooltips) {
+    public List<String> getCombinedTooltip(ITradingInfo.FilterMode mode, ITooltipFlag tooltipFlag) {
 
-        ITooltipFlag tooltipFlag = advancedItemTooltips ? ITooltipFlag.TooltipFlags.ADVANCED : ITooltipFlag.TooltipFlags.NORMAL;
         List<String> list = Lists.newArrayList();
-        if (mode < 2) {
+        if (mode != ITradingInfo.FilterMode.SELLS) {
+
             list.addAll(this.itemToBuy.getTooltip(null, tooltipFlag));
             if (this.hasSecondItemToBuy()) {
+
                 list.addAll(this.secondItemToBuy.getTooltip(null, tooltipFlag));
             }
         }
-        if (mode != 1) {
+
+        if (mode != ITradingInfo.FilterMode.BUYS) {
+
             list.addAll(this.itemToSell.getTooltip(null, tooltipFlag));
         }
+
         return list;
 
     }

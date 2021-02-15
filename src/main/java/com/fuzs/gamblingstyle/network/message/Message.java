@@ -19,7 +19,7 @@ public abstract class Message<T extends Message<T>> implements IMessage, IMessag
 
         EntityPlayerMP serverPlayer = null;
         IThreadListener minecraftServer = null;
-        if (!ctx.side.isClient()) {
+        if (ctx.side.isServer()) {
 
             NetHandlerPlayServer netHandlerPlayServer = ctx.getServerHandler();
             serverPlayer = netHandlerPlayServer.player;

@@ -1,57 +1,65 @@
 package com.fuzs.gamblingstyle.client.gui.data;
 
 import com.fuzs.gamblingstyle.inventory.ContainerVillager;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.village.MerchantRecipe;
 import net.minecraft.village.MerchantRecipeList;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class TradingRecipeList extends ArrayList<TradingRecipe> {
 
     public TradingRecipeList(MerchantRecipeList list) {
+
         for (MerchantRecipe recipe : list) {
+
             if (this.isValidRecipe(recipe)) {
+
                 this.add(new TradingRecipe(recipe.getItemToBuy(), recipe.getSecondItemToBuy(), recipe.getItemToSell()));
             }
         }
     }
 
     private boolean isValidRecipe(MerchantRecipe recipe) {
+
         return !recipe.getItemToBuy().isEmpty() && !recipe.getItemToSell().isEmpty();
     }
 
     public int activeRecipeSize() {
+
         return Math.toIntExact(this.stream().filter(TradingRecipe::getActive).count());
     }
 
     /**
      * Searches trading recipes for a string, hides the ones not containing it
      *
-     * @param s                    String to be searched for
-     * @param advancedItemTooltips Get this setting from the game controller
+     * @param query                    String to be searched for
+     * @param advanced Get this setting from the game controller
      */
-    public void searchQuery(String s, boolean advancedItemTooltips) {
+    public void search(String query, boolean advanced) {
 
-        String s1 = s.trim();
+        ITooltipFlag tooltipFlag = advanced ? ITooltipFlag.TooltipFlags.ADVANCED : ITooltipFlag.TooltipFlags.NORMAL;
+        String trimmed = query.trim();
         int i = 0;
-        if (!s1.isEmpty()) {
-            if (s1.startsWith("\u003C")) { //less than
-                s1 = s1.substring(1);
+        if (!trimmed.isEmpty()) {
+            if (trimmed.startsWith("\u003C")) { //less than
+                trimmed = trimmed.substring(1);
                 i = 1;
-            } else if (s1.startsWith("\u003E")) { //greater than
-                s1 = s1.substring(1);
+            } else if (trimmed.startsWith("\u003E")) { //greater than
+                trimmed = trimmed.substring(1);
                 i = 2;
             }
         }
 
-        String s2 = s1.trim();
+        String s2 = trimmed.trim();
         for (TradingRecipe recipe : this) {
-            if (!s.isEmpty()) {
-                recipe.setActive(recipe.getCombinedTooltip(i, advancedItemTooltips).stream()
+            if (!query.isEmpty()) {
+                recipe.setActive(recipe.getCombinedTooltip(i, tooltipFlag).stream()
                         .map(it -> it.toLowerCase(Locale.ROOT)).anyMatch(it -> it.contains(s2)));
             } else {
                 recipe.setActive(true);
@@ -68,23 +76,30 @@ public class TradingRecipeList extends ArrayList<TradingRecipe> {
     public void countRecipeContents(ContainerVillager container) {
 
         for (TradingRecipe recipe : this) {
+
             recipe.ingredients = 0;
-            recipe.secoundIngredients = 0;
+            recipe.secondIngredients = 0;
         }
 
-        int i = 0;
-        for (ItemStack itemstack : container.inventorySlots.stream().map(Slot::getStack).collect(Collectors.toList())) {
+        List<ItemStack> collect = container.inventorySlots.stream().map(Slot::getStack).collect(Collectors.toList());
+        for (int i = 0; i < collect.size(); i++) {
+
+            ItemStack itemstack = collect.get(i);
             if (i != 2) { //don't count output slot
+
                 for (TradingRecipe recipe : this) {
+
                     if (ItemStack.areItemsEqual(itemstack, recipe.getItemToBuy())) {
+
                         recipe.ingredients += itemstack.getCount();
                     }
+
                     if (recipe.hasSecondItemToBuy() && ItemStack.areItemsEqual(itemstack, recipe.getSecondItemToBuy())) {
-                        recipe.secoundIngredients += itemstack.getCount();
+
+                        recipe.secondIngredients += itemstack.getCount();
                     }
                 }
             }
-            i++;
         }
     }
 

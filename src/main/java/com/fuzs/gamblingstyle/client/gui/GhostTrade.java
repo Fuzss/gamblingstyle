@@ -8,70 +8,101 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import java.util.Arrays;
+import java.util.stream.Stream;
+
 @SideOnly(Side.CLIENT)
 public class GhostTrade {
-    private final int[] posX = {76, 76, 134};
-    private final int[] posY = {22, 48, 35};
-    private ItemStack[] recipe = {ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY};
-    private boolean hidden = true;
+    
+    private final int[][] slotCoordinates = {{76, 22}, {76, 48}, {134, 35}};
+    private final ItemStack[] recipe = {ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY};
+    private Minecraft mc;
 
-    public void hide() {
-        this.hidden = true;
+    public void initGui(Minecraft mc) {
+        
+        this.mc = mc;
     }
 
-    public void setRecipe(ItemStack itemStack, ItemStack itemStack1, ItemStack itemStack2) {
-        this.recipe[0] = itemStack;
-        this.recipe[1] = itemStack1;
-        this.recipe[2] = itemStack2;
-        this.hidden = false;
+    public void setRecipe(ItemStack itemToBuy, ItemStack secondItemToBuy, ItemStack itemToSell) {
+        
+        this.recipe[0] = itemToBuy;
+        this.recipe[1] = secondItemToBuy;
+        this.recipe[2] = itemToSell;
     }
 
-    public void render(Minecraft mc, int left, int top) {
-        if (!this.hidden) {
-            for (int i = 0; i <= 2; i++) {
+    public void clear() {
 
-                int j = posX[i] + left;
-                int k = posY[i] + top;
+        Arrays.fill(this.recipe, ItemStack.EMPTY);
+    }
+
+    private boolean isVisible() {
+
+        return Stream.of(this.recipe).anyMatch(ingredient -> ingredient != ItemStack.EMPTY);
+    }
+
+    public void render(int left, int top) {
+        
+        if (this.isVisible()) {
+            
+            for (int i = 0; i < this.recipe.length; i++) {
+
+                int[] slotCoordinates = this.slotCoordinates[i];
+                int posX = slotCoordinates[0] + left;
+                int posY = slotCoordinates[1] + top;
                 ItemStack itemstack = this.recipe[i];
-
                 if (!itemstack.isEmpty()) {
+                    
                     RenderHelper.enableGUIStandardItemLighting();
                     GlStateManager.disableLighting();
                     if (i == 2) {
-                        Gui.drawRect(j - 4, k - 4, j + 20, k + 20, 822018048);
+                        
+                        // draw this one larger than others
+                        Gui.drawRect(posX - 4, posY - 4, posX + 20, posY + 20, 822018048);
                     } else {
-                        Gui.drawRect(j, k, j + 16, k + 16, 822018048);
+                        
+                        Gui.drawRect(posX, posY, posX + 16, posY + 16, 822018048);
                     }
+                    
                     GlStateManager.disableLighting();
-                    mc.getRenderItem().renderItemAndEffectIntoGUI(mc.player, itemstack, j, k);
+                    mc.getRenderItem().renderItemAndEffectIntoGUI(mc.player, itemstack, posX, posY);
                     GlStateManager.depthFunc(516);
-                    Gui.drawRect(j, k, j + 16, k + 16, 822083583);
+                    Gui.drawRect(posX, posY, posX + 16, posY + 16, 822083583);
                     GlStateManager.depthFunc(515);
-                    mc.getRenderItem().renderItemOverlays(mc.fontRenderer, itemstack, j, k);
+                    mc.getRenderItem().renderItemOverlays(mc.fontRenderer, itemstack, posX, posY);
                     GlStateManager.enableLighting();
                     RenderHelper.disableStandardItemLighting();
-
                 }
             }
         }
     }
 
-    public void renderHoveredTooltip(Minecraft mc, int mouseX, int mouseY, int left, int top) {
-        if (!this.hidden) {
-            ItemStack itemstack = ItemStack.EMPTY;
-
-            for (int i = 0; i <= 2; i++) {
-                int j = posX[i] + left;
-                int k = posY[i] + top;
-
-                if (mouseX >= j && mouseY >= k && mouseX < j + 16 && mouseY < k + 16) {
-                    itemstack = this.recipe[i];
-                }
-            }
-
+    public void renderHoveredTooltip(int mouseX, int mouseY, int left, int top) {
+        
+        if (this.isVisible()) {
+            
+            ItemStack itemstack = this.findHoveredContents(mouseX, mouseY, left, top);
             if (!itemstack.isEmpty() && mc.currentScreen != null) {
+                
                 mc.currentScreen.drawHoveringText(mc.currentScreen.getItemToolTip(itemstack), mouseX, mouseY);
             }
         }
     }
+
+    private ItemStack findHoveredContents(int mouseX, int mouseY, int left, int top) {
+
+        ItemStack itemstack = ItemStack.EMPTY;
+        for (int i = 0; i < this.recipe.length; i++) {
+
+            int[] slotCoordinates = this.slotCoordinates[i];
+            int posX = slotCoordinates[0] + left;
+            int posY = slotCoordinates[1] + top;
+            if (mouseX >= posX && mouseY >= posY && mouseX < posX + 16 && mouseY < posY + 16) {
+
+                itemstack = this.recipe[i];
+            }
+        }
+
+        return itemstack;
+    }
+
 }

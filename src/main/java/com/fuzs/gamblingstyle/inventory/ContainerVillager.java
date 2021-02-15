@@ -30,10 +30,10 @@ public class ContainerVillager extends Container {
         this.merchant = merchant;
         this.world = worldIn;
         this.player = playerInventory.player;
-        this.merchantInventory = new InventoryMerchant(player, merchant);
+        this.merchantInventory = new InventoryMerchant(this.player, merchant);
         this.addSlotToContainer(new Slot(this.merchantInventory, 0, 76, 22));
         this.addSlotToContainer(new Slot(this.merchantInventory, 1, 76, 48));
-        this.addSlotToContainer(new SlotMerchantResult(player, merchant, this.merchantInventory, 2, 134, 35));
+        this.addSlotToContainer(new SlotMerchantResult(this.player, merchant, this.merchantInventory, 2, 134, 35));
 
         for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 9; ++j) {
@@ -312,12 +312,14 @@ public class ContainerVillager extends Container {
     /**
      * Called when the container is closed.
      */
+    @Override
     public void onContainerClosed(EntityPlayer playerIn) {
+
         super.onContainerClosed(playerIn);
         this.merchant.setCustomer(null);
         this.merchantInventory.removeStackFromSlot(2);
-
         if (!this.world.isRemote) {
+
             this.clearContainer(playerIn, this.world, this.merchantInventory);
         }
     }

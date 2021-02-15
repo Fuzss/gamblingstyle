@@ -1,5 +1,6 @@
 package com.fuzs.gamblingstyle;
 
+import com.fuzs.gamblingstyle.capability.CapabilityController;
 import com.fuzs.gamblingstyle.handler.OpenGuiHandler;
 import com.fuzs.gamblingstyle.network.NetworkHandler;
 import com.fuzs.gamblingstyle.network.message.OpenWindowMessage;
@@ -36,6 +37,7 @@ public class GamblingStyle {
     @Mod.EventHandler
     public void onInit(final FMLInitializationEvent evt) {
 
+        MinecraftForge.EVENT_BUS.register(new CapabilityController());
         MinecraftForge.EVENT_BUS.register(new OpenGuiHandler());
 
         NetworkHandler.get().registerMessage(OpenWindowMessage.class, Side.CLIENT);

@@ -1,12 +1,13 @@
 package com.fuzs.gamblingstyle.network.message;
 
+import com.fuzs.gamblingstyle.capability.container.ITradingInfo;
 import com.fuzs.gamblingstyle.client.gui.GuiVillager;
 import com.fuzs.gamblingstyle.util.IPrivateAccessor;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.NpcMerchant;
-import net.minecraft.entity.passive.EntityVillager;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.IMerchant;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
@@ -17,31 +18,25 @@ public class OpenWindowMessage extends Message<OpenWindowMessage> implements IPr
     private int windowId;
     private ITextComponent windowTitle;
     private int slotCount;
-    private int entityId;
-    private int wealth;
+    private int merchantId;
+    private int lastTradeIndex;
+    private ITradingInfo.FilterMode filterMode;
+    private byte[] favoriteTrades;
 
     @SuppressWarnings("unused")
     public OpenWindowMessage() {
 
     }
 
-    public OpenWindowMessage(int windowIdIn, ITextComponent windowTitleIn, int slotCountIn, int entityIdIn, int wealth) {
+    public OpenWindowMessage(int windowId, ITextComponent windowTitle, int slotCount, int merchantId, int lastTradeIndex, ITradingInfo.FilterMode filterMode, byte[] favoriteTrades) {
 
-        this.windowId = windowIdIn;
-        this.windowTitle = windowTitleIn;
-        this.slotCount = slotCountIn;
-        this.entityId = entityIdIn;
-        this.wealth = wealth;
-    }
-
-    @Override
-    public void read(ByteBuf buf) {
-
-        this.windowId = buf.readUnsignedByte();
-        this.windowTitle = ITextComponent.Serializer.jsonToComponent(ByteBufUtils.readUTF8String(buf));
-        this.slotCount = buf.readUnsignedByte();
-        this.wealth = buf.readUnsignedByte();
-        this.entityId = buf.readInt();
+        this.windowId = windowId;
+        this.windowTitle = windowTitle;
+        this.slotCount = slotCount;
+        this.merchantId = merchantId;
+        this.lastTradeIndex = lastTradeIndex;
+        this.filterMode = filterMode;
+        this.favoriteTrades = favoriteTrades;
     }
 
     @Override
@@ -50,27 +45,52 @@ public class OpenWindowMessage extends Message<OpenWindowMessage> implements IPr
         buf.writeByte(this.windowId);
         ByteBufUtils.writeUTF8String(buf, ITextComponent.Serializer.componentToJson(this.windowTitle));
         buf.writeByte(this.slotCount);
-        buf.writeByte(this.wealth);
-        buf.writeInt(this.entityId);
+        buf.writeInt(this.merchantId);
+        buf.writeByte(this.lastTradeIndex);
+        buf.writeByte(this.filterMode.ordinal());
+        buf.writeByte(this.favoriteTrades.length);
+        for (byte favorite : this.favoriteTrades) {
+
+            buf.writeByte(favorite);
+        }
+    }
+
+    @Override
+    public void read(ByteBuf buf) {
+
+        this.windowId = buf.readUnsignedByte();
+        this.windowTitle = ITextComponent.Serializer.jsonToComponent(ByteBufUtils.readUTF8String(buf));
+        this.slotCount = buf.readUnsignedByte();
+        this.merchantId = buf.readInt();
+        this.lastTradeIndex = buf.readUnsignedByte();
+        this.filterMode = ITradingInfo.FilterMode.values()[buf.readUnsignedByte()];
+        int tradesLength = buf.readUnsignedByte();
+        this.favoriteTrades = new byte[tradesLength];
+        for (int i = 0; i < tradesLength; i++) {
+
+            this.favoriteTrades[i] = (byte) buf.readUnsignedByte();
+        }
     }
 
     @Override
     protected MessageProcessor createProcessor() {
 
-        return new OpenWindowProcessor();
+        return new OpenWindowProcessor<>();
     }
 
-    private class OpenWindowProcessor implements MessageProcessor {
+    private class OpenWindowProcessor<T extends EntityLivingBase & IMerchant> implements MessageProcessor {
 
+        @SuppressWarnings("unchecked")
         @Override
         public void accept(EntityPlayer player) {
 
             World worldIn = player.world;
-            Entity entity = worldIn.getEntityByID(OpenWindowMessage.this.entityId);
-            if (entity instanceof EntityVillager) {
+            Entity entity = worldIn.getEntityByID(OpenWindowMessage.this.merchantId);
+            if (entity instanceof EntityLivingBase && entity instanceof IMerchant) {
 
-                OpenWindowMessage.this.setWealth((EntityVillager) entity, OpenWindowMessage.this.wealth);
-                GuiVillager guiContainer = new GuiVillager(player.inventory, new NpcMerchant(player, OpenWindowMessage.this.windowTitle), (EntityVillager) entity, worldIn);
+                T merchant = (T) entity;
+                merchant.setCustomer(player);
+                GuiVillager<T> guiContainer = new GuiVillager<>(player.inventory, merchant, OpenWindowMessage.this.windowTitle, OpenWindowMessage.this.filterMode);
                 Minecraft.getMinecraft().displayGuiScreen(guiContainer);
                 player.openContainer.windowId = OpenWindowMessage.this.windowId;
             }
