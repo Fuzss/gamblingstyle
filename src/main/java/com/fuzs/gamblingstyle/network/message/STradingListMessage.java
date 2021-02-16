@@ -5,7 +5,6 @@ import com.fuzs.gamblingstyle.client.gui.GuiVillager;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.entity.IMerchant;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.village.MerchantRecipeList;
@@ -72,9 +71,8 @@ public class STradingListMessage extends Message<STradingListMessage> {
                 GuiScreen screen = mc.currentScreen;
                 if (screen instanceof GuiVillager && windowId == mc.player.openContainer.windowId) {
 
-                    IMerchant imerchant = ((GuiVillager<?>) screen).getMerchant();
-                    MerchantRecipeList merchantrecipelist = MerchantRecipeList.readFromBuf(STradingListMessage.this.data);
-                    imerchant.setRecipes(merchantrecipelist);
+                    MerchantRecipeList merchantRecipes = MerchantRecipeList.readFromBuf(STradingListMessage.this.data);
+                    ((GuiVillager) screen).setMerchantRecipes(merchantRecipes);
                 }
             } catch (IOException e) {
 

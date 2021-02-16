@@ -44,16 +44,16 @@ public class TradingRecipeList extends ArrayList<TradingRecipe> {
         return (int) this.stream().filter(TradingRecipe::isVisible).count();
     }
 
-    public void search(String query, ITradingInfo.FilterMode mode, boolean advanced) {
+    public void search(String query, ITradingInfo.FilterMode filterMode, boolean advanced) {
 
         ITooltipFlag tooltipFlag = advanced ? ITooltipFlag.TooltipFlags.ADVANCED : ITooltipFlag.TooltipFlags.NORMAL;
         String trimmed = query.trim().toLowerCase(Locale.ROOT);
         for (TradingRecipe recipe : this) {
 
-            boolean visible = true;
-            if (!trimmed.isEmpty()) {
+            boolean visible = recipe.shouldBeIncluded(filterMode);
+            if (!trimmed.isEmpty() && visible) {
 
-                visible = recipe.getCombinedTooltip(mode, tooltipFlag).stream()
+                visible = recipe.getSearchTooltip(tooltipFlag).stream()
                         .map(tooltipLine -> tooltipLine.toLowerCase(Locale.ROOT))
                         .anyMatch(tooltipLine -> tooltipLine.contains(trimmed));
             }

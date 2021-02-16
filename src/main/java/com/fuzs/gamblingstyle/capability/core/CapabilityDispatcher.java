@@ -1,4 +1,4 @@
-package com.fuzs.gamblingstyle.capability;
+package com.fuzs.gamblingstyle.capability.core;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;

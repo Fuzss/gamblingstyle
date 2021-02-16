@@ -7,6 +7,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.IMerchant;
+import net.minecraft.entity.NpcMerchant;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
@@ -74,12 +75,11 @@ public class SOpenWindowMessage extends Message<SOpenWindowMessage> {
     @Override
     protected MessageProcessor createProcessor() {
 
-        return new OpenWindowProcessor<>();
+        return new OpenWindowProcessor();
     }
 
-    private class OpenWindowProcessor<T extends EntityLivingBase & IMerchant> implements MessageProcessor {
+    private class OpenWindowProcessor implements MessageProcessor {
 
-        @SuppressWarnings("unchecked")
         @Override
         public void accept(EntityPlayer player) {
 
@@ -87,9 +87,7 @@ public class SOpenWindowMessage extends Message<SOpenWindowMessage> {
             Entity entity = worldIn.getEntityByID(SOpenWindowMessage.this.merchantId);
             if (entity instanceof EntityLivingBase && entity instanceof IMerchant) {
 
-                T merchant = (T) entity;
-                merchant.setCustomer(player);
-                GuiVillager<T> guiContainer = new GuiVillager<>(player.inventory, merchant, SOpenWindowMessage.this.windowTitle, SOpenWindowMessage.this.lastTradeIndex, SOpenWindowMessage.this.filterMode, SOpenWindowMessage.this.favoriteTrades);
+                GuiVillager guiContainer = new GuiVillager(player.inventory, new NpcMerchant(player, SOpenWindowMessage.this.windowTitle), (EntityLivingBase) entity, SOpenWindowMessage.this.lastTradeIndex, SOpenWindowMessage.this.filterMode, SOpenWindowMessage.this.favoriteTrades);
                 Minecraft.getMinecraft().displayGuiScreen(guiContainer);
                 player.openContainer.windowId = SOpenWindowMessage.this.windowId;
             }

@@ -25,15 +25,17 @@ import net.minecraft.village.MerchantRecipeList;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 
 @SuppressWarnings("NullableProblems")
 @SideOnly(Side.CLIENT)
-public class GuiVillager<T extends EntityLivingBase & IMerchant> extends GuiContainer {
+public class GuiVillager extends GuiContainer {
 
     private static final ResourceLocation MERCHANT_GUI_TEXTURE = new ResourceLocation(GamblingStyle.MODID, "textures/gui/container/merchant.png");
 
-    private final T merchant;
+    private final IMerchant merchant;
+    private final EntityLivingBase traderEntity;
     private final ITextComponent windowTitle;
     private int currentRecipeIndex;
     private byte[] favoriteTrades;
@@ -41,11 +43,12 @@ public class GuiVillager<T extends EntityLivingBase & IMerchant> extends GuiCont
     private final GuiTradingBook tradingBookGui;
     private final GhostTrade ghostTrade;
 
-    public GuiVillager(InventoryPlayer playerInventory, T merchant, ITextComponent windowTitle, int currentRecipeIndex, ITradingInfo.FilterMode filterMode, byte[] favoriteTrades) {
+    public GuiVillager(InventoryPlayer playerInventory, IMerchant merchant, EntityLivingBase traderEntity, int currentRecipeIndex, ITradingInfo.FilterMode filterMode, byte[] favoriteTrades) {
 
-        super(new ContainerVillager(playerInventory, merchant, merchant.world));
+        super(new ContainerVillager(playerInventory, merchant, traderEntity.world));
         this.merchant = merchant;
-        this.windowTitle = windowTitle;
+        this.traderEntity = traderEntity;
+        this.windowTitle = merchant.getDisplayName();
         this.currentRecipeIndex = currentRecipeIndex;
         this.tradingBookGui = new GuiTradingBook(filterMode);
         this.ghostTrade = new GhostTrade();
@@ -69,7 +72,7 @@ public class GuiVillager<T extends EntityLivingBase & IMerchant> extends GuiCont
     public void onGuiClosed() {
 
         this.tradingBookGui.onGuiClosed();
-        NetworkHandler.get().sendToServer(new CSyncTradingInfoMessage(this.merchant.getEntityId(), this.currentRecipeIndex, this.tradingBookGui.getCurrentFilterMode(), new byte[0]));
+        NetworkHandler.get().sendToServer(new CSyncTradingInfoMessage(this.traderEntity.getEntityId(), this.currentRecipeIndex, this.tradingBookGui.getCurrentFilterMode(), new byte[0]));
         super.onGuiClosed();
     }
 
@@ -85,10 +88,10 @@ public class GuiVillager<T extends EntityLivingBase & IMerchant> extends GuiCont
     public void updateScreen() {
 
         super.updateScreen();
-        MerchantRecipeList merchantrecipelist = this.merchant.getRecipes(this.mc.player);
-        if (merchantrecipelist != null) {
+        MerchantRecipeList merchantRecipes = this.merchant.getRecipes(this.mc.player);
+        if (merchantRecipes != null) {
 
-            this.tradingBookGui.update(merchantrecipelist, (ContainerVillager) this.inventorySlots);
+            this.tradingBookGui.updateScreen(merchantRecipes, (ContainerVillager) this.inventorySlots);
         }
 
         Slot hoveredSlot = this.getSlotUnderMouse();
@@ -128,7 +131,7 @@ public class GuiVillager<T extends EntityLivingBase & IMerchant> extends GuiCont
         }
 
         GuiInventory.drawEntityOnScreen(this.guiLeft + 33, this.guiTop + 75, 30, this.guiLeft + 33 - mouseX,
-                this.guiTop + 75 - 50 - mouseY, this.merchant);
+                this.guiTop + 75 - 50 - mouseY, this.traderEntity);
     }
 
     @Override
@@ -198,6 +201,7 @@ public class GuiVillager<T extends EntityLivingBase & IMerchant> extends GuiCont
         NetworkHandler.get().sendToServer(new CMoveIngredientsMessage(this.currentRecipeIndex, clear, quickMove, skipMove));
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Override
     protected void handleMouseClick(Slot slotIn, int slotId, int mouseButton, ClickType type) {
 
@@ -236,7 +240,7 @@ public class GuiVillager<T extends EntityLivingBase & IMerchant> extends GuiCont
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
 
         this.drawDefaultBackground();
-        this.tradingBookGui.render(mouseX, mouseY, partialTicks);
+        this.tradingBookGui.drawScreen(mouseX, mouseY, partialTicks);
         super.drawScreen(mouseX, mouseY, partialTicks);
         this.ghostTrade.render(this.guiLeft, this.guiTop);
         MerchantRecipeList merchantrecipelist = this.merchant.getRecipes(this.mc.player);
@@ -267,15 +271,19 @@ public class GuiVillager<T extends EntityLivingBase & IMerchant> extends GuiCont
     @Override
     protected void keyTyped(char typedChar, int keyCode) throws IOException {
 
-        if (!this.tradingBookGui.keyPressed(typedChar, keyCode)) {
+        if (!this.tradingBookGui.keyTyped(typedChar, keyCode)) {
 
             super.keyTyped(typedChar, keyCode);
         }
     }
 
-    public T getMerchant() {
+    public void setMerchantRecipes(@Nullable MerchantRecipeList merchantRecipes) {
 
-        return this.merchant;
+        this.merchant.setRecipes(merchantRecipes);
+        if (merchantRecipes != null) {
+
+            this.tradingBookGui.setRecipes(merchantRecipes, (ContainerVillager) this.inventorySlots);
+        }
     }
 
 }

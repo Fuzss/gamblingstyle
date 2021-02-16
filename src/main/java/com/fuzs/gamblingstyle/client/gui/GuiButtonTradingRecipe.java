@@ -1,6 +1,7 @@
 package com.fuzs.gamblingstyle.client.gui;
 
 import com.fuzs.gamblingstyle.GamblingStyle;
+import com.fuzs.gamblingstyle.client.gui.core.ITooltipButton;
 import com.fuzs.gamblingstyle.client.gui.data.TradingRecipe;
 import com.google.common.collect.Lists;
 import net.minecraft.client.Minecraft;
@@ -50,6 +51,7 @@ public class GuiButtonTradingRecipe extends GuiButton implements ITooltipButton 
         return this.recipeId;
     }
 
+    @Override
     public void setPosition(int posX, int posY) {
 
         this.x = posX;
@@ -64,8 +66,8 @@ public class GuiButtonTradingRecipe extends GuiButton implements ITooltipButton 
             this.hovered = mouseX >= this.x && mouseY >= this.y && mouseX < this.x + this.width && mouseY < this.y + this.height;
 
             RenderHelper.enableGUIStandardItemLighting();
-            mc.getTextureManager().bindTexture(RECIPE_BOOK);
             GlStateManager.disableLighting();
+            mc.getTextureManager().bindTexture(RECIPE_BOOK);
 
             this.drawTexturedModalRect(this.x, this.y, 112, this.getTextureY(), this.width, this.height);
             if (this.soldOut) {

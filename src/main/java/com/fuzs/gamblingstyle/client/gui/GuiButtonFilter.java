@@ -2,6 +2,7 @@ package com.fuzs.gamblingstyle.client.gui;
 
 import com.fuzs.gamblingstyle.GamblingStyle;
 import com.fuzs.gamblingstyle.capability.container.ITradingInfo;
+import com.fuzs.gamblingstyle.client.gui.core.ITooltipButton;
 import com.google.common.collect.Lists;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
@@ -26,6 +27,7 @@ public class GuiButtonFilter extends GuiButton implements ITooltipButton {
         this.filterMode = filterMode;
     }
 
+    @Override
     public void setPosition(int posX, int posY) {
 
         this.x = posX;

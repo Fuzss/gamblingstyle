@@ -35,6 +35,16 @@ public interface ITradingInfo extends INBTSerializable<NBTTagCompound> {
             return this.translationKey;
         }
 
+        public boolean isSells() {
+
+            return this != BUYS;
+        }
+
+        public boolean isBuys() {
+
+            return this != SELLS;
+        }
+
     }
 
 }

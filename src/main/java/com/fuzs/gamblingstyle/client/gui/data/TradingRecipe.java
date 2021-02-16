@@ -3,6 +3,7 @@ package com.fuzs.gamblingstyle.client.gui.data;
 import com.fuzs.gamblingstyle.capability.container.ITradingInfo;
 import com.google.common.collect.Lists;
 import net.minecraft.client.util.ITooltipFlag;
+import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -65,30 +66,43 @@ public class TradingRecipe {
         this.selected = selected;
     }
 
-    /**
-     * Returns if the player has enough items for a trade in their inventory
-     */
+    private boolean isSale() {
+
+        return this.getItemToBuy().getItem() == Items.EMERALD || this.getSecondItemToBuy().getItem() == Items.EMERALD;
+    }
+
+    private boolean isPurchase() {
+
+        return this.getItemToSell().getItem() == Items.EMERALD;
+    }
+
+    public boolean shouldBeIncluded(ITradingInfo.FilterMode mode) {
+
+        if (mode.isBuys() && this.isPurchase()) {
+
+            return true;
+        } else if (mode.isSells() && this.isSale()) {
+
+            return true;
+        }
+
+        return !this.isSale() && !this.isPurchase();
+    }
+
     public boolean hasRecipeContents() {
 
         boolean secondItem = !this.hasSecondItemToBuy() || (this.secondItemIngredients >= this.getSecondItemToBuy().getCount());
         return secondItem && this.itemIngredients >= this.getItemToBuy().getCount();
     }
 
-    public List<String> getCombinedTooltip(ITradingInfo.FilterMode mode, ITooltipFlag tooltipFlag) {
+    public List<String> getSearchTooltip(ITooltipFlag tooltipFlag) {
 
         List<String> list = Lists.newArrayList();
-        if (mode != ITradingInfo.FilterMode.SELLS) {
+        list.addAll(this.getItemToBuy().getTooltip(null, tooltipFlag));
+        list.addAll(this.getItemToSell().getTooltip(null, tooltipFlag));
+        if (this.hasSecondItemToBuy()) {
 
-            list.addAll(this.getItemToBuy().getTooltip(null, tooltipFlag));
-            if (this.hasSecondItemToBuy()) {
-
-                list.addAll(this.getSecondItemToBuy().getTooltip(null, tooltipFlag));
-            }
-        }
-
-        if (mode != ITradingInfo.FilterMode.BUYS) {
-
-            list.addAll(this.getItemToSell().getTooltip(null, tooltipFlag));
+            list.addAll(this.getSecondItemToBuy().getTooltip(null, tooltipFlag));
         }
 
         return list;

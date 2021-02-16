@@ -2,6 +2,8 @@ package com.fuzs.gamblingstyle.client.gui;
 
 import com.fuzs.gamblingstyle.GamblingStyle;
 import com.fuzs.gamblingstyle.capability.container.ITradingInfo;
+import com.fuzs.gamblingstyle.client.gui.core.IGuiExtension;
+import com.fuzs.gamblingstyle.client.gui.core.ITooltipButton;
 import com.fuzs.gamblingstyle.client.gui.data.TradingRecipe;
 import com.fuzs.gamblingstyle.client.gui.data.TradingRecipeList;
 import com.fuzs.gamblingstyle.inventory.ContainerVillager;
@@ -24,7 +26,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 @SideOnly(Side.CLIENT)
-public class GuiTradingBook extends Gui {
+public class GuiTradingBook extends Gui implements IGuiExtension {
 
     private static final ResourceLocation RECIPE_BOOK = new ResourceLocation(GamblingStyle.MODID, "textures/gui/container/merchant_book.png");
     public static final int MAX_BUTTONS = 6;
@@ -40,7 +42,6 @@ public class GuiTradingBook extends Gui {
     private String lastSearch = "";
     private int guiLeft;
     private int guiTop;
-    private boolean populate = true;
     private boolean requiresRefresh;
     private TradingRecipeList tradingRecipeList;
     // Amount scrolled in Creative mode inventory (0 = top, 1 = bottom)
@@ -62,6 +63,7 @@ public class GuiTradingBook extends Gui {
         }
     }
 
+    @Override
     public void initGui(Minecraft mc, int width, int height) {
 
         this.mc = mc;
@@ -80,10 +82,8 @@ public class GuiTradingBook extends Gui {
 
         if (!this.lastSearch.isEmpty()) {
 
-            this.tradingRecipeList.search("", this.filterButton.getFilterMode(), false);
             this.lastSearch = "";
-            this.currentScroll = 0.0F;
-            this.updateScrollPosition();
+            this.prepareRefresh();
         }
     }
 
@@ -95,6 +95,7 @@ public class GuiTradingBook extends Gui {
         this.searchField.setTextColor(16777215);
     }
 
+    @Override
     public void onGuiClosed() {
 
         Keyboard.enableRepeatEvents(false);
@@ -114,6 +115,39 @@ public class GuiTradingBook extends Gui {
         }
     }
 
+    @Override
+    public void updateScreen(MerchantRecipeList merchantrecipelist, ContainerVillager container) {
+
+        if (this.timesInventoryChanged != this.mc.player.inventory.getTimesChanged()) {
+
+            this.countTradeMaterials(container);
+            this.timesInventoryChanged = this.mc.player.inventory.getTimesChanged();
+        }
+
+        if (this.clearSearch) {
+
+            this.searchField.setCursorPositionEnd();
+            this.searchField.setSelectionPos(0);
+        }
+
+        if (this.requiresRefresh) {
+
+            this.requiresRefresh = false;
+            if (this.tradingRecipeList != null && this.tradingRecipeList.size() == merchantrecipelist.size()) {
+
+                this.updateVisibleTrades(merchantrecipelist);
+            }
+        }
+    }
+
+    public void setRecipes(MerchantRecipeList merchantrecipelist, ContainerVillager container) {
+
+        this.tradingRecipeList = new TradingRecipeList(merchantrecipelist);
+        this.tradingRecipeList.get(this.selectedTradingRecipe).setSelected(true);
+        this.countTradeMaterials(container);
+        this.prepareRefresh();
+    }
+
     public void countTradeMaterials(ContainerVillager container) {
 
         if (this.tradingRecipeList != null) {
@@ -123,60 +157,31 @@ public class GuiTradingBook extends Gui {
         }
     }
 
-    public void update(MerchantRecipeList merchantrecipelist, ContainerVillager container) {
+    private void updateVisibleTrades(MerchantRecipeList merchantrecipelist) {
 
-        if (this.populate) {
+        int scrollPosition = this.scrollPosition;
+        for (GuiButtonTradingRecipe tradeButton : this.tradeButtons) {
 
-            this.tradingRecipeList = new TradingRecipeList(merchantrecipelist);
-            this.tradingRecipeList.get(this.selectedTradingRecipe).setSelected(true);
-            this.countTradeMaterials(container);
-            this.populate = false;
-            this.requiresRefresh = true;
-        }
+            tradeButton.visible = false;
+            for (int i = scrollPosition; i < this.tradingRecipeList.size(); i++) {
 
-        if (this.timesInventoryChanged != this.mc.player.inventory.getTimesChanged()) {
+                TradingRecipe tradingRecipe = this.tradingRecipeList.get(i);
+                if (tradingRecipe.isVisible()) {
 
-            this.countTradeMaterials(container);
-            this.timesInventoryChanged = this.mc.player.inventory.getTimesChanged();
-        }
+                    tradeButton.setContents(i, tradingRecipe, merchantrecipelist.get(i).isRecipeDisabled());
+                    scrollPosition = i + 1;
+                    tradeButton.visible = true;
+                    break;
+                } else {
 
-        if (this.tradingRecipeList != null && this.requiresRefresh) {
-
-            if (this.tradingRecipeList.size() != merchantrecipelist.size()) {
-                return;
-            }
-
-            int scrollPosition = this.scrollPosition;
-            for (GuiButtonTradingRecipe tradeButton : this.tradeButtons) {
-
-                tradeButton.visible = false;
-                for (int i = scrollPosition; i < this.tradingRecipeList.size(); i++) {
-
-                    TradingRecipe tradingRecipe = this.tradingRecipeList.get(i);
-                    if (tradingRecipe.isVisible()) {
-
-                        tradeButton.setContents(i, tradingRecipe, merchantrecipelist.get(i).isRecipeDisabled());
-                        scrollPosition = i + 1;
-                        tradeButton.visible = true;
-                        break;
-                    } else {
-
-                        scrollPosition++;
-                    }
+                    scrollPosition++;
                 }
             }
-
-            this.requiresRefresh = false;
-        }
-
-        if (this.clearSearch) {
-
-            this.searchField.setCursorPositionEnd();
-            this.searchField.setSelectionPos(0);
         }
     }
 
-    public void render(int mouseX, int mouseY, float partialTicks) {
+    @Override
+    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
 
         RenderHelper.enableGUIStandardItemLighting();
         GlStateManager.disableLighting();
@@ -189,8 +194,8 @@ public class GuiTradingBook extends Gui {
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         this.renderScrollBar(mouseX, mouseY);
         RenderHelper.disableStandardItemLighting();
-        GlStateManager.popMatrix();
         this.renderButtons(mouseX, mouseY, partialTicks);
+        GlStateManager.popMatrix();
     }
 
     private void renderScrollBar(int mouseX, int mouseY) {
@@ -202,16 +207,17 @@ public class GuiTradingBook extends Gui {
 
         boolean isClicked = Mouse.isButtonDown(0);
         int recipes = this.tradingRecipeList.getActiveRecipeAmount();
-        float f = 1.0F / (float) Math.sqrt((float) Math.max(recipes - MAX_BUTTONS + 1, 1));
-        int height = (int) (f * 74) * 2; // casting before doubling so it always lines up with the added stripe at the bottom
+        float scrollBarRelative = 1.0F / (float) Math.sqrt((float) Math.max(recipes - MAX_BUTTONS + 1, 1));
+//        int scrollBarAbsolute = (int) (scrollBarRelative * 68) * 2; // casting before doubling so it always lines up with the added stripe at the bottom
+        int scrollBarAbsolute = (int) (scrollBarRelative * 68.0F * 2.0F); // casting before doubling so it always lines up with the added stripe at the bottom
         int startX = this.guiLeft + 98;
         int startY = this.guiTop + 21;
         int endX = startX + 6;
         int endY = startY + 137;
         boolean scrollable = recipes > MAX_BUTTONS;
         this.mc.getTextureManager().bindTexture(RECIPE_BOOK);
-        this.drawTexturedModalRect(startX, startY + (int) ((float) (endY - startY - height) * this.currentScroll), scrollable ? 196 : 202, 0, 6, height);
-        this.drawTexturedModalRect(startX, startY + height + (int) ((float) (endY - startY - height) * this.currentScroll), scrollable ? 196 : 202, 148, 6, 1); // this is the stripe
+        this.drawTexturedModalRect(startX, startY + (int) ((float) (endY - startY - scrollBarAbsolute) * this.currentScroll), scrollable ? 196 : 202, 0, 6, scrollBarAbsolute);
+        this.drawTexturedModalRect(startX, startY + scrollBarAbsolute + (int) ((float) (endY - startY - scrollBarAbsolute) * this.currentScroll), scrollable ? 196 : 202, 136, 6, 1); // end of stripe
         if (!this.wasClicking && isClicked && mouseX >= startX && mouseY >= startY && mouseX < endX && mouseY < endY + 1) {
 
             this.isScrolling = scrollable;
@@ -262,6 +268,7 @@ public class GuiTradingBook extends Gui {
         }
     }
 
+    @Override
     public boolean mouseClicked(int mouseX, int mouseY, int mouseButton) {
 
         if (this.searchField.mouseClicked(mouseX, mouseY, mouseButton)) {
@@ -304,6 +311,7 @@ public class GuiTradingBook extends Gui {
         return -1;
     }
 
+    @Override
     public void mouseReleased(int mouseX, int mouseY, int state) {
 
         if (this.clickedButton != null && state == 0) {
@@ -313,26 +321,26 @@ public class GuiTradingBook extends Gui {
         }
     }
 
-    /**
-     * Handles mouse input.
-     */
+    @Override
     public void handleMouseInput() {
 
-        int i = Mouse.getEventDWheel();
-        if (i != 0 && this.tradingRecipeList != null) {
-            int j = this.tradingRecipeList.getActiveRecipeAmount();
+        int scrollAmount = Mouse.getEventDWheel();
+        if (scrollAmount != 0 && this.tradingRecipeList != null) {
 
-            if (j > MAX_BUTTONS) {
+            int recipes = this.tradingRecipeList.getActiveRecipeAmount();
+            if (recipes > MAX_BUTTONS) {
 
-                if (i > 0) {
-                    i = 1;
+                if (scrollAmount > 0) {
+
+                    scrollAmount = 1;
                 }
 
-                if (i < 0) {
-                    i = -1;
+                if (scrollAmount < 0) {
+
+                    scrollAmount = -1;
                 }
 
-                this.currentScroll = (float) ((double) this.currentScroll - (double) i / (double) j);
+                this.currentScroll = (float) ((double) this.currentScroll - (double) scrollAmount / (double) recipes);
                 this.currentScroll = MathHelper.clamp(this.currentScroll, 0.0F, 1.0F);
                 this.updateScrollPosition();
             }
@@ -349,6 +357,7 @@ public class GuiTradingBook extends Gui {
         return false;
     }
 
+    @Override
     public boolean hasClickedOutside(int mouseX, int mouseY, int guiLeft, int guiTop, int xSize, int ySize) {
 
         boolean flag = mouseX < guiLeft || mouseY < guiTop || mouseX >= guiLeft + xSize || mouseY >= guiTop + ySize;
@@ -357,7 +366,8 @@ public class GuiTradingBook extends Gui {
         return flag && !flag1;
     }
 
-    public boolean keyPressed(char typedChar, int keyCode) {
+    @Override
+    public boolean keyTyped(char typedChar, int keyCode) {
 
         if (this.isKeyValid(keyCode)) {
 
