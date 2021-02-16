@@ -207,17 +207,15 @@ public class GuiTradingBook extends Gui implements IGuiExtension {
 
         boolean isClicked = Mouse.isButtonDown(0);
         int recipes = this.tradingRecipeList.getActiveRecipeAmount();
-        float scrollBarRelative = 1.0F / (float) Math.sqrt((float) Math.max(recipes - MAX_BUTTONS + 1, 1));
-//        int scrollBarAbsolute = (int) (scrollBarRelative * 68) * 2; // casting before doubling so it always lines up with the added stripe at the bottom
-        int scrollBarAbsolute = (int) (scrollBarRelative * 68.0F * 2.0F); // casting before doubling so it always lines up with the added stripe at the bottom
+        int barPosition = (int) (136.0F / (float) Math.sqrt((float) Math.max(recipes - MAX_BUTTONS + 1, 1)));
         int startX = this.guiLeft + 98;
         int startY = this.guiTop + 21;
         int endX = startX + 6;
-        int endY = startY + 137;
+        int endY = startY + 136;
         boolean scrollable = recipes > MAX_BUTTONS;
         this.mc.getTextureManager().bindTexture(RECIPE_BOOK);
-        this.drawTexturedModalRect(startX, startY + (int) ((float) (endY - startY - scrollBarAbsolute) * this.currentScroll), scrollable ? 196 : 202, 0, 6, scrollBarAbsolute);
-        this.drawTexturedModalRect(startX, startY + scrollBarAbsolute + (int) ((float) (endY - startY - scrollBarAbsolute) * this.currentScroll), scrollable ? 196 : 202, 136, 6, 1); // end of stripe
+        this.drawTexturedModalRect(startX, startY + (int) ((float) (endY - startY - barPosition) * this.currentScroll), scrollable ? 196 : 202, 0, 6, barPosition);
+        this.drawTexturedModalRect(startX, startY + barPosition + (int) ((float) (endY - startY - barPosition) * this.currentScroll), scrollable ? 196 : 202, 136, 6, 1); // end of stripe
         if (!this.wasClicking && isClicked && mouseX >= startX && mouseY >= startY && mouseX < endX && mouseY < endY + 1) {
 
             this.isScrolling = scrollable;

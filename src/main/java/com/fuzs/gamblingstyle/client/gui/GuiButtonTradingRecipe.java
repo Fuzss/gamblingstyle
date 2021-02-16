@@ -28,6 +28,7 @@ public class GuiButtonTradingRecipe extends GuiButton implements ITooltipButton 
     private boolean isSelectedRecipe;
     private boolean hasContents;
     private boolean soldOut;
+    private float animationTime = 15.0F;
 
     public GuiButtonTradingRecipe(int id, int posX, int posY) {
 
@@ -69,6 +70,12 @@ public class GuiButtonTradingRecipe extends GuiButton implements ITooltipButton 
             GlStateManager.disableLighting();
             mc.getTextureManager().bindTexture(RECIPE_BOOK);
 
+            boolean isAnimationGoing = this.animationTime > 0.0F;
+            if (isAnimationGoing) {
+
+                this.renderButtonAnimation(partialTicks);
+            }
+
             this.drawTexturedModalRect(this.x, this.y, 112, this.getTextureY(), this.width, this.height);
             if (this.soldOut) {
 
@@ -82,9 +89,24 @@ public class GuiButtonTradingRecipe extends GuiButton implements ITooltipButton 
                 this.renderItemAndEffect(mc, this.recipe[1], this.x + 27, this.y + 2);
             }
 
+            if (isAnimationGoing) {
+
+                GlStateManager.popMatrix();
+            }
+
             GlStateManager.enableLighting();
             RenderHelper.disableStandardItemLighting();
         }
+    }
+
+    private void renderButtonAnimation(float partialTicks) {
+
+        float scaleAmount = 0.1F * (float) Math.sin(this.animationTime / 15.0F * Math.PI);
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(this.x + 42.0F, this.y + 11.0F, 0.0F);
+        GlStateManager.scale(1.0F + scaleAmount / 2.0F, 1.0F + scaleAmount, 1.0F);
+        GlStateManager.translate(-(this.x + 42.0F), -(this.y + 11.0F), 0.0F);
+        this.animationTime -= partialTicks;
     }
 
     private int getTextureY() {
