@@ -60,14 +60,18 @@ public class GuiButtonFilter extends GuiButton implements ITooltipButton {
     @Override
     public List<String> getToolTip(GuiScreen screen, int mouseX, int mouseY) {
 
-        ITextComponent tooltipComponent = new TextComponentTranslation("gui.button.show", new TextComponentTranslation(this.filterMode.getTranslationKey()));
+        ITextComponent tooltipComponent = new TextComponentTranslation("gui.button.show", new TextComponentTranslation(this.filterMode.key));
         return Lists.newArrayList(tooltipComponent.getUnformattedText());
     }
 
-    public void cycleFilterMode() {
+    public void cycleFilterMode(boolean skipFavorites) {
 
         int nextIndex = (this.filterMode.ordinal() + 1) % ITradingInfo.FilterMode.values().length;
         this.filterMode = ITradingInfo.FilterMode.values()[nextIndex];
+        if (skipFavorites && this.filterMode == ITradingInfo.FilterMode.FAVORITES) {
+
+            this.cycleFilterMode(false);
+        }
     }
 
     public ITradingInfo.FilterMode getFilterMode() {

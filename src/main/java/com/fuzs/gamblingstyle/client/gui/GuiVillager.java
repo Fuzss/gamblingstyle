@@ -2,9 +2,9 @@ package com.fuzs.gamblingstyle.client.gui;
 
 import com.fuzs.gamblingstyle.GamblingStyle;
 import com.fuzs.gamblingstyle.capability.container.ITradingInfo;
-import com.fuzs.gamblingstyle.client.network.message.CMoveIngredientsMessage;
-import com.fuzs.gamblingstyle.client.network.message.CSelectedRecipeMessage;
-import com.fuzs.gamblingstyle.client.network.message.CSyncTradingInfoMessage;
+import com.fuzs.gamblingstyle.network.message.client.CMoveIngredientsMessage;
+import com.fuzs.gamblingstyle.network.message.client.CSelectedRecipeMessage;
+import com.fuzs.gamblingstyle.network.message.client.CSyncTradingInfoMessage;
 import com.fuzs.gamblingstyle.inventory.ContainerVillager;
 import com.fuzs.gamblingstyle.network.NetworkHandler;
 import net.minecraft.client.gui.GuiScreen;
@@ -38,7 +38,7 @@ public class GuiVillager extends GuiContainer {
     private final EntityLivingBase traderEntity;
     private final ITextComponent windowTitle;
     private int currentRecipeIndex;
-    private byte[] favoriteTrades;
+    private final byte[] favoriteTrades;
 
     private final GuiTradingBook tradingBookGui;
     private final GhostTrade ghostTrade;
@@ -72,7 +72,7 @@ public class GuiVillager extends GuiContainer {
     public void onGuiClosed() {
 
         this.tradingBookGui.onGuiClosed();
-        NetworkHandler.get().sendToServer(new CSyncTradingInfoMessage(this.traderEntity.getEntityId(), this.currentRecipeIndex, this.tradingBookGui.getCurrentFilterMode(), new byte[0]));
+        NetworkHandler.get().sendToServer(new CSyncTradingInfoMessage(this.traderEntity.getEntityId(), this.currentRecipeIndex, this.tradingBookGui.getCurrentFilterMode(), this.tradingBookGui.getFavoriteTrades()));
         super.onGuiClosed();
     }
 
@@ -282,7 +282,7 @@ public class GuiVillager extends GuiContainer {
         this.merchant.setRecipes(merchantRecipes);
         if (merchantRecipes != null) {
 
-            this.tradingBookGui.setRecipes(merchantRecipes, (ContainerVillager) this.inventorySlots);
+            this.tradingBookGui.setRecipes(merchantRecipes, (ContainerVillager) this.inventorySlots, this.favoriteTrades);
         }
     }
 

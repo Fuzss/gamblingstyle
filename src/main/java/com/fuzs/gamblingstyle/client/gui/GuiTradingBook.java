@@ -83,7 +83,7 @@ public class GuiTradingBook extends Gui implements IGuiExtension {
         if (!this.lastSearch.isEmpty()) {
 
             this.lastSearch = "";
-            this.prepareRefresh();
+            this.invalidate(true);
         }
     }
 
@@ -140,12 +140,20 @@ public class GuiTradingBook extends Gui implements IGuiExtension {
         }
     }
 
-    public void setRecipes(MerchantRecipeList merchantrecipelist, ContainerVillager container) {
+    public void setRecipes(MerchantRecipeList merchantrecipelist, ContainerVillager container, byte[] favorites) {
 
         this.tradingRecipeList = new TradingRecipeList(merchantrecipelist);
         this.tradingRecipeList.get(this.selectedTradingRecipe).setSelected(true);
+        for (byte favorite : favorites) {
+
+            if (favorite < this.tradingRecipeList.size()) {
+
+                this.tradingRecipeList.get(favorite).favorite();
+            }
+        }
+
         this.countTradeMaterials(container);
-        this.prepareRefresh();
+        this.invalidate(true);
     }
 
     public void countTradeMaterials(ContainerVillager container) {
@@ -278,9 +286,9 @@ public class GuiTradingBook extends Gui implements IGuiExtension {
 
             if (this.filterButton.mousePressed(this.mc, mouseX, mouseY)) {
 
-                this.filterButton.cycleFilterMode();
+                this.filterButton.cycleFilterMode(this.getFavorites() == 0);
                 this.filterButton.playPressSound(this.mc.getSoundHandler());
-                this.prepareRefresh();
+                this.invalidate(true);
 
                 return true;
             }
@@ -295,7 +303,20 @@ public class GuiTradingBook extends Gui implements IGuiExtension {
 
             for (GuiButtonTradingRecipe tradeButton : this.tradeButtons) {
 
-                if (tradeButton.mousePressed(this.mc, mouseX, mouseY)) {
+                if (tradeButton.mousePressedOnFavorite(mouseX, mouseY)) {
+
+                    this.tradingRecipeList.get(tradeButton.getRecipeId()).toggleFavorite();
+                    if (this.getFavorites() == 0 && this.getCurrentFilterMode() == ITradingInfo.FilterMode.FAVORITES) {
+
+                        this.filterButton.cycleFilterMode(false);
+                        this.invalidate(true);
+                    } else {
+
+                        this.invalidate(false);
+                    }
+
+                    return -1;
+                } else if (tradeButton.mousePressed(this.mc, mouseX, mouseY)) {
 
                     this.clearSearch = true;
                     this.clickedButton = tradeButton;
@@ -384,7 +405,7 @@ public class GuiTradingBook extends Gui implements IGuiExtension {
             if (!searchQuery.equals(this.lastSearch) && this.tradingRecipeList != null) {
 
                 this.lastSearch = searchQuery;
-                this.prepareRefresh();
+                this.invalidate(true);
             }
 
             return true;
@@ -393,11 +414,15 @@ public class GuiTradingBook extends Gui implements IGuiExtension {
         return false;
     }
 
-    private void prepareRefresh() {
+    private void invalidate(boolean resetScroll) {
 
-        this.tradingRecipeList.search(this.lastSearch, this.filterButton.getFilterMode(), this.mc.gameSettings.advancedItemTooltips);
-        this.currentScroll = 0.0F;
-        this.updateScrollPosition();
+        this.tradingRecipeList.search(this.mc, this.lastSearch, this.getCurrentFilterMode());
+        if (resetScroll) {
+
+            this.currentScroll = 0.0F;
+            this.updateScrollPosition();
+        }
+
         this.requiresRefresh = true;
     }
 
@@ -461,6 +486,25 @@ public class GuiTradingBook extends Gui implements IGuiExtension {
     public ITradingInfo.FilterMode getCurrentFilterMode() {
 
         return this.filterButton.getFilterMode();
+    }
+
+    public byte[] getFavoriteTrades() {
+
+        byte[] favorites = new byte[this.getFavorites()];
+        for (int i = 0, j = 0; i < favorites.length; j++) {
+
+            if (this.tradingRecipeList.get(j).isFavorite()) {
+
+                favorites[i++] = (byte) j;
+            }
+        }
+
+        return favorites;
+    }
+
+    private int getFavorites() {
+
+        return (int) this.tradingRecipeList.stream().filter(TradingRecipe::isFavorite).count();
     }
 
 }

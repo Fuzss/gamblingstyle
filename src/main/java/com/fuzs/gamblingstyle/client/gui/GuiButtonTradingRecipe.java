@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -28,7 +29,7 @@ public class GuiButtonTradingRecipe extends GuiButton implements ITooltipButton 
     private boolean isSelectedRecipe;
     private boolean hasContents;
     private boolean soldOut;
-    private float animationTime = 15.0F;
+    private boolean favorite;
 
     public GuiButtonTradingRecipe(int id, int posX, int posY) {
 
@@ -45,6 +46,7 @@ public class GuiButtonTradingRecipe extends GuiButton implements ITooltipButton 
         this.isSelectedRecipe = recipe.isSelected();
         this.hasContents = recipe.hasRecipeContents();
         this.soldOut = soldOut;
+        this.favorite = recipe.isFavorite();
     }
 
     public int getRecipeId() {
@@ -59,29 +61,42 @@ public class GuiButtonTradingRecipe extends GuiButton implements ITooltipButton 
         this.y = posY;
     }
 
+    public boolean mousePressedOnFavorite(int mouseX, int mouseY) {
+
+        final int buttonSize = 9;
+        boolean pressed = this.enabled && this.visible && mouseX >= this.x - 3 && mouseY >= this.y + 6 && mouseX < this.x - 3 + buttonSize && mouseY < this.y + 6 + buttonSize;
+        if (pressed) {
+
+            this.favorite = !this.favorite;
+        }
+
+        return pressed;
+    }
+
     @Override
     public void drawButton(@Nonnull Minecraft mc, int mouseX, int mouseY, float partialTicks) {
 
         if (this.visible) {
 
-            this.hovered = mouseX >= this.x && mouseY >= this.y && mouseX < this.x + this.width && mouseY < this.y + this.height;
+            final int favoriteButtonSize = 9;
+            boolean isFavoriteHovered = mouseX >= this.x - 3 && mouseY >= this.y + 6 && mouseX < this.x - 3 + favoriteButtonSize && mouseY < this.y + 6 + favoriteButtonSize;
+            this.hovered = !isFavoriteHovered && mouseX >= this.x && mouseY >= this.y && mouseX < this.x + this.width && mouseY < this.y + this.height;
 
             RenderHelper.enableGUIStandardItemLighting();
             GlStateManager.disableLighting();
             mc.getTextureManager().bindTexture(RECIPE_BOOK);
 
-            boolean isAnimationGoing = this.animationTime > 0.0F;
-            if (isAnimationGoing) {
-
-                this.renderButtonAnimation(partialTicks);
-            }
-
+            // draw background frame
             this.drawTexturedModalRect(this.x, this.y, 112, this.getTextureY(), this.width, this.height);
             if (this.soldOut) {
 
                 this.drawTexturedModalRect(this.x + 47, this.y + 3, this.hasContents ? 0 : 10, 166, 10, 15);
             }
 
+            // draw favorite button
+            this.drawTexturedModalRect(this.x - 3, this.y + 6, this.favorite ? 20 : 29, 166, favoriteButtonSize, favoriteButtonSize);
+
+            // draw items
             this.renderItemAndEffect(mc, this.recipe[0], this.x + 6, this.y + 2);
             this.renderItemAndEffect(mc, this.recipe[2], this.x + 61, this.y + 2);
             if (!this.recipe[1].isEmpty()) {
@@ -89,24 +104,9 @@ public class GuiButtonTradingRecipe extends GuiButton implements ITooltipButton 
                 this.renderItemAndEffect(mc, this.recipe[1], this.x + 27, this.y + 2);
             }
 
-            if (isAnimationGoing) {
-
-                GlStateManager.popMatrix();
-            }
-
             GlStateManager.enableLighting();
             RenderHelper.disableStandardItemLighting();
         }
-    }
-
-    private void renderButtonAnimation(float partialTicks) {
-
-        float scaleAmount = 0.1F * (float) Math.sin(this.animationTime / 15.0F * Math.PI);
-        GlStateManager.pushMatrix();
-        GlStateManager.translate(this.x + 42.0F, this.y + 11.0F, 0.0F);
-        GlStateManager.scale(1.0F + scaleAmount / 2.0F, 1.0F + scaleAmount, 1.0F);
-        GlStateManager.translate(-(this.x + 42.0F), -(this.y + 11.0F), 0.0F);
-        this.animationTime -= partialTicks;
     }
 
     private int getTextureY() {
@@ -136,6 +136,7 @@ public class GuiButtonTradingRecipe extends GuiButton implements ITooltipButton 
         mc.getRenderItem().renderItemOverlays(mc.fontRenderer, itemStack, xPosition, yPosition);
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Override
     public List<String> getToolTip(GuiScreen screen, int mouseX, int mouseY) {
 
@@ -147,6 +148,12 @@ public class GuiButtonTradingRecipe extends GuiButton implements ITooltipButton 
         } else if (this.soldOut && this.isPointInRegion(47, 3, 10, 15, mouseX, mouseY)) {
 
             list.add(new TextComponentTranslation("merchant.deprecated").getUnformattedText());
+        }
+
+        // helps with Quark which adds a blank line for drawing icons which are never drawn in the trading menu
+        if (!list.isEmpty() && TextFormatting.getTextWithoutFormattingCodes(list.get(list.size() - 1).trim()).isEmpty()) {
+
+            list.remove(list.size() - 1);
         }
 
         return list;

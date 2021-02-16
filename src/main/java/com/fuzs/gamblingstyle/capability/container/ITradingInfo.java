@@ -21,28 +21,24 @@ public interface ITradingInfo extends INBTSerializable<NBTTagCompound> {
 
         ALL("gui.button.show.all"),
         BUYS("gui.button.show.buys"),
-        SELLS("gui.button.show.sells");
+        SELLS("gui.button.show.sells"),
+        FAVORITES("gui.button.show.favorites");
 
-        private final String translationKey;
+        public final String key;
 
-        FilterMode(String translationKey) {
+        FilterMode(String key) {
 
-            this.translationKey = translationKey;
-        }
-
-        public String getTranslationKey() {
-
-            return this.translationKey;
+            this.key = key;
         }
 
         public boolean isSells() {
 
-            return this != BUYS;
+            return this == SELLS || this == ALL;
         }
 
         public boolean isBuys() {
 
-            return this != SELLS;
+            return this == BUYS || this == ALL;
         }
 
     }

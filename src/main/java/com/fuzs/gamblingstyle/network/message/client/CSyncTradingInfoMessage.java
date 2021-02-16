@@ -1,4 +1,4 @@
-package com.fuzs.gamblingstyle.client.network.message;
+package com.fuzs.gamblingstyle.network.message.client;
 
 import com.fuzs.gamblingstyle.capability.CapabilityController;
 import com.fuzs.gamblingstyle.capability.container.ITradingInfo;

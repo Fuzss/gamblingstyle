@@ -27,6 +27,7 @@ public class ContainerVillager extends Container {
     private int lastIndex = 3;
 
     public ContainerVillager(InventoryPlayer playerInventory, IMerchant merchant, World worldIn) {
+
         this.merchant = merchant;
         this.world = worldIn;
         this.player = playerInventory.player;

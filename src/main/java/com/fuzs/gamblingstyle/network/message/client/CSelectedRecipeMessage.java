@@ -1,4 +1,4 @@
-package com.fuzs.gamblingstyle.client.network.message;
+package com.fuzs.gamblingstyle.network.message.client;
 
 import com.fuzs.gamblingstyle.inventory.ContainerVillager;
 import com.fuzs.gamblingstyle.network.message.Message;

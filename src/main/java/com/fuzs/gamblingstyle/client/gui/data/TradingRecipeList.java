@@ -2,6 +2,7 @@ package com.fuzs.gamblingstyle.client.gui.data;
 
 import com.fuzs.gamblingstyle.capability.container.ITradingInfo;
 import com.fuzs.gamblingstyle.inventory.ContainerVillager;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
@@ -44,16 +45,16 @@ public class TradingRecipeList extends ArrayList<TradingRecipe> {
         return (int) this.stream().filter(TradingRecipe::isVisible).count();
     }
 
-    public void search(String query, ITradingInfo.FilterMode filterMode, boolean advanced) {
+    public void search(Minecraft mc, String query, ITradingInfo.FilterMode filterMode) {
 
-        ITooltipFlag tooltipFlag = advanced ? ITooltipFlag.TooltipFlags.ADVANCED : ITooltipFlag.TooltipFlags.NORMAL;
+        ITooltipFlag tooltipFlag = mc.gameSettings.advancedItemTooltips ? ITooltipFlag.TooltipFlags.ADVANCED : ITooltipFlag.TooltipFlags.NORMAL;
         String trimmed = query.trim().toLowerCase(Locale.ROOT);
         for (TradingRecipe recipe : this) {
 
             boolean visible = recipe.shouldBeIncluded(filterMode);
             if (!trimmed.isEmpty() && visible) {
 
-                visible = recipe.getSearchTooltip(tooltipFlag).stream()
+                visible = recipe.getSearchTooltip(mc.player, tooltipFlag).stream()
                         .map(tooltipLine -> tooltipLine.toLowerCase(Locale.ROOT))
                         .anyMatch(tooltipLine -> tooltipLine.contains(trimmed));
             }

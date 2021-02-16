@@ -1,9 +1,9 @@
 package com.fuzs.gamblingstyle;
 
 import com.fuzs.gamblingstyle.capability.CapabilityController;
-import com.fuzs.gamblingstyle.client.network.message.CMoveIngredientsMessage;
-import com.fuzs.gamblingstyle.client.network.message.CSelectedRecipeMessage;
-import com.fuzs.gamblingstyle.client.network.message.CSyncTradingInfoMessage;
+import com.fuzs.gamblingstyle.network.message.client.CMoveIngredientsMessage;
+import com.fuzs.gamblingstyle.network.message.client.CSelectedRecipeMessage;
+import com.fuzs.gamblingstyle.network.message.client.CSyncTradingInfoMessage;
 import com.fuzs.gamblingstyle.handler.OpenGuiHandler;
 import com.fuzs.gamblingstyle.network.NetworkHandler;
 import com.fuzs.gamblingstyle.network.message.*;
@@ -38,8 +38,12 @@ public class GamblingStyle {
     @Mod.EventHandler
     public void onInit(final FMLInitializationEvent evt) {
 
+        this.registerMessages();
         MinecraftForge.EVENT_BUS.register(new CapabilityController());
         MinecraftForge.EVENT_BUS.register(new OpenGuiHandler());
+    }
+
+    private void registerMessages() {
 
         NetworkHandler.get().registerMessage(SOpenWindowMessage.class, Side.CLIENT);
         NetworkHandler.get().registerMessage(STradingListMessage.class, Side.CLIENT);
