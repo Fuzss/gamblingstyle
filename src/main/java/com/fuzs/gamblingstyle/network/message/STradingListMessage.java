@@ -12,16 +12,16 @@ import net.minecraft.village.MerchantRecipeList;
 
 import java.io.IOException;
 
-public class TradingListMessage extends Message<TradingListMessage> {
+public class STradingListMessage extends Message<STradingListMessage> {
 
     private PacketBuffer data;
 
     @SuppressWarnings("unused")
-    public TradingListMessage() {
+    public STradingListMessage() {
 
     }
 
-    public TradingListMessage(PacketBuffer bufIn) {
+    public STradingListMessage(PacketBuffer bufIn) {
 
         this.data = bufIn;
         if (bufIn.writerIndex() > 1048576) {
@@ -68,12 +68,12 @@ public class TradingListMessage extends Message<TradingListMessage> {
             try {
 
                 Minecraft mc = Minecraft.getMinecraft();
-                int windowId = TradingListMessage.this.data.readInt();
-                GuiScreen guiscreen = mc.currentScreen;
-                if (guiscreen instanceof GuiVillager && windowId == mc.player.openContainer.windowId) {
+                int windowId = STradingListMessage.this.data.readInt();
+                GuiScreen screen = mc.currentScreen;
+                if (screen instanceof GuiVillager && windowId == mc.player.openContainer.windowId) {
 
-                    IMerchant imerchant = ((GuiVillager) guiscreen).getMerchant();
-                    MerchantRecipeList merchantrecipelist = MerchantRecipeList.readFromBuf(TradingListMessage.this.data);
+                    IMerchant imerchant = ((GuiVillager<?>) screen).getMerchant();
+                    MerchantRecipeList merchantrecipelist = MerchantRecipeList.readFromBuf(STradingListMessage.this.data);
                     imerchant.setRecipes(merchantrecipelist);
                 }
             } catch (IOException e) {

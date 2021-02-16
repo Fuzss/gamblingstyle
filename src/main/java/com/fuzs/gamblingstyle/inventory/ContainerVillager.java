@@ -126,7 +126,8 @@ public class ContainerVillager extends Container {
     }
 
     @SideOnly(Side.CLIENT)
-    public boolean haveTradingSlotsContents() {
+    public boolean areSlotsFilled() {
+
         return !this.merchantInventory.getStackInSlot(0).isEmpty() || !this.merchantInventory.getStackInSlot(1).isEmpty();
     }
 

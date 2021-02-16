@@ -4,75 +4,65 @@ import com.fuzs.gamblingstyle.capability.container.ITradingInfo;
 import com.google.common.collect.Lists;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.List;
 
+@SideOnly(Side.CLIENT)
 public class TradingRecipe {
 
-    int ingredients;
-    int secondIngredients;
-    private ItemStack itemToBuy;
-    private ItemStack secondItemToBuy;
-    private ItemStack itemToSell;
-    private boolean active;
+    private final ItemStack[] recipe = new ItemStack[3];
+    private boolean visible = true;
     private boolean selected;
+    int itemIngredients;
+    int secondItemIngredients;
 
-    public TradingRecipe(ItemStack buy1, ItemStack buy2, ItemStack sell) {
+    public TradingRecipe(ItemStack itemToBuy, ItemStack secondItemToBuy, ItemStack itemToSell) {
 
-        this.itemToBuy = ItemStack.EMPTY;
-        this.secondItemToBuy = ItemStack.EMPTY;
-        this.itemToSell = ItemStack.EMPTY;
-        this.itemToBuy = buy1;
-        this.secondItemToBuy = buy2;
-        this.itemToSell = sell;
-        this.active = true;
-        this.selected = false;
-        this.ingredients = 0;
-        this.secondIngredients = 0;
+        this.recipe[0] = itemToBuy;
+        this.recipe[1] = secondItemToBuy;
+        this.recipe[2] = itemToSell;
     }
 
-    /**
-     * Gets the itemToBuy.
-     */
     public ItemStack getItemToBuy() {
-        return this.itemToBuy;
+
+        return this.recipe[0];
     }
 
-    /**
-     * Gets secondItemToBuy.
-     */
     public ItemStack getSecondItemToBuy() {
-        return this.secondItemToBuy;
+
+        return this.recipe[1];
     }
 
-    /**
-     * Gets if Villager has secondItemToBuy.
-     */
     public boolean hasSecondItemToBuy() {
-        return !this.secondItemToBuy.isEmpty();
+
+        return !this.getSecondItemToBuy().isEmpty();
     }
 
-    /**
-     * Gets itemToSell.
-     */
     public ItemStack getItemToSell() {
-        return this.itemToSell;
+
+        return this.recipe[2];
     }
 
-    public boolean getActive() {
-        return active;
+    public boolean isVisible() {
+
+        return this.visible;
     }
 
-    public void setActive(boolean flag) {
-        this.active = flag;
+    public void setVisible(boolean visible) {
+
+        this.visible = visible;
     }
 
-    public boolean getSelected() {
-        return selected;
+    public boolean isSelected() {
+
+        return this.selected;
     }
 
-    public void setSelected(boolean flag) {
-        this.selected = flag;
+    public void setSelected(boolean selected) {
+
+        this.selected = selected;
     }
 
     /**
@@ -80,32 +70,28 @@ public class TradingRecipe {
      */
     public boolean hasRecipeContents() {
 
-        boolean flag = !this.hasSecondItemToBuy() || (this.secondIngredients >= this.secondItemToBuy.getCount());
-        return flag && this.ingredients >= this.itemToBuy.getCount();
+        boolean secondItem = !this.hasSecondItemToBuy() || (this.secondItemIngredients >= this.getSecondItemToBuy().getCount());
+        return secondItem && this.itemIngredients >= this.getItemToBuy().getCount();
     }
 
-    /**
-     * @param tooltipFlag Get this setting from the game controller
-     * @return List containing all tooltips of the items involved with this trading recipe
-     */
     public List<String> getCombinedTooltip(ITradingInfo.FilterMode mode, ITooltipFlag tooltipFlag) {
 
         List<String> list = Lists.newArrayList();
         if (mode != ITradingInfo.FilterMode.SELLS) {
 
-            list.addAll(this.itemToBuy.getTooltip(null, tooltipFlag));
+            list.addAll(this.getItemToBuy().getTooltip(null, tooltipFlag));
             if (this.hasSecondItemToBuy()) {
 
-                list.addAll(this.secondItemToBuy.getTooltip(null, tooltipFlag));
+                list.addAll(this.getSecondItemToBuy().getTooltip(null, tooltipFlag));
             }
         }
 
         if (mode != ITradingInfo.FilterMode.BUYS) {
 
-            list.addAll(this.itemToSell.getTooltip(null, tooltipFlag));
+            list.addAll(this.getItemToSell().getTooltip(null, tooltipFlag));
         }
 
         return list;
-
     }
+
 }

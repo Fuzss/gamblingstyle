@@ -1,11 +1,12 @@
 package com.fuzs.gamblingstyle;
 
 import com.fuzs.gamblingstyle.capability.CapabilityController;
+import com.fuzs.gamblingstyle.client.network.message.CMoveIngredientsMessage;
+import com.fuzs.gamblingstyle.client.network.message.CSelectedRecipeMessage;
+import com.fuzs.gamblingstyle.client.network.message.CSyncTradingInfoMessage;
 import com.fuzs.gamblingstyle.handler.OpenGuiHandler;
 import com.fuzs.gamblingstyle.network.NetworkHandler;
-import com.fuzs.gamblingstyle.network.message.OpenWindowMessage;
-import com.fuzs.gamblingstyle.network.message.TradingDataMessage;
-import com.fuzs.gamblingstyle.network.message.TradingListMessage;
+import com.fuzs.gamblingstyle.network.message.*;
 import com.fuzs.gamblingstyle.proxy.IProxy;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
@@ -40,9 +41,11 @@ public class GamblingStyle {
         MinecraftForge.EVENT_BUS.register(new CapabilityController());
         MinecraftForge.EVENT_BUS.register(new OpenGuiHandler());
 
-        NetworkHandler.get().registerMessage(OpenWindowMessage.class, Side.CLIENT);
-        NetworkHandler.get().registerMessage(TradingListMessage.class, Side.CLIENT);
-        NetworkHandler.get().registerMessage(TradingDataMessage.class, Side.SERVER);
+        NetworkHandler.get().registerMessage(SOpenWindowMessage.class, Side.CLIENT);
+        NetworkHandler.get().registerMessage(STradingListMessage.class, Side.CLIENT);
+        NetworkHandler.get().registerMessage(CSyncTradingInfoMessage.class, Side.SERVER);
+        NetworkHandler.get().registerMessage(CSelectedRecipeMessage.class, Side.SERVER);
+        NetworkHandler.get().registerMessage(CMoveIngredientsMessage.class, Side.SERVER);
     }
 
 }

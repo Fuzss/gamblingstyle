@@ -2,7 +2,6 @@ package com.fuzs.gamblingstyle.network.message;
 
 import com.fuzs.gamblingstyle.capability.container.ITradingInfo;
 import com.fuzs.gamblingstyle.client.gui.GuiVillager;
-import com.fuzs.gamblingstyle.util.IPrivateAccessor;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -13,7 +12,7 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 
-public class OpenWindowMessage extends Message<OpenWindowMessage> implements IPrivateAccessor {
+public class SOpenWindowMessage extends Message<SOpenWindowMessage> {
 
     private int windowId;
     private ITextComponent windowTitle;
@@ -24,11 +23,11 @@ public class OpenWindowMessage extends Message<OpenWindowMessage> implements IPr
     private byte[] favoriteTrades;
 
     @SuppressWarnings("unused")
-    public OpenWindowMessage() {
+    public SOpenWindowMessage() {
 
     }
 
-    public OpenWindowMessage(int windowId, ITextComponent windowTitle, int slotCount, int merchantId, int lastTradeIndex, ITradingInfo.FilterMode filterMode, byte[] favoriteTrades) {
+    public SOpenWindowMessage(int windowId, ITextComponent windowTitle, int slotCount, int merchantId, int lastTradeIndex, ITradingInfo.FilterMode filterMode, byte[] favoriteTrades) {
 
         this.windowId = windowId;
         this.windowTitle = windowTitle;
@@ -85,14 +84,14 @@ public class OpenWindowMessage extends Message<OpenWindowMessage> implements IPr
         public void accept(EntityPlayer player) {
 
             World worldIn = player.world;
-            Entity entity = worldIn.getEntityByID(OpenWindowMessage.this.merchantId);
+            Entity entity = worldIn.getEntityByID(SOpenWindowMessage.this.merchantId);
             if (entity instanceof EntityLivingBase && entity instanceof IMerchant) {
 
                 T merchant = (T) entity;
                 merchant.setCustomer(player);
-                GuiVillager<T> guiContainer = new GuiVillager<>(player.inventory, merchant, OpenWindowMessage.this.windowTitle, OpenWindowMessage.this.filterMode);
+                GuiVillager<T> guiContainer = new GuiVillager<>(player.inventory, merchant, SOpenWindowMessage.this.windowTitle, SOpenWindowMessage.this.lastTradeIndex, SOpenWindowMessage.this.filterMode, SOpenWindowMessage.this.favoriteTrades);
                 Minecraft.getMinecraft().displayGuiScreen(guiContainer);
-                player.openContainer.windowId = OpenWindowMessage.this.windowId;
+                player.openContainer.windowId = SOpenWindowMessage.this.windowId;
             }
         }
 

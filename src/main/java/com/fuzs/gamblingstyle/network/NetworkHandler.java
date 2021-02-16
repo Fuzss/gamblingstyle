@@ -18,9 +18,9 @@ public class NetworkHandler {
 
     private static NetworkHandler instance;
 
-    public <T extends Message<T>> void registerMessage(Class<T> messageType, Side side) {
+    public <T extends Message<T>> void registerMessage(Class<T> messageType, Side receivingSide) {
 
-        MAIN_CHANNEL.registerMessage(messageType, messageType, DISCRIMINATOR.getAndIncrement(), side);
+        MAIN_CHANNEL.registerMessage(messageType, messageType, DISCRIMINATOR.getAndIncrement(), receivingSide);
     }
 
     public void sendToServer(Message<?> message) {

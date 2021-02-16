@@ -1,22 +1,31 @@
 package com.fuzs.gamblingstyle.client.gui.data;
 
+import com.fuzs.gamblingstyle.capability.container.ITradingInfo;
 import com.fuzs.gamblingstyle.inventory.ContainerVillager;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.village.MerchantRecipe;
 import net.minecraft.village.MerchantRecipeList;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+@SideOnly(Side.CLIENT)
 public class TradingRecipeList extends ArrayList<TradingRecipe> {
 
-    public TradingRecipeList(MerchantRecipeList list) {
+    public TradingRecipeList(MerchantRecipeList merchantRecipes) {
 
-        for (MerchantRecipe recipe : list) {
+        this.convertMerchantRecipes(merchantRecipes);
+    }
+
+    private void convertMerchantRecipes(MerchantRecipeList merchantRecipes) {
+
+        for (MerchantRecipe recipe : merchantRecipes) {
 
             if (this.isValidRecipe(recipe)) {
 
@@ -30,55 +39,36 @@ public class TradingRecipeList extends ArrayList<TradingRecipe> {
         return !recipe.getItemToBuy().isEmpty() && !recipe.getItemToSell().isEmpty();
     }
 
-    public int activeRecipeSize() {
+    public int getActiveRecipeAmount() {
 
-        return Math.toIntExact(this.stream().filter(TradingRecipe::getActive).count());
+        return (int) this.stream().filter(TradingRecipe::isVisible).count();
     }
 
-    /**
-     * Searches trading recipes for a string, hides the ones not containing it
-     *
-     * @param query                    String to be searched for
-     * @param advanced Get this setting from the game controller
-     */
-    public void search(String query, boolean advanced) {
+    public void search(String query, ITradingInfo.FilterMode mode, boolean advanced) {
 
         ITooltipFlag tooltipFlag = advanced ? ITooltipFlag.TooltipFlags.ADVANCED : ITooltipFlag.TooltipFlags.NORMAL;
-        String trimmed = query.trim();
-        int i = 0;
-        if (!trimmed.isEmpty()) {
-            if (trimmed.startsWith("\u003C")) { //less than
-                trimmed = trimmed.substring(1);
-                i = 1;
-            } else if (trimmed.startsWith("\u003E")) { //greater than
-                trimmed = trimmed.substring(1);
-                i = 2;
-            }
-        }
-
-        String s2 = trimmed.trim();
+        String trimmed = query.trim().toLowerCase(Locale.ROOT);
         for (TradingRecipe recipe : this) {
-            if (!query.isEmpty()) {
-                recipe.setActive(recipe.getCombinedTooltip(i, tooltipFlag).stream()
-                        .map(it -> it.toLowerCase(Locale.ROOT)).anyMatch(it -> it.contains(s2)));
-            } else {
-                recipe.setActive(true);
+
+            boolean visible = true;
+            if (!trimmed.isEmpty()) {
+
+                visible = recipe.getCombinedTooltip(mode, tooltipFlag).stream()
+                        .map(tooltipLine -> tooltipLine.toLowerCase(Locale.ROOT))
+                        .anyMatch(tooltipLine -> tooltipLine.contains(trimmed));
             }
+
+            recipe.setVisible(visible);
         }
 
     }
 
-    /**
-     * Scans the inventory each time it changes to see if it contains enough items to perform each trade
-     *
-     * @param container Current ContainerVillager
-     */
-    public void countRecipeContents(ContainerVillager container) {
+    public void countTradeMaterials(ContainerVillager container) {
 
         for (TradingRecipe recipe : this) {
 
-            recipe.ingredients = 0;
-            recipe.secondIngredients = 0;
+            recipe.itemIngredients = 0;
+            recipe.secondItemIngredients = 0;
         }
 
         List<ItemStack> collect = container.inventorySlots.stream().map(Slot::getStack).collect(Collectors.toList());
@@ -91,12 +81,12 @@ public class TradingRecipeList extends ArrayList<TradingRecipe> {
 
                     if (ItemStack.areItemsEqual(itemstack, recipe.getItemToBuy())) {
 
-                        recipe.ingredients += itemstack.getCount();
+                        recipe.itemIngredients += itemstack.getCount();
                     }
 
                     if (recipe.hasSecondItemToBuy() && ItemStack.areItemsEqual(itemstack, recipe.getSecondItemToBuy())) {
 
-                        recipe.secondIngredients += itemstack.getCount();
+                        recipe.secondItemIngredients += itemstack.getCount();
                     }
                 }
             }

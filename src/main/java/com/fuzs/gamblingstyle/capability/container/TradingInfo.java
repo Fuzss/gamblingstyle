@@ -5,8 +5,8 @@ import net.minecraft.nbt.NBTTagCompound;
 public class TradingInfo implements ITradingInfo {
 
     private int lastTradeIndex;
-    private FilterMode filterMode;
-    private byte[] favoriteTrades;
+    private FilterMode filterMode = FilterMode.ALL;
+    private byte[] favoriteTrades = new byte[0];
 
     @Override
     public int getLastTradeIndex() {

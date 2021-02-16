@@ -19,7 +19,21 @@ public interface ITradingInfo extends INBTSerializable<NBTTagCompound> {
 
     enum FilterMode {
 
-        ALL, BUYS, SELLS
+        ALL("gui.button.show.all"),
+        BUYS("gui.button.show.buys"),
+        SELLS("gui.button.show.sells");
+
+        private final String translationKey;
+
+        FilterMode(String translationKey) {
+
+            this.translationKey = translationKey;
+        }
+
+        public String getTranslationKey() {
+
+            return this.translationKey;
+        }
 
     }
 

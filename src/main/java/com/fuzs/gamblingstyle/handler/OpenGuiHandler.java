@@ -4,8 +4,8 @@ import com.fuzs.gamblingstyle.capability.CapabilityController;
 import com.fuzs.gamblingstyle.capability.container.ITradingInfo;
 import com.fuzs.gamblingstyle.inventory.ContainerVillager;
 import com.fuzs.gamblingstyle.network.NetworkHandler;
-import com.fuzs.gamblingstyle.network.message.OpenWindowMessage;
-import com.fuzs.gamblingstyle.network.message.TradingListMessage;
+import com.fuzs.gamblingstyle.network.message.SOpenWindowMessage;
+import com.fuzs.gamblingstyle.network.message.STradingListMessage;
 import io.netty.buffer.Unpooled;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -102,13 +102,13 @@ public class OpenGuiHandler {
         ITextComponent itextcomponent = ((IMerchant) merchant).getDisplayName();
 
         ITradingInfo tradingInfo = CapabilityController.getCapability(merchant, CapabilityController.TRADING_INFO_CAPABILITY);
-        NetworkHandler.get().sendTo(new OpenWindowMessage(player.currentWindowId, itextcomponent, iinventory.getSizeInventory(),
+        NetworkHandler.get().sendTo(new SOpenWindowMessage(player.currentWindowId, itextcomponent, iinventory.getSizeInventory(),
                 merchant.getEntityId(), tradingInfo.getLastTradeIndex(), tradingInfo.getFilterMode(), tradingInfo.getFavoriteTrades()), player);
 
         PacketBuffer packetbuffer = new PacketBuffer(Unpooled.buffer());
         packetbuffer.writeInt(player.currentWindowId);
         merchantrecipelist.writeToBuf(packetbuffer);
-        NetworkHandler.get().sendTo(new TradingListMessage(packetbuffer), player);
+        NetworkHandler.get().sendTo(new STradingListMessage(packetbuffer), player);
     }
 
 }

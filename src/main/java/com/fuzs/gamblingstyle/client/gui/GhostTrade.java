@@ -47,33 +47,37 @@ public class GhostTrade {
             for (int i = 0; i < this.recipe.length; i++) {
 
                 int[] slotCoordinates = this.slotCoordinates[i];
-                int posX = slotCoordinates[0] + left;
-                int posY = slotCoordinates[1] + top;
-                ItemStack itemstack = this.recipe[i];
-                if (!itemstack.isEmpty()) {
-                    
-                    RenderHelper.enableGUIStandardItemLighting();
-                    GlStateManager.disableLighting();
-                    if (i == 2) {
-                        
-                        // draw this one larger than others
-                        Gui.drawRect(posX - 4, posY - 4, posX + 20, posY + 20, 822018048);
-                    } else {
-                        
-                        Gui.drawRect(posX, posY, posX + 16, posY + 16, 822018048);
-                    }
-                    
-                    GlStateManager.disableLighting();
-                    mc.getRenderItem().renderItemAndEffectIntoGUI(mc.player, itemstack, posX, posY);
-                    GlStateManager.depthFunc(516);
-                    Gui.drawRect(posX, posY, posX + 16, posY + 16, 822083583);
-                    GlStateManager.depthFunc(515);
-                    mc.getRenderItem().renderItemOverlays(mc.fontRenderer, itemstack, posX, posY);
-                    GlStateManager.enableLighting();
-                    RenderHelper.disableStandardItemLighting();
-                }
+                this.drawGhostItem(this.recipe[i], slotCoordinates[0] + left, slotCoordinates[1] + top, i == 2);
             }
         }
+    }
+
+    private void drawGhostItem(ItemStack itemstack, int posX, int posY, boolean isOutputSlot) {
+
+        if (itemstack.isEmpty()) {
+
+            return;
+        }
+
+        RenderHelper.enableGUIStandardItemLighting();
+        GlStateManager.disableLighting();
+        if (isOutputSlot) {
+
+            // draw this one larger than others
+            Gui.drawRect(posX - 4, posY - 4, posX + 20, posY + 20, 822018048);
+        } else {
+
+            Gui.drawRect(posX, posY, posX + 16, posY + 16, 822018048);
+        }
+
+        GlStateManager.disableLighting();
+        this.mc.getRenderItem().renderItemAndEffectIntoGUI(this.mc.player, itemstack, posX, posY);
+        GlStateManager.depthFunc(516);
+        Gui.drawRect(posX, posY, posX + 16, posY + 16, 822083583);
+        GlStateManager.depthFunc(515);
+        this.mc.getRenderItem().renderItemOverlays(this.mc.fontRenderer, itemstack, posX, posY);
+        GlStateManager.enableLighting();
+        RenderHelper.disableStandardItemLighting();
     }
 
     public void renderHoveredTooltip(int mouseX, int mouseY, int left, int top) {
@@ -81,9 +85,9 @@ public class GhostTrade {
         if (this.isVisible()) {
             
             ItemStack itemstack = this.findHoveredContents(mouseX, mouseY, left, top);
-            if (!itemstack.isEmpty() && mc.currentScreen != null) {
-                
-                mc.currentScreen.drawHoveringText(mc.currentScreen.getItemToolTip(itemstack), mouseX, mouseY);
+            if (!itemstack.isEmpty() && this.mc.currentScreen != null) {
+
+                this.mc.currentScreen.drawHoveringText(this.mc.currentScreen.getItemToolTip(itemstack), mouseX, mouseY);
             }
         }
     }
