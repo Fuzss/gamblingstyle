@@ -1,8 +1,7 @@
-package com.fuzs.gamblingstyle.network.message.client;
+package com.fuzs.gamblingstyle.network.message;
 
 import com.fuzs.gamblingstyle.capability.CapabilityController;
 import com.fuzs.gamblingstyle.capability.container.ITradingInfo;
-import com.fuzs.gamblingstyle.network.message.Message;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;

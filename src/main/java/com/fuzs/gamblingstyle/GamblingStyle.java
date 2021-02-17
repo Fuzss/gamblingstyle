@@ -1,9 +1,9 @@
 package com.fuzs.gamblingstyle;
 
 import com.fuzs.gamblingstyle.capability.CapabilityController;
-import com.fuzs.gamblingstyle.network.message.client.CMoveIngredientsMessage;
-import com.fuzs.gamblingstyle.network.message.client.CSelectedRecipeMessage;
-import com.fuzs.gamblingstyle.network.message.client.CSyncTradingInfoMessage;
+import com.fuzs.gamblingstyle.network.message.CMoveIngredientsMessage;
+import com.fuzs.gamblingstyle.network.message.CSelectedRecipeMessage;
+import com.fuzs.gamblingstyle.network.message.CSyncTradingInfoMessage;
 import com.fuzs.gamblingstyle.handler.OpenGuiHandler;
 import com.fuzs.gamblingstyle.network.NetworkHandler;
 import com.fuzs.gamblingstyle.network.message.*;

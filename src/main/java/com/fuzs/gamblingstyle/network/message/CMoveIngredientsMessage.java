@@ -1,7 +1,6 @@
-package com.fuzs.gamblingstyle.network.message.client;
+package com.fuzs.gamblingstyle.network.message;
 
 import com.fuzs.gamblingstyle.inventory.ContainerVillager;
-import com.fuzs.gamblingstyle.network.message.Message;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.EntityPlayer;
 
