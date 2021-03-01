@@ -57,4 +57,5 @@ public class CSelectedRecipeMessage extends Message<CSelectedRecipeMessage> {
         }
 
     }
+
 }

@@ -60,4 +60,5 @@ public class CMoveIngredientsMessage extends Message<CMoveIngredientsMessage> {
         }
 
     }
+
 }

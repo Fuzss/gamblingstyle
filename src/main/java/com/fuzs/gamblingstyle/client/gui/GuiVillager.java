@@ -72,7 +72,11 @@ public class GuiVillager extends GuiContainer {
     public void onGuiClosed() {
 
         this.tradingBookGui.onGuiClosed();
-        NetworkHandler.get().sendToServer(new CSyncTradingInfoMessage(this.traderEntity.getEntityId(), this.currentRecipeIndex, this.tradingBookGui.getCurrentFilterMode(), this.tradingBookGui.getFavoriteTrades()));
+        if (this.merchant.getCustomer() != null && this.merchant.getRecipes(this.merchant.getCustomer()) != null) {
+
+            NetworkHandler.get().sendToServer(new CSyncTradingInfoMessage(this.traderEntity.getEntityId(), this.currentRecipeIndex, this.tradingBookGui.getCurrentFilterMode(), this.tradingBookGui.getFavoriteTrades()));
+        }
+
         super.onGuiClosed();
     }
 

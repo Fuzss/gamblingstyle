@@ -79,4 +79,5 @@ public class CSyncTradingInfoMessage extends Message<CSyncTradingInfoMessage> {
         }
 
     }
+
 }

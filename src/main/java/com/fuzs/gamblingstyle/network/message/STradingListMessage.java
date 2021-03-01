@@ -81,4 +81,5 @@ public class STradingListMessage extends Message<STradingListMessage> {
         }
 
     }
+
 }

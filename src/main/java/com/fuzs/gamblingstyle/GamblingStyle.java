@@ -20,7 +20,7 @@ import org.apache.logging.log4j.Logger;
 @Mod(
         modid = GamblingStyle.MODID,
         name = GamblingStyle.NAME,
-        version = "1.1",
+        version = "1.1.1",
         acceptedMinecraftVersions = "[1.12.2]"
 )
 public class GamblingStyle {

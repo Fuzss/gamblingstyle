@@ -94,4 +94,5 @@ public class SOpenWindowMessage extends Message<SOpenWindowMessage> {
         }
 
     }
+
 }
