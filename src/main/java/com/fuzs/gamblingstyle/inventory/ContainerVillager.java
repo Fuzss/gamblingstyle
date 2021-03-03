@@ -8,19 +8,13 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.village.MerchantRecipe;
 import net.minecraft.village.MerchantRecipeList;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
+// extend original merchant container to prevent class cast exception
 @SuppressWarnings("NullableProblems")
-public class ContainerVillager extends Container {
-    /**
-     * Instance of Merchant.
-     */
+public class ContainerVillager extends ContainerMerchant {
+
     private final IMerchant merchant;
     private final InventoryMerchant merchantInventory;
-    /**
-     * Instance of World.
-     */
     private final World world;
 
     private final EntityPlayer player;
@@ -28,105 +22,125 @@ public class ContainerVillager extends Container {
 
     public ContainerVillager(InventoryPlayer playerInventory, IMerchant merchant, World worldIn) {
 
+        super(playerInventory, merchant, worldIn);
+        this.inventorySlots.clear();
+        this.inventoryItemStacks.clear();
+
         this.merchant = merchant;
         this.world = worldIn;
         this.player = playerInventory.player;
         this.merchantInventory = new InventoryMerchant(this.player, merchant);
+        this.addContainerSlots(playerInventory, merchant);
+    }
+
+    private void addContainerSlots(InventoryPlayer playerInventory, IMerchant merchant) {
+
         this.addSlotToContainer(new Slot(this.merchantInventory, 0, 76, 22));
         this.addSlotToContainer(new Slot(this.merchantInventory, 1, 76, 48));
         this.addSlotToContainer(new SlotMerchantResult(this.player, merchant, this.merchantInventory, 2, 134, 35));
-
         for (int i = 0; i < 3; ++i) {
+
             for (int j = 0; j < 9; ++j) {
+
                 this.addSlotToContainer(new Slot(playerInventory, j + i * 9 + 9, 8 + j * 18, 84 + i * 18));
             }
         }
 
         for (int k = 0; k < 9; ++k) {
+
             this.addSlotToContainer(new Slot(playerInventory, k, 8 + k * 18, 142));
         }
     }
 
+    @Override
     public InventoryMerchant getMerchantInventory() {
+
         return this.merchantInventory;
     }
 
-    /**
-     * Callback for when the crafting matrix is changed.
-     */
+    @Override
     public void onCraftMatrixChanged(IInventory inventoryIn) {
+
         this.merchantInventory.resetRecipeAndSlots();
-        super.onCraftMatrixChanged(inventoryIn);
+        // moved from super call
+        this.detectAndSendChanges();
     }
 
+    @Override
     public void setCurrentRecipeIndex(int currentRecipeIndex) {
+
         this.merchantInventory.setCurrentRecipeIndex(currentRecipeIndex);
     }
 
-    /**
-     * Determines whether supplied player can use this container
-     */
+    @Override
     public boolean canInteractWith(EntityPlayer playerIn) {
+
         return this.merchant.getCustomer() == playerIn;
     }
 
-    /**
-     * Handle when the stack in slot {@code index} is shift-clicked. Normally this moves the stack between the player
-     * inventory and the other inventory(s).
-     */
+    @Override
     public ItemStack transferStackInSlot(EntityPlayer playerIn, int index) {
+
         ItemStack itemstack = ItemStack.EMPTY;
-        Slot slot = this.inventorySlots.get(index);
+        Slot indexSlot = this.inventorySlots.get(index);
+        if (indexSlot != null && indexSlot.getHasStack()) {
 
-        if (slot != null && slot.getHasStack()) {
-            ItemStack itemstack1 = slot.getStack();
-            itemstack = itemstack1.copy();
-
+            ItemStack stackAtIndex = indexSlot.getStack();
+            itemstack = stackAtIndex.copy();
             if (index == 2) {
-                if (!this.mergeItemStack(itemstack1, 3, 39, true)) {
+
+                if (!this.mergeItemStack(stackAtIndex, 3, 39, true)) {
+
                     return ItemStack.EMPTY;
                 }
 
-                slot.onSlotChange(itemstack1, itemstack);
+                indexSlot.onSlotChange(stackAtIndex, itemstack);
             } else if (index != 0 && index != 1) {
-                if (index >= 3 && index < 39) {
-                    ItemStack tradingstack0 = this.merchantInventory.getStackInSlot(0);
-                    ItemStack tradingstack1 = this.merchantInventory.getStackInSlot(1);
-                    boolean flag = false;
 
-                    if (!ItemStack.areItemsEqualIgnoreDurability(tradingstack1, itemstack1) || !tradingstack0.isEmpty()) {
-                        flag = !this.mergeItemStack(itemstack1, 0, 1, false);
+                if (index >= 3 && index < 39) {
+
+                    ItemStack itemToBuy = this.merchantInventory.getStackInSlot(0);
+                    ItemStack secondItemToBuy = this.merchantInventory.getStackInSlot(1);
+                    boolean flag = false;
+                    if (!ItemStack.areItemsEqualIgnoreDurability(secondItemToBuy, stackAtIndex) || !itemToBuy.isEmpty()) {
+
+                        flag = !this.mergeItemStack(stackAtIndex, 0, 1, false);
                     }
 
-                    if ((!ItemStack.areItemsEqualIgnoreDurability(tradingstack0, itemstack1) || !tradingstack1.isEmpty())) {
-                        flag = !this.mergeItemStack(itemstack1, 1, 2, false);
+                    if ((!ItemStack.areItemsEqualIgnoreDurability(itemToBuy, stackAtIndex) || !secondItemToBuy.isEmpty())) {
+
+                        flag = !this.mergeItemStack(stackAtIndex, 1, 2, false);
                     }
 
                     if (flag) {
+
                         return ItemStack.EMPTY;
                     }
                 }
-            } else if (!this.mergeItemStack(itemstack1, 3, 39, false)) {
+            } else if (!this.mergeItemStack(stackAtIndex, 3, 39, false)) {
+
                 return ItemStack.EMPTY;
             }
 
-            if (itemstack1.isEmpty()) {
-                slot.putStack(ItemStack.EMPTY);
+            if (stackAtIndex.isEmpty()) {
+
+                indexSlot.putStack(ItemStack.EMPTY);
             } else {
-                slot.onSlotChanged();
+
+                indexSlot.onSlotChanged();
             }
 
-            if (itemstack1.getCount() == itemstack.getCount()) {
+            if (stackAtIndex.getCount() == itemstack.getCount()) {
+
                 return ItemStack.EMPTY;
             }
 
-            slot.onTake(playerIn, itemstack1);
+            indexSlot.onTake(playerIn, stackAtIndex);
         }
 
         return itemstack;
     }
 
-    @SideOnly(Side.CLIENT)
     public boolean areSlotsFilled() {
 
         return !this.merchantInventory.getStackInSlot(0).isEmpty() || !this.merchantInventory.getStackInSlot(1).isEmpty();
@@ -137,25 +151,27 @@ public class ContainerVillager extends Container {
      */
     public void clearTradingSlots() {
 
-        ItemStack itemstack1 = this.merchantInventory.getStackInSlot(0);
-        ItemStack itemstack2 = this.merchantInventory.getStackInSlot(1);
+        ItemStack itemToBuy = this.merchantInventory.getStackInSlot(0);
+        ItemStack secondItemToBuy = this.merchantInventory.getStackInSlot(1);
+        if (!itemToBuy.isEmpty()) {
 
-        if (!itemstack1.isEmpty()) {
-            this.mergeItemStack(itemstack1, 3, 39, true);
-        }
-        if (!itemstack2.isEmpty()) {
-            this.mergeItemStack(itemstack2, 3, 39, true);
+            this.mergeItemStack(itemToBuy, 3, 39, true);
         }
 
+        if (!secondItemToBuy.isEmpty()) {
+
+            this.mergeItemStack(secondItemToBuy, 3, 39, true);
+        }
     }
 
     /**
      * Are the buy items switched in the trading slots
      */
-    private boolean areSlotsSwitched(ItemStack itemStack1, ItemStack itemStack2, ItemStack itemStack3, ItemStack itemStack4) {
-        boolean flag = !itemStack1.isEmpty() && ItemStack.areItemsEqual(itemStack1, itemStack4);
-        boolean flag1 = !itemStack2.isEmpty() && ItemStack.areItemsEqual(itemStack2, itemStack3);
-        return (flag || flag1) && !(ItemStack.areItemsEqual(itemStack1, itemStack3) || ItemStack.areItemsEqual(itemStack2, itemStack4));
+    private boolean getItemsSwitched(ItemStack itemToBuy, ItemStack secondItemToBuy, ItemStack itemToBuyRecipe, ItemStack secondItemToBuyRecipe) {
+
+        boolean itemToBuySwitched = !itemToBuy.isEmpty() && ItemStack.areItemsEqual(itemToBuy, secondItemToBuyRecipe);
+        boolean secondItemToBuySwitched = !secondItemToBuy.isEmpty() && ItemStack.areItemsEqual(secondItemToBuy, itemToBuyRecipe);
+        return (itemToBuySwitched || secondItemToBuySwitched) && !(ItemStack.areItemsEqual(itemToBuy, itemToBuyRecipe) || ItemStack.areItemsEqual(secondItemToBuy, secondItemToBuyRecipe));
     }
 
     /**
@@ -167,78 +183,85 @@ public class ContainerVillager extends Container {
      * @param skipMove    Move output directly to player inventory
      */
     public void handleClickedButtonItems(int recipeIndex, boolean clear, boolean quickMove, boolean skipMove) {
-        MerchantRecipeList merchantrecipelist = this.merchant.getRecipes(player);
 
+        MerchantRecipeList merchantrecipelist = this.merchant.getRecipes(this.player);
         if (merchantrecipelist != null && merchantrecipelist.size() > recipeIndex) {
 
             MerchantRecipe recipe = merchantrecipelist.get(recipeIndex);
-            ItemStack itemstack1 = this.merchantInventory.getStackInSlot(0);
-            ItemStack itemstack2 = this.merchantInventory.getStackInSlot(1);
-            ItemStack itemstack3 = recipe.getItemToBuy();
-            ItemStack itemstack4 = recipe.getSecondItemToBuy();
-            boolean flag = this.areSlotsSwitched(itemstack1, itemstack2, itemstack3, itemstack4);
+            ItemStack itemToBuy = this.merchantInventory.getStackInSlot(0);
+            ItemStack secondItemToBuy = this.merchantInventory.getStackInSlot(1);
+            ItemStack itemToBuyRecipe = recipe.getItemToBuy();
+            ItemStack secondItemToBuyRecipe = recipe.getSecondItemToBuy();
+            boolean slotsSwitched = this.getItemsSwitched(itemToBuy, secondItemToBuy, itemToBuyRecipe, secondItemToBuyRecipe);
+            if (!itemToBuy.isEmpty() && (clear && !skipMove || !ItemStack.areItemsEqual(itemToBuy, itemToBuyRecipe) && !slotsSwitched || !ItemStack.areItemsEqual(itemToBuy, secondItemToBuyRecipe) && slotsSwitched)) {
 
-            if (!itemstack1.isEmpty() && (clear && !skipMove || !ItemStack.areItemsEqual(itemstack1, itemstack3) && !flag || !ItemStack.areItemsEqual(itemstack1, itemstack4) && flag)) {
-                if (!this.mergeItemStack(itemstack1, 3, 39, true)) {
+                if (!this.mergeItemStack(itemToBuy, 3, 39, true)) {
+
                     return;
                 }
-                this.merchantInventory.setInventorySlotContents(0, itemstack1);
+
+                this.merchantInventory.setInventorySlotContents(0, itemToBuy);
             }
 
-            if (!itemstack2.isEmpty() && (clear && !skipMove || !ItemStack.areItemsEqual(itemstack2, itemstack4) && !flag || !ItemStack.areItemsEqual(itemstack2, itemstack3) && flag)) {
-                if (!this.mergeItemStack(itemstack2, 3, 39, true)) {
+            if (!secondItemToBuy.isEmpty() && (clear && !skipMove || !ItemStack.areItemsEqual(secondItemToBuy, secondItemToBuyRecipe) && !slotsSwitched || !ItemStack.areItemsEqual(secondItemToBuy, itemToBuyRecipe) && slotsSwitched)) {
+
+                if (!this.mergeItemStack(secondItemToBuy, 3, 39, true)) {
+
                     return;
                 }
-                this.merchantInventory.setInventorySlotContents(1, itemstack2);
+
+                this.merchantInventory.setInventorySlotContents(1, secondItemToBuy);
             }
 
-            int mainCount;
-            int secCount;
-            boolean loop = true;
+            while (true) {
 
-            while (loop) {
-
-                mainCount = flag ? itemstack4.getCount() : itemstack3.getCount();
-                secCount = flag ? itemstack3.getCount() : itemstack4.getCount();
-
+                int itemToBuyCount = slotsSwitched ? secondItemToBuyRecipe.getCount() : itemToBuyRecipe.getCount();
+                int secondItemToBuyCount = slotsSwitched ? itemToBuyRecipe.getCount() : secondItemToBuyRecipe.getCount();
                 if (skipMove) {
-                    mainCount -= this.merchantInventory.getStackInSlot(0).getCount();
-                    secCount -= this.merchantInventory.getStackInSlot(1).getCount();
+
+                    itemToBuyCount -= this.merchantInventory.getStackInSlot(0).getCount();
+                    secondItemToBuyCount -= this.merchantInventory.getStackInSlot(1).getCount();
                 }
 
-                moveAndTrade(quickMove, skipMove, flag ? itemstack4 : itemstack3, flag ? itemstack3 : itemstack4, mainCount, secCount);
-
+                this.moveAndTrade(quickMove, skipMove, slotsSwitched ? secondItemToBuyRecipe : itemToBuyRecipe, slotsSwitched ? itemToBuyRecipe : secondItemToBuyRecipe, itemToBuyCount, secondItemToBuyCount);
                 ItemStack itemstack5 = this.merchantInventory.getStackInSlot(0);
                 ItemStack itemstack6 = this.merchantInventory.getStackInSlot(1);
-                boolean flag1 = this.checkTrade(itemstack3, itemstack4, flag ? itemstack6 : itemstack5, flag ? itemstack5 : itemstack6);
+                boolean isTradeAvailable = this.isTradeAvailable(itemToBuyRecipe, secondItemToBuyRecipe, slotsSwitched ? itemstack6 : itemstack5, slotsSwitched ? itemstack5 : itemstack6);
+                if (skipMove && isTradeAvailable) {
 
-                if (skipMove && flag1) {
                     this.tradeAutomatically(recipe.getItemToSell());
                 }
 
-                loop = quickMove && skipMove && !recipe.isRecipeDisabled() && flag1;
+                if (!quickMove || !skipMove || recipe.isRecipeDisabled() || !isTradeAvailable) {
 
-                if (!loop && quickMove && skipMove) {
-                    this.mergeItemStack(itemstack5, 3, 39, true);
-                    this.mergeItemStack(itemstack6, 3, 39, true);
+                    if (quickMove && skipMove) {
+
+                        this.mergeItemStack(itemstack5, 3, 39, true);
+                        this.mergeItemStack(itemstack6, 3, 39, true);
+                    }
+
+                    break;
                 }
-
             }
-
         }
     }
 
-    private void moveAndTrade(boolean quickMove, boolean skipMove, ItemStack itemstack1, ItemStack itemstack2, int count1, int count2) {
-        if (count1 > 0) {
-            this.moveItemsToSlot(0, itemstack1, count1, quickMove, skipMove);
+    private void moveAndTrade(boolean quickMove, boolean skipMove, ItemStack itemToBuy, ItemStack secondItemToBuy, int itemToBuyCount, int secondItemToBuyCount) {
+
+        if (itemToBuyCount > 0) {
+
+            this.moveItemsToSlot(0, itemToBuy, itemToBuyCount, quickMove, skipMove);
         }
-        if (count2 > 0) {
-            this.moveItemsToSlot(1, itemstack2, count2, quickMove, skipMove);
+
+        if (secondItemToBuyCount > 0) {
+
+            this.moveItemsToSlot(1, secondItemToBuy, secondItemToBuyCount, quickMove, skipMove);
         }
     }
 
     /**
      * Move trading recipe ingredients to trading slots
+     * copied and modified from 1.14+
      */
     private void moveItemsToSlot(int targetSlot, ItemStack itemstack, int count, boolean quickMove, boolean skipMove) {
 
@@ -248,8 +271,8 @@ public class ContainerVillager extends Container {
                 ItemStack inventorystack = this.inventorySlots.get(i).getStack();
                 if (!inventorystack.isEmpty() && ItemStack.areItemsEqual(itemstack, inventorystack)) {
                     ItemStack currentitemstack = this.merchantInventory.getStackInSlot(targetSlot);
-                    if (!currentitemstack.isEmpty() && !ItemStack.areItemStackTagsEqual(currentitemstack, inventorystack)
-                            && !skipMove) { //mainly handles renamed items, !skipMove is a bit hacky as it might rename items involved with the trade
+                    //mainly handles renamed items, !skipMove is a bit hacky as it might rename items involved with the trade
+                    if (!currentitemstack.isEmpty() && !ItemStack.areItemStackTagsEqual(currentitemstack, inventorystack) && !skipMove) {
                         continue;
                     }
                     int int_3 = currentitemstack.isEmpty() ? 0 : currentitemstack.getCount();
@@ -280,20 +303,21 @@ public class ContainerVillager extends Container {
     }
 
     /**
-     * Check if trade can be done (modified from {@link SlotMerchantResult})
+     * Check if trade is available (modified from {@link SlotMerchantResult})
      */
-    private boolean checkTrade(ItemStack firstRecipeItem, ItemStack secondRecipeItem, ItemStack firstInvItem, ItemStack secondInvItem) {
+    private boolean isTradeAvailable(ItemStack itemToBuyRecipe, ItemStack secondItemToBuyRecipe, ItemStack firstInvItem, ItemStack secondInvItem) {
 
-        if (firstInvItem.getItem() == firstRecipeItem.getItem() && firstInvItem.getCount() >= firstRecipeItem.getCount()) {
-            if (!secondRecipeItem.isEmpty() && !secondInvItem.isEmpty() && secondRecipeItem.getItem() == secondInvItem.getItem() && secondInvItem.getCount() >= secondRecipeItem.getCount()) {
+        if (firstInvItem.getItem() == itemToBuyRecipe.getItem() && firstInvItem.getCount() >= itemToBuyRecipe.getCount()) {
+
+            if (!secondItemToBuyRecipe.isEmpty() && !secondInvItem.isEmpty() && secondItemToBuyRecipe.getItem() == secondInvItem.getItem() && secondInvItem.getCount() >= secondItemToBuyRecipe.getCount()) {
+
                 return true;
             }
 
-            return secondRecipeItem.isEmpty() && secondInvItem.isEmpty();
+            return secondItemToBuyRecipe.isEmpty() && secondInvItem.isEmpty();
         }
 
         return false;
-
     }
 
     /**
@@ -301,23 +325,29 @@ public class ContainerVillager extends Container {
      */
     private void tradeAutomatically(ItemStack itemstack) {
 
-        ItemStack itemstack1 = this.getSlot(2).onTake(this.player, itemstack);
-        if (!itemstack1.isEmpty()) {
-            ItemStack itemstack2 = itemstack1.copy();
-            if (!this.mergeItemStack(itemstack2, 3, 39, true)) {
-                this.player.dropItem(itemstack2, false);
+        ItemStack itemToSell = this.getSlot(2).onTake(this.player, itemstack);
+        if (!itemToSell.isEmpty()) {
+
+            ItemStack itemToSellCopy = itemToSell.copy();
+            if (!this.mergeItemStack(itemToSellCopy, 3, 39, true)) {
+
+                this.player.dropItem(itemToSellCopy, false);
             }
         }
-
     }
 
-    /**
-     * Called when the container is closed.
-     */
     @Override
     public void onContainerClosed(EntityPlayer playerIn) {
 
-        super.onContainerClosed(playerIn);
+        // copied from container base class
+        InventoryPlayer inventoryplayer = playerIn.inventory;
+        if (!inventoryplayer.getItemStack().isEmpty()) {
+
+            playerIn.dropItem(inventoryplayer.getItemStack(), false);
+            inventoryplayer.setItemStack(ItemStack.EMPTY);
+        }
+
+        // place items back in inventory instead of dropping on ground
         this.merchant.setCustomer(null);
         this.merchantInventory.removeStackFromSlot(2);
         if (!this.world.isRemote) {
@@ -325,4 +355,5 @@ public class ContainerVillager extends Container {
             this.clearContainer(playerIn, this.world, this.merchantInventory);
         }
     }
+
 }

@@ -4,7 +4,7 @@ import com.fuzs.gamblingstyle.capability.CapabilityController;
 import com.fuzs.gamblingstyle.network.message.CMoveIngredientsMessage;
 import com.fuzs.gamblingstyle.network.message.CSelectedRecipeMessage;
 import com.fuzs.gamblingstyle.network.message.CSyncTradingInfoMessage;
-import com.fuzs.gamblingstyle.handler.OpenGuiHandler;
+import com.fuzs.gamblingstyle.handler.OpenContainerHandler;
 import com.fuzs.gamblingstyle.network.NetworkHandler;
 import com.fuzs.gamblingstyle.network.message.*;
 import com.fuzs.gamblingstyle.proxy.IProxy;
@@ -20,7 +20,7 @@ import org.apache.logging.log4j.Logger;
 @Mod(
         modid = GamblingStyle.MODID,
         name = GamblingStyle.NAME,
-        version = "1.1.1",
+        version = "1.1.2",
         acceptedMinecraftVersions = "[1.12.2]"
 )
 public class GamblingStyle {
@@ -38,9 +38,10 @@ public class GamblingStyle {
     @Mod.EventHandler
     public void onInit(final FMLInitializationEvent evt) {
 
+        proxy.onSidedInit(evt);
         this.registerMessages();
         MinecraftForge.EVENT_BUS.register(new CapabilityController());
-        MinecraftForge.EVENT_BUS.register(new OpenGuiHandler());
+        MinecraftForge.EVENT_BUS.register(new OpenContainerHandler());
     }
 
     private void registerMessages() {
