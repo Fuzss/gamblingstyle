@@ -3,28 +3,26 @@ package fuzs.gamblingstyle.client.gui.screens.recipebook;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.inventory.RecipeBookMenu;
 import net.minecraft.world.item.crafting.Recipe;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 public class RecipeMenuComponent extends GuiComponent implements Widget, GuiEventListener {
     private int leftPos, topPos;
-    private RecipeBookMenu<?> menu;
-    private Screen screen;
-    protected ItemRenderer itemRenderer;
+    private Minecraft minecraft;
     public final NonNullList<RecipeSlot> slots = NonNullList.create();
     @Nullable
     private RecipeSlot hoveredSlot;
+    // using hoveredSlot would probably work, but maybe with some lag/dropped frames or whatever they could be different?
     @Nullable
     private RecipeSlot lastClickedSlot;
 
@@ -33,43 +31,56 @@ public class RecipeMenuComponent extends GuiComponent implements Widget, GuiEven
         this.slots.add(slot);
     }
 
-    public void setRecipe(int index, Recipe<?> recipe, boolean craftable) {
+    public void setRecipe(int index, @Nullable Recipe<?> recipe, boolean craftable) {
         this.slots.get(index).setRecipe(recipe, craftable);
     }
 
-    public void init(RecipeBookMenu<?> menu, Screen screen, int leftPos, int topPos) {
-        this.menu = menu;
-        this.screen = screen;
+    public void clearRecipe(int index) {
+        this.slots.get(index).setRecipe(null, true);
+    }
+
+    public void init(Minecraft minecraft, int leftPos, int topPos) {
+        this.slots.clear();
+        this.minecraft = minecraft;
         this.leftPos = leftPos;
         this.topPos = topPos;
-        this.slots.clear();
     }
 
     @Override
     public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
         this.hoveredSlot = null;
         for (RecipeSlot slot : this.slots) {
-            this.renderSlot(slot);
+            this.renderSlot(poseStack, slot);
             if (this.isHovering(slot, mouseX, mouseY)) {
                 this.hoveredSlot = slot;
-                AbstractContainerScreen.renderSlotHighlight(poseStack, this.leftPos + slot.x, this.topPos + slot.y, this.getBlitOffset(), -1);
+                AbstractContainerScreen.renderSlotHighlight(poseStack, this.leftPos + slot.x, this.topPos + slot.y, this.getBlitOffset());
             }
         }
     }
 
-    public void renderTooltip(PoseStack poseStack, int mouseX, int mouseY) {
-        if (this.menu.getCarried().isEmpty() && this.hoveredSlot != null && this.hoveredSlot.hasRecipe()) {
-            List<Component> list = Lists.newArrayList(this.screen.getTooltipFromItem(this.hoveredSlot.getItem()));
-            this.screen.renderComponentTooltip(poseStack, list, mouseX, mouseY, this.hoveredSlot.getItem());
+    public void renderTooltip(PoseStack poseStack, int mouseX, int mouseY, Screen screen) {
+        if (this.hoveredSlot != null && this.hoveredSlot.hasRecipe()) {
+            List<Component> list = Lists.newArrayList(screen.getTooltipFromItem(this.hoveredSlot.getItem()));
+            screen.renderComponentTooltip(poseStack, list, mouseX, mouseY, this.hoveredSlot.getItem());
         }
     }
 
-    private void renderSlot(RecipeSlot slot) {
+    private void renderSlot(PoseStack poseStack, RecipeSlot slot) {
         this.setBlitOffset(100);
-        this.itemRenderer.blitOffset = 100.0F;
+        this.minecraft.getItemRenderer().blitOffset = 100.0F;
         RenderSystem.enableDepthTest();
-        this.itemRenderer.renderAndDecorateFakeItem(slot.getItem(), this.leftPos + slot.x, this.topPos + slot.y);
-        this.itemRenderer.blitOffset = 0.0F;
+        int posX = this.leftPos + slot.x;
+        int posY = this.topPos + slot.y;
+        if (!slot.hasCraftable()) {
+            GuiComponent.fill(poseStack, posX, posY, posX + 16, posY + 16, 822018048);
+        }
+        this.minecraft.getItemRenderer().renderAndDecorateFakeItem(slot.getItem(), posX, posY);
+        if (!slot.hasCraftable()) {
+            RenderSystem.depthFunc(516);
+            GuiComponent.fill(poseStack, posX, posY, posX + 16, posY + 16, 822083583);
+            RenderSystem.depthFunc(515);
+        }
+        this.minecraft.getItemRenderer().blitOffset = 0.0F;
         this.setBlitOffset(0);
     }
 
@@ -97,12 +108,12 @@ public class RecipeMenuComponent extends GuiComponent implements Widget, GuiEven
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button == 0) {
-            RecipeSlot slot = this.findSlot(mouseX, mouseY);
-            if (slot != null) {
-                this.lastClickedSlot = slot;
-                return true;
-            }
+        if (button != 0) return false;
+        this.lastClickedSlot = null;
+        RecipeSlot slot = this.findSlot(mouseX, mouseY);
+        if (slot != null) {
+            this.lastClickedSlot = slot;
+            return true;
         }
         return false;
     }

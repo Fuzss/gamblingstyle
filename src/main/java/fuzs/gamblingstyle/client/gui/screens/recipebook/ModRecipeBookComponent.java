@@ -12,12 +12,11 @@ import net.minecraft.client.ClientRecipeBook;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.RecipeBookCategories;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.narration.NarratableEntry;
+import net.minecraft.client.gui.components.StateSwitchingButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.recipebook.GhostRecipe;
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
-import net.minecraft.client.gui.screens.recipebook.RecipeBookPage;
 import net.minecraft.client.gui.screens.recipebook.RecipeCollection;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.searchtree.SearchRegistry;
@@ -68,18 +67,19 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
    private boolean widthTooNarrow;
    private int leftPos;
    private int topPos;
-   protected List<Recipe<?>> recipes;
-   private final Recipe<?>[] currentRecipes = new Recipe<?>[RECIPES_GRID_X * RECIPES_GRID_Y];
+   private List<Recipe<?>> craftable;
+   private List<Recipe<?>> uncraftable;
+   private final RecipeMenuComponent menuComponent = new RecipeMenuComponent();
    private float scrollOffs;
    private boolean scrolling;
 
-
-   private final RecipeBookPage recipeBookPage = new RecipeBookPage();
+   protected StateSwitchingButton filterButton;
    private final StackedContents stackedContents = new StackedContents();
    private boolean ignoreTextInput;
    private boolean visible;
    private ContainerListener listener;
 
+   @Override
    public void init(int width, int height, Minecraft minecraft, boolean widthTooNarrow, RecipeBookMenu<?> menu) {
       this.minecraft = minecraft;
       this.screen = minecraft.screen;
@@ -103,19 +103,20 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
       this.menu.addSlotListener(this.listener);
    }
 
+   @Override
    public void initVisuals() {
       this.stackedContents.clear();
       this.minecraft.player.getInventory().fillStackedContents(this.stackedContents);
       this.menu.fillCraftSlotsStackedContents(this.stackedContents);
-      this.initSearchBox(this.leftPos, this.topPos);
-      this.recipeBookPage.init(this.minecraft, this.leftPos, this.topPos);
-      this.recipeBookPage.addListener(this);
+      this.initSearchBox();
+      this.menuComponent.init(this.minecraft, this.leftPos, this.topPos);
+      this.addSlots();
       this.updateCollections();
    }
 
-   private void initSearchBox(int i, int j) {
+   private void initSearchBox() {
       String s = this.searchBox != null ? this.searchBox.getValue() : "";
-      this.searchBox = new EditBox(this.minecraft.font, i + 25, j + 14, 80, 9 + 5, new TranslatableComponent("itemGroup.search"));
+      this.searchBox = new EditBox(this.minecraft.font, this.leftPos + 25, this.topPos + 14, 80, 9 + 5, new TranslatableComponent("itemGroup.search"));
       this.searchBox.setMaxLength(50);
       this.searchBox.setBordered(false);
       this.searchBox.setVisible(true);
@@ -123,15 +124,26 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
       this.searchBox.setValue(s);
    }
 
+   private void addSlots() {
+      for (int i = 0; i < RECIPES_GRID_Y; i++) {
+         for (int j = 0; j < RECIPES_GRID_X; j++) {
+            this.menuComponent.addSlot(new RecipeSlot(12 + 18 * j, 29 + 18 * i));
+         }
+      }
+   }
+
+   @Override
    public boolean changeFocus(boolean p_100372_) {
       return false;
    }
 
+   @Override
    public void removed() {
       this.menu.removeSlotListener(this.listener);
       this.minecraft.keyboardHandler.setSendRepeatsToGui(false);
    }
 
+   @Override
    public int updateScreenPosition(int width, int imageWidth) {
       int i;
       if (this.isVisible() && !this.widthTooNarrow) {
@@ -143,10 +155,12 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
       return i;
    }
 
+   @Override
    public void toggleVisibility() {
       this.setVisible(!this.isVisible());
    }
 
+   @Override
    public boolean isVisible() {
       return this.visible;
    }
@@ -155,20 +169,17 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
       return this.book.isOpen(this.menu.getRecipeBookType());
    }
 
-   protected void setVisible(boolean p_100370_) {
-      if (p_100370_) {
+   @Override
+   protected void setVisible(boolean visible) {
+      if (visible) {
          this.initVisuals();
       }
-
-      this.visible = p_100370_;
-      this.book.setOpen(this.menu.getRecipeBookType(), p_100370_);
-      if (!p_100370_) {
-         this.recipeBookPage.setInvisible();
-      }
-
+      this.visible = visible;
+      this.book.setOpen(this.menu.getRecipeBookType(), visible);
       this.sendUpdateSettings();
    }
 
+   @Override
    public void slotClicked(@Nullable Slot slot) {
       if (slot != null && slot.index < this.menu.getSize()) {
          this.ghostRecipe.clear();
@@ -197,19 +208,35 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
             return !objectset.contains(p_100334_);
          });
       }
-      this.recipes = this.collectAllRecipes(list1);
+      this.collectAllRecipes(list1);
       this.scrollOffs = 0.0F;
       this.scrollTo(0.0F);
    }
 
-   private List<Recipe<?>> collectAllRecipes(List<RecipeCollection> recipeCollections) {
+   private void collectAllRecipes(List<RecipeCollection> recipeCollections) {
       List<Recipe<?>> craftable = Lists.newArrayList();
       List<Recipe<?>> uncraftable = Lists.newArrayList();
       for (RecipeCollection collection : recipeCollections) {
          craftable.addAll(collection.getDisplayRecipes(true));
          uncraftable.addAll(collection.getDisplayRecipes(false));
       }
-      return new ImmutableList.Builder<Recipe<?>>().addAll(craftable).addAll(uncraftable).build();
+      this.craftable = ImmutableList.copyOf(craftable);
+      this.uncraftable = ImmutableList.copyOf(uncraftable);
+   }
+
+   private int getRecipesSize() {
+      return this.craftable.size() + this.uncraftable.size();
+   }
+
+   private boolean isRecipeCraftable(int index) {
+      return index < this.craftable.size();
+   }
+
+   private Recipe<?> getRecipe(int index) {
+      if (this.isRecipeCraftable(index)) {
+         return this.craftable.get(index);
+      }
+      return this.uncraftable.get(index - this.craftable.size());
    }
 
    private List<RecipeCollection> getRecipeBookCollection() {
@@ -223,7 +250,7 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
    }
 
    public void scrollTo(float scrollOffs) {
-      int i = (this.recipes.size() + RECIPES_GRID_X - 1) / RECIPES_GRID_X - RECIPES_GRID_Y;
+      int i = (this.getRecipesSize() + RECIPES_GRID_X - 1) / RECIPES_GRID_X - RECIPES_GRID_Y;
       int j = (int)((double)(scrollOffs * (float)i) + 0.5D);
       if (j < 0) {
          j = 0;
@@ -232,10 +259,10 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
       for(int k = 0; k < RECIPES_GRID_Y; ++k) {
          for(int l = 0; l < RECIPES_GRID_X; ++l) {
             int i1 = l + (k + j) * RECIPES_GRID_X;
-            if (i1 >= 0 && i1 < this.recipes.size()) {
-               this.currentRecipes[l + k * RECIPES_GRID_X] = this.recipes.get(i1);
+            if (i1 >= 0 && i1 < this.getRecipesSize()) {
+               this.menuComponent.setRecipe(l + k * RECIPES_GRID_X, this.getRecipe(i1), this.isRecipeCraftable(i1));
             } else {
-               this.currentRecipes[l + k * RECIPES_GRID_X] = null;
+               this.menuComponent.clearRecipe(l + k * RECIPES_GRID_X);
             }
          }
       }
@@ -243,9 +270,10 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
    }
 
    public boolean canScroll() {
-      return this.recipes.size() > RECIPES_GRID_X * RECIPES_GRID_Y;
+      return this.getRecipesSize() > RECIPES_GRID_X * RECIPES_GRID_Y;
    }
 
+   @Override
    public void tick() {
       boolean flag = this.isVisibleAccordingToBookData();
       if (this.isVisible() != flag) {
@@ -264,41 +292,47 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
       this.updateCollections();
    }
 
+   @Override
    public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
       if (this.isVisible()) {
          poseStack.pushPose();
          poseStack.translate(0.0D, 0.0D, 100.0D);
-         RenderSystem.setShader(GameRenderer::getPositionTexShader);
-         RenderSystem.setShaderTexture(0, RECIPE_BOOK_LOCATION);
-         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-         // book background
-         this.blit(poseStack, this.leftPos, this.topPos, 0, 0, 147, 166);
-         // search bar
-         this.blit(poseStack, this.leftPos + 11, this.topPos + 10, 0, 166, 101, 16);
-         // item slots
-         this.blit(poseStack, this.leftPos + 11, this.topPos + 28, 147, 0, 109, 126);
-         // scroll bar
-         this.blit(poseStack, this.leftPos + 121, this.topPos + 28, 201, 126, 14, 126);
-         // scrolling indicator
-         int scrollX = this.leftPos + 122;
-         int scrollYStart = this.topPos + 29;
-         int scrollYEnd = scrollYStart + 126;
-         this.blit(poseStack, scrollX, scrollYStart + (int) ((float) (scrollYEnd - scrollYStart - 17) * this.scrollOffs), 215 + (this.canScroll() ? 0 : 12), 126, 12, 15);
+         this.renderBg(poseStack, partialTicks, mouseX, mouseY);
          this.searchBox.render(poseStack, mouseX, mouseY, partialTicks);
-         this.recipeBookPage.render(poseStack, this.leftPos, this.topPos, mouseX, mouseY, partialTicks);
+         this.menuComponent.render(poseStack, mouseX, mouseY, partialTicks);
          poseStack.popPose();
       }
    }
 
+   protected void renderBg(PoseStack poseStack, float partialTicks, int mouseX, int mouseY) {
+      RenderSystem.setShader(GameRenderer::getPositionTexShader);
+      RenderSystem.setShaderTexture(0, RECIPE_BOOK_LOCATION);
+      RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+      // book background
+      this.blit(poseStack, this.leftPos, this.topPos, 0, 0, 147, 166);
+      // search bar
+      this.blit(poseStack, this.leftPos + 11, this.topPos + 10, 0, 166, 101, 16);
+      // item slots
+      this.blit(poseStack, this.leftPos + 11, this.topPos + 28, 147, 0, 109, 126);
+      // scroll bar
+      this.blit(poseStack, this.leftPos + 121, this.topPos + 28, 201, 126, 14, 126);
+      // scrolling indicator
+      int scrollX = this.leftPos + 122;
+      int scrollYStart = this.topPos + 29;
+      int scrollYEnd = scrollYStart + 126;
+      this.blit(poseStack, scrollX, scrollYStart + (int) ((float) (scrollYEnd - scrollYStart - 17) * this.scrollOffs), 215 + (this.canScroll() ? 0 : 12), 126, 12, 15);
+   }
+
+   @Override
    public void renderTooltip(PoseStack p_100362_, int p_100363_, int p_100364_, int p_100365_, int p_100366_) {
-      if (this.isVisible()) {
-         this.recipeBookPage.renderTooltip(p_100362_, p_100365_, p_100366_);
-         if (this.filterButton.isHoveredOrFocused()) {
-            Component component = this.getFilterButtonTooltip();
-            if (this.minecraft.screen != null) {
-               this.minecraft.screen.renderTooltip(p_100362_, component, p_100365_, p_100366_);
-            }
+      if (this.isVisible() && this.screen != null) {
+         if (this.menu.getCarried().isEmpty()) {
+            this.menuComponent.renderTooltip(p_100362_, p_100365_, p_100366_, this.screen);
          }
+//         if (this.filterButton.isHoveredOrFocused()) {
+//            Component component = this.getFilterButtonTooltip();
+//            this.screen.renderTooltip(p_100362_, component, p_100365_, p_100366_);
+//         }
 
          this.renderGhostRecipeTooltip(p_100362_, p_100363_, p_100364_, p_100365_, p_100366_);
       }
@@ -306,10 +340,6 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
 
    private Component getFilterButtonTooltip() {
       return this.filterButton.isStateTriggered() ? this.getRecipeFilterName() : ALL_RECIPES_TOOLTIP;
-   }
-
-   protected Component getRecipeFilterName() {
-      return ONLY_CRAFTABLES_TOOLTIP;
    }
 
    private void renderGhostRecipeTooltip(PoseStack p_100375_, int p_100376_, int p_100377_, int p_100378_, int p_100379_) {
@@ -330,20 +360,21 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
 
    }
 
+   @Override
    public void renderGhostRecipe(PoseStack p_100323_, int p_100324_, int p_100325_, boolean p_100326_, float p_100327_) {
       this.ghostRecipe.render(p_100323_, this.minecraft, p_100324_, p_100325_, p_100326_, p_100327_);
    }
 
+   @Override
    public boolean mouseClicked(double mouseX, double mouseY, int button) {
       if (this.isVisible() && !this.minecraft.player.isSpectator()) {
-         if (this.recipeBookPage.mouseClicked(mouseX, mouseY, button, this.leftPos, this.topPos, 147, 166)) {
-            Recipe<?> recipe = this.recipeBookPage.getLastClickedRecipe();
-            RecipeCollection recipecollection = this.recipeBookPage.getLastClickedRecipeCollection();
-            if (recipe != null && recipecollection != null) {
-               if (!recipecollection.isCraftable(recipe) && this.ghostRecipe.getRecipe() == recipe) {
+         if (this.menuComponent.mouseClicked(mouseX, mouseY, button)) {
+            RecipeSlot slot = this.menuComponent.getLastClickedSlot();
+            if (slot != null && slot.hasRecipe()) {
+               Recipe<?> recipe = slot.getRecipe();
+               if (!slot.hasCraftable() && this.ghostRecipe.getRecipe() == recipe) {
                   return false;
                }
-
                this.ghostRecipe.clear();
                this.minecraft.gameMode.handlePlaceRecipe(this.minecraft.player.containerMenu.containerId, recipe, Screen.hasShiftDown());
                if (this.widthTooNarrow) {
@@ -354,21 +385,28 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
             return true;
          } else if (this.searchBox.mouseClicked(mouseX, mouseY, button)) {
             return true;
-         } else if (this.filterButton.mouseClicked(mouseX, mouseY, button)) {
+//         } else if (this.filterButton.mouseClicked(mouseX, mouseY, button)) {
+//            return true;
+         } else if (this.handleScrollbarClicked(mouseX, mouseY, button)) {
             return true;
          } else {
-            if (button == 0) {
-               if (this.insideScrollbar(mouseX, mouseY)) {
-                  this.scrolling = this.canScroll();
-                  return true;
-               }
-            }
-
             return false;
          }
       } else {
          return false;
       }
+   }
+
+   private boolean handleScrollbarClicked(double mouseX, double mouseY, int button) {
+      GamblingStyle.LOGGER.info("CLICKED");
+      if (button != 0) {
+         return false;
+      }
+      if (this.insideScrollbar(mouseX, mouseY)) {
+         this.scrolling = this.canScroll();
+         return true;
+      }
+      return false;
    }
 
    protected boolean insideScrollbar(double mouseX, double mouseY) {
@@ -379,18 +417,22 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
       return mouseX >= (double)fromX && mouseY >= (double)fromY && mouseX < (double)toX && mouseY < (double)toY;
    }
 
+   @Override
    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+      GamblingStyle.LOGGER.info("RELEASED");
       if (button == 0) {
          this.scrolling = false;
       }
       return false;
    }
 
+   @Override
    public boolean mouseScrolled(double p_98527_, double p_98528_, double p_98529_) {
+      GamblingStyle.LOGGER.info("SCROLLED");
       if (!this.canScroll()) {
          return false;
       } else {
-         int i = (this.recipes.size() + RECIPES_GRID_X - 1) / RECIPES_GRID_X - RECIPES_GRID_Y;
+         int i = (this.getRecipesSize() + RECIPES_GRID_X - 1) / RECIPES_GRID_X - RECIPES_GRID_Y;
          float f = (float)(p_98529_ / (double)i);
          this.scrollOffs = Mth.clamp(this.scrollOffs - f, 0.0F, 1.0F);
          this.scrollTo(this.scrollOffs);
@@ -398,7 +440,9 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
       }
    }
 
+   @Override
    public boolean mouseDragged(double p_98535_, double p_98536_, int p_98537_, double p_98538_, double p_98539_) {
+      GamblingStyle.LOGGER.info("DRAGGED");
       if (this.scrolling) {
          int scrollTop = this.topPos + 29;
          int scrollBottom = scrollTop + 126;
@@ -411,6 +455,7 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
       }
    }
 
+   @Override
    public boolean hasClickedOutside(double mouseX, double mouseY, int leftPos, int topPos, int imageWidth, int imageHeight, int button) {
       if (!this.isVisible()) {
          return true;
@@ -420,6 +465,7 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
       }
    }
 
+   @Override
    public boolean keyPressed(int p_100306_, int p_100307_, int p_100308_) {
       this.ignoreTextInput = false;
       if (this.isVisible() && !this.minecraft.player.isSpectator()) {
@@ -443,11 +489,13 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
       }
    }
 
+   @Override
    public boolean keyReleased(int p_100356_, int p_100357_, int p_100358_) {
       this.ignoreTextInput = false;
       return false;
    }
 
+   @Override
    public boolean charTyped(char p_100291_, int p_100292_) {
       if (this.ignoreTextInput) {
          return false;
@@ -463,6 +511,7 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
       }
    }
 
+   @Override
    public boolean isMouseOver(double p_100353_, double p_100354_) {
       return false;
    }
@@ -476,12 +525,14 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
 
    }
 
+   @Override
    public void recipesUpdated() {
       if (this.isVisible()) {
          this.updateCollections();
       }
    }
 
+   @Override
    public void recipesShown(List<Recipe<?>> p_100344_) {
       for(Recipe<?> recipe : p_100344_) {
          this.minecraft.player.removeRecipeHighlight(recipe);
@@ -489,6 +540,7 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
 
    }
 
+   @Override
    public void setupGhostRecipe(Recipe<?> p_100316_, List<Slot> p_100317_) {
       ItemStack itemstack = p_100316_.getResultItem();
       this.ghostRecipe.setRecipe(p_100316_);
@@ -496,6 +548,7 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
       this.placeRecipe(this.menu.getGridWidth(), this.menu.getGridHeight(), this.menu.getResultSlotIndex(), p_100316_, p_100316_.getIngredients().iterator(), 0);
    }
 
+   @Override
    public void addItemToSlot(Iterator<Ingredient> p_100338_, int p_100339_, int p_100340_, int p_100341_, int p_100342_) {
       Ingredient ingredient = p_100338_.next();
       if (!ingredient.isEmpty()) {
@@ -505,6 +558,7 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
 
    }
 
+   @Override
    protected void sendUpdateSettings() {
       if (this.minecraft.getConnection() != null) {
          RecipeBookType recipebooktype = this.menu.getRecipeBookType();
@@ -514,25 +568,13 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
 
    }
 
+   @Override
    public NarrationPriority narrationPriority() {
-      return this.visible ? NarrationPriority.HOVERED : NarrationPriority.NONE;
+      return NarrationPriority.NONE;
    }
 
+   @Override
    public void updateNarration(NarrationElementOutput p_170046_) {
-      List<NarratableEntry> list = Lists.newArrayList();
-      this.recipeBookPage.listButtons((p_170049_) -> {
-         if (p_170049_.isActive()) {
-            list.add(p_170049_);
-         }
-
-      });
-      list.add(this.searchBox);
-      list.add(this.filterButton);
-      list.addAll(this.tabButtons);
-      Screen.NarratableSearchResult screen$narratablesearchresult = Screen.findNarratableWidget(list, null);
-      if (screen$narratablesearchresult != null) {
-         screen$narratablesearchresult.entry.updateNarration(p_170046_.nest());
-      }
 
    }
 }
