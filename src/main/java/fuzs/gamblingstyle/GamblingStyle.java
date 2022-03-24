@@ -1,8 +1,8 @@
 package fuzs.gamblingstyle;
 
 import fuzs.gamblingstyle.config.ClientConfig;
-import fuzs.gamblingstyle.config.ServerConfig;
 import fuzs.gamblingstyle.data.ModLanguageProvider;
+import fuzs.puzzleslib.config.AbstractConfig;
 import fuzs.puzzleslib.config.ConfigHolder;
 import fuzs.puzzleslib.config.ConfigHolderImpl;
 import fuzs.puzzleslib.network.NetworkHandler;
@@ -24,16 +24,11 @@ public class GamblingStyle {
 
     public static final NetworkHandler NETWORK = NetworkHandler.of(MOD_ID);
     @SuppressWarnings("Convert2MethodRef")
-    public static final ConfigHolder<ClientConfig, ServerConfig> CONFIG = ConfigHolder.of(() -> new ClientConfig(), () -> new ServerConfig());
+    public static final ConfigHolder<ClientConfig, AbstractConfig> CONFIG = ConfigHolder.client(() -> new ClientConfig());
 
     @SubscribeEvent
     public static void onConstructMod(final FMLConstructModEvent evt) {
         ((ConfigHolderImpl<?, ?>) CONFIG).addConfigs(MOD_ID);
-        registerHandlers();
-    }
-
-    private static void registerHandlers() {
-
     }
 
     @SubscribeEvent

@@ -2,6 +2,7 @@ package fuzs.gamblingstyle.client;
 
 import fuzs.gamblingstyle.GamblingStyle;
 import fuzs.gamblingstyle.client.handler.RecipeBookExchangeHandler;
+import fuzs.gamblingstyle.client.handler.RecipeBookMouseHandler;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -19,6 +20,10 @@ public class GamblingStyleClient {
     private static void registerHandlers() {
         RecipeBookExchangeHandler recipeBookExchangeHandler = new RecipeBookExchangeHandler();
         MinecraftForge.EVENT_BUS.addListener(recipeBookExchangeHandler::onScreenOpen);
+        RecipeBookMouseHandler recipeBookMouseHandler = new RecipeBookMouseHandler();
+        MinecraftForge.EVENT_BUS.addListener(recipeBookMouseHandler::onMouseReleased);
+        MinecraftForge.EVENT_BUS.addListener(recipeBookMouseHandler::onMouseScroll);
+        MinecraftForge.EVENT_BUS.addListener(recipeBookMouseHandler::onMouseDrag);
     }
 
     @SubscribeEvent

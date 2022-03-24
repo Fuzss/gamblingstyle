@@ -7,7 +7,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import fuzs.gamblingstyle.GamblingStyle;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.ClientRecipeBook;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.RecipeBookCategories;
@@ -42,11 +41,9 @@ import java.util.Locale;
 
 @SuppressWarnings("ConstantConditions")
 public class ModRecipeBookComponent extends RecipeBookComponent {
-   private static final Component SEARCH_HINT = (new TranslatableComponent("gui.recipebook.search_hint")).withStyle(ChatFormatting.ITALIC).withStyle(ChatFormatting.GRAY);
-   private static final Component ONLY_CRAFTABLES_TOOLTIP = new TranslatableComponent("gui.recipebook.toggleRecipes.craftable");
-   private static final Component ALL_RECIPES_TOOLTIP = new TranslatableComponent("gui.recipebook.toggleRecipes.all");
-
-   protected static final ResourceLocation RECIPE_BOOK_LOCATION = new ResourceLocation(GamblingStyle.MOD_ID, "textures/gui/recipe_book.png");
+   static final ResourceLocation RECIPE_BOOK_LOCATION = new ResourceLocation(GamblingStyle.MOD_ID, "textures/gui/recipe_book.png");
+   private static final Component PLACE_RECIPES_TOOLTIP = new TranslatableComponent("gui.recipebook.tooltip.place");
+   private static final Component CRAFT_RECIPES_TOOLTIP = new TranslatableComponent("gui.recipebook.tooltip.craft");
    public static final int IMAGE_WIDTH = 147;
    public static final int IMAGE_HEIGHT = 166;
    private static final int OFFSET_X_POSITION = 86;
@@ -112,15 +109,28 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
       this.menuComponent.init(this.minecraft, this.leftPos, this.topPos);
       this.addSlots();
       this.updateCollections();
+      this.scrollOffs = 0.0F;
+      this.scrollTo(0.0F);
    }
 
    private void initSearchBox() {
       String s = this.searchBox != null ? this.searchBox.getValue() : "";
-      this.searchBox = new EditBox(this.minecraft.font, this.leftPos + 25, this.topPos + 14, 80, 9 + 5, new TranslatableComponent("itemGroup.search"));
+      this.searchBox = new EditBox(this.minecraft.font, this.leftPos + 28, this.topPos + 14, 80, 9, new TranslatableComponent("itemGroup.search")) {
+         @Override
+         public boolean mouseClicked(double mouseX, double mouseY, int button) {
+            // left click clears text
+            if (this.isVisible() && button == 1) {
+               this.setValue("");
+               ModRecipeBookComponent.this.checkSearchStringUpdate();
+            }
+            return super.mouseClicked(mouseX, mouseY, button);
+         }
+      };
       this.searchBox.setMaxLength(50);
       this.searchBox.setBordered(false);
       this.searchBox.setVisible(true);
-      this.searchBox.setTextColor(16777215);
+//      this.searchBox.setTextColor(-4149103);
+      this.searchBox.setTextColor(-1977417);
       this.searchBox.setValue(s);
    }
 
@@ -209,8 +219,6 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
          });
       }
       this.collectAllRecipes(list1);
-      this.scrollOffs = 0.0F;
-      this.scrollTo(0.0F);
    }
 
    private void collectAllRecipes(List<RecipeCollection> recipeCollections) {
@@ -312,8 +320,6 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
       this.blit(poseStack, this.leftPos, this.topPos, 0, 0, 147, 166);
       // search bar
       this.blit(poseStack, this.leftPos + 11, this.topPos + 10, 0, 166, 101, 16);
-      // item slots
-      this.blit(poseStack, this.leftPos + 11, this.topPos + 28, 147, 0, 109, 126);
       // scroll bar
       this.blit(poseStack, this.leftPos + 121, this.topPos + 28, 201, 126, 14, 126);
       // scrolling indicator
@@ -330,16 +336,12 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
             this.menuComponent.renderTooltip(p_100362_, p_100365_, p_100366_, this.screen);
          }
 //         if (this.filterButton.isHoveredOrFocused()) {
-//            Component component = this.getFilterButtonTooltip();
+//            Component component = this.filterButton.isStateTriggered() ? PLACE_RECIPES_TOOLTIP : CRAFT_RECIPES_TOOLTIP;
 //            this.screen.renderTooltip(p_100362_, component, p_100365_, p_100366_);
 //         }
 
          this.renderGhostRecipeTooltip(p_100362_, p_100363_, p_100364_, p_100365_, p_100366_);
       }
-   }
-
-   private Component getFilterButtonTooltip() {
-      return this.filterButton.isStateTriggered() ? this.getRecipeFilterName() : ALL_RECIPES_TOOLTIP;
    }
 
    private void renderGhostRecipeTooltip(PoseStack p_100375_, int p_100376_, int p_100377_, int p_100378_, int p_100379_) {
@@ -398,7 +400,6 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
    }
 
    private boolean handleScrollbarClicked(double mouseX, double mouseY, int button) {
-      GamblingStyle.LOGGER.info("CLICKED");
       if (button != 0) {
          return false;
       }
@@ -419,16 +420,16 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
 
    @Override
    public boolean mouseReleased(double mouseX, double mouseY, int button) {
-      GamblingStyle.LOGGER.info("RELEASED");
       if (button == 0) {
+         boolean mouseDragged = this.mouseDragged(mouseX, mouseY, button, 0.0, 0.0);
          this.scrolling = false;
+         return mouseDragged;
       }
       return false;
    }
 
    @Override
    public boolean mouseScrolled(double p_98527_, double p_98528_, double p_98529_) {
-      GamblingStyle.LOGGER.info("SCROLLED");
       if (!this.canScroll()) {
          return false;
       } else {
@@ -442,7 +443,6 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
 
    @Override
    public boolean mouseDragged(double p_98535_, double p_98536_, int p_98537_, double p_98538_, double p_98539_) {
-      GamblingStyle.LOGGER.info("DRAGGED");
       if (this.scrolling) {
          int scrollTop = this.topPos + 29;
          int scrollBottom = scrollTop + 126;
@@ -521,6 +521,8 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
       if (!s.equals(this.lastSearch)) {
          this.updateCollections();
          this.lastSearch = s;
+         this.scrollOffs = 0.0F;
+         this.scrollTo(0.0F);
       }
 
    }
@@ -529,6 +531,8 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
    public void recipesUpdated() {
       if (this.isVisible()) {
          this.updateCollections();
+         this.scrollOffs = 0.0F;
+         this.scrollTo(0.0F);
       }
    }
 

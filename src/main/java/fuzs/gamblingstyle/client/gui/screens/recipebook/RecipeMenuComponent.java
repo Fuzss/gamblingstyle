@@ -3,12 +3,14 @@ package fuzs.gamblingstyle.client.gui.screens.recipebook;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import fuzs.gamblingstyle.GamblingStyle;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.crafting.Recipe;
@@ -66,19 +68,33 @@ public class RecipeMenuComponent extends GuiComponent implements Widget, GuiEven
     }
 
     private void renderSlot(PoseStack poseStack, RecipeSlot slot) {
+        int posX = this.leftPos + slot.x;
+        int posY = this.topPos + slot.y;
+        if (GamblingStyle.CONFIG.client().colorfulRecipeBackgrounds) {
+            RenderSystem.setShader(GameRenderer::getPositionTexShader);
+            RenderSystem.setShaderTexture(0, ModRecipeBookComponent.RECIPE_BOOK_LOCATION);
+            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+            int texOff = 0;
+            if (slot.hasRecipe()) {
+                texOff += slot.hasCraftable() ? 18 : 36;
+            }
+            this.blit(poseStack, posX - 1, posY - 1, 147 + texOff, 126, 18, 18);
+        }
         this.setBlitOffset(100);
         this.minecraft.getItemRenderer().blitOffset = 100.0F;
         RenderSystem.enableDepthTest();
-        int posX = this.leftPos + slot.x;
-        int posY = this.topPos + slot.y;
-        if (!slot.hasCraftable()) {
-            GuiComponent.fill(poseStack, posX, posY, posX + 16, posY + 16, 822018048);
+        if (!GamblingStyle.CONFIG.client().colorfulRecipeBackgrounds) {
+            if (!slot.hasCraftable()) {
+                GuiComponent.fill(poseStack, posX, posY, posX + 16, posY + 16, 822018048);
+            }
         }
         this.minecraft.getItemRenderer().renderAndDecorateFakeItem(slot.getItem(), posX, posY);
-        if (!slot.hasCraftable()) {
-            RenderSystem.depthFunc(516);
-            GuiComponent.fill(poseStack, posX, posY, posX + 16, posY + 16, 822083583);
-            RenderSystem.depthFunc(515);
+        if (!GamblingStyle.CONFIG.client().colorfulRecipeBackgrounds) {
+            if (!slot.hasCraftable()) {
+                RenderSystem.depthFunc(516);
+                GuiComponent.fill(poseStack, posX, posY, posX + 16, posY + 16, 822083583);
+                RenderSystem.depthFunc(515);
+            }
         }
         this.minecraft.getItemRenderer().blitOffset = 0.0F;
         this.setBlitOffset(0);
