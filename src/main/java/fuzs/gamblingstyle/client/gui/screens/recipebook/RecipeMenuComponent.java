@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import fuzs.gamblingstyle.GamblingStyle;
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.Widget;
@@ -12,7 +13,9 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 import net.minecraft.world.item.crafting.Recipe;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,12 +36,12 @@ public class RecipeMenuComponent extends GuiComponent implements Widget, GuiEven
         this.slots.add(slot);
     }
 
-    public void setRecipe(int index, @Nullable Recipe<?> recipe, boolean craftable) {
-        this.slots.get(index).setRecipe(recipe, craftable);
+    public void setRecipe(int index, @Nullable Recipe<?> recipe, boolean craftable, boolean favorite) {
+        this.slots.get(index).setRecipe(recipe, craftable, favorite);
     }
 
     public void clearRecipe(int index) {
-        this.slots.get(index).setRecipe(null, true);
+        this.slots.get(index).setRecipe(null, true, false);
     }
 
     public void init(Minecraft minecraft, int leftPos, int topPos) {
@@ -68,6 +71,7 @@ public class RecipeMenuComponent extends GuiComponent implements Widget, GuiEven
     }
 
     private void renderSlot(PoseStack poseStack, RecipeSlot slot) {
+        poseStack.pushPose();
         int posX = this.leftPos + slot.x;
         int posY = this.topPos + slot.y;
         if (GamblingStyle.CONFIG.client().colorfulRecipeBackgrounds) {
@@ -96,8 +100,32 @@ public class RecipeMenuComponent extends GuiComponent implements Widget, GuiEven
                 RenderSystem.depthFunc(515);
             }
         }
+        if (slot.isFavorite()) {
+            this.renderFavoriteIcon(poseStack, posX, posY);
+        }
         this.minecraft.getItemRenderer().blitOffset = 0.0F;
         this.setBlitOffset(0);
+        poseStack.popPose();
+    }
+
+    private void renderFavoriteIcon(PoseStack poseStack, int posX, int posY) {
+        poseStack.pushPose();
+        float timeOffset = (Util.getMillis() % 2000) / 1000.0F;
+        timeOffset = this.easeInOutQuad(timeOffset);
+        poseStack.translate(0, timeOffset - 0.5F, 0.0);
+        RenderSystem.disableDepthTest();
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderTexture(0, ModRecipeBookComponent.RECIPE_BOOK_LOCATION);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        this.blit(poseStack, posX + 1, posY + 2, 149, 153, 6, 6);
+        poseStack.popPose();
+    }
+
+    private float easeInOutQuad(float timeOffset) {
+        timeOffset = Mth.clamp(timeOffset, 0.0F, 2.0F);
+        if (timeOffset >= 1.0F) timeOffset = 2.0F - timeOffset;
+        timeOffset = timeOffset < 0.5F ? 2.0F * timeOffset * timeOffset : 1.0F - (-2.0F * timeOffset + 2.0F) * (-2.0F * timeOffset + 2.0F) / 2.0F;
+        return timeOffset;
     }
 
     @Nullable
@@ -124,11 +152,15 @@ public class RecipeMenuComponent extends GuiComponent implements Widget, GuiEven
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button != 0) return false;
         this.lastClickedSlot = null;
         RecipeSlot slot = this.findSlot(mouseX, mouseY);
         if (slot != null) {
-            this.lastClickedSlot = slot;
+            if (button == 0) {
+                this.lastClickedSlot = slot;
+            } else if (button == 1 && slot.hasRecipe()) {
+                Recipe<?> recipe = slot.getRecipe();
+                GamblingStyle.LOGGER.info("{} {} {}", recipe.getId(), recipe.getGroup(), Registry.RECIPE_TYPE.getKey(recipe.getType()));
+            }
             return true;
         }
         return false;

@@ -10,15 +10,17 @@ public class RecipeSlot {
     @Nullable
     private Recipe<?> recipe;
     private boolean craftable;
+    private boolean favorite;
 
     public RecipeSlot(int x, int y) {
         this.x = x;
         this.y = y;
     }
 
-    public void setRecipe(@Nullable Recipe<?> recipe, boolean craftable) {
+    public void setRecipe(@Nullable Recipe<?> recipe, boolean craftable, boolean favorite) {
         this.recipe = recipe;
         this.craftable = craftable;
+        this.favorite = favorite;
     }
 
     @Nullable
@@ -36,5 +38,9 @@ public class RecipeSlot {
 
     public boolean hasCraftable() {
         return this.craftable;
+    }
+
+    public boolean isFavorite() {
+        return this.favorite;
     }
 }

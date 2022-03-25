@@ -129,7 +129,6 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
       this.searchBox.setMaxLength(50);
       this.searchBox.setBordered(false);
       this.searchBox.setVisible(true);
-//      this.searchBox.setTextColor(-4149103);
       this.searchBox.setTextColor(-1977417);
       this.searchBox.setValue(s);
    }
@@ -268,7 +267,7 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
          for(int l = 0; l < RECIPES_GRID_X; ++l) {
             int i1 = l + (k + j) * RECIPES_GRID_X;
             if (i1 >= 0 && i1 < this.getRecipesSize()) {
-               this.menuComponent.setRecipe(l + k * RECIPES_GRID_X, this.getRecipe(i1), this.isRecipeCraftable(i1));
+               this.menuComponent.setRecipe(l + k * RECIPES_GRID_X, this.getRecipe(i1), this.isRecipeCraftable(i1), Math.random() >= 0.6);
             } else {
                this.menuComponent.clearRecipe(l + k * RECIPES_GRID_X);
             }
@@ -320,6 +319,10 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
       this.blit(poseStack, this.leftPos, this.topPos, 0, 0, 147, 166);
       // search bar
       this.blit(poseStack, this.leftPos + 11, this.topPos + 10, 0, 166, 101, 16);
+      // item slots
+      if (!GamblingStyle.CONFIG.client().colorfulRecipeBackgrounds) {
+         this.blit(poseStack, this.leftPos + 11, this.topPos + 28, 147, 0, 109, 126);
+      }
       // scroll bar
       this.blit(poseStack, this.leftPos + 121, this.topPos + 28, 201, 126, 14, 126);
       // scrolling indicator
