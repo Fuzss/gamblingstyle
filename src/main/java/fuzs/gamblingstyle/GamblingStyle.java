@@ -1,12 +1,16 @@
 package fuzs.gamblingstyle;
 
 import fuzs.gamblingstyle.config.ClientConfig;
+import fuzs.gamblingstyle.data.ModBlockTagsProvider;
 import fuzs.gamblingstyle.data.ModLanguageProvider;
+import fuzs.gamblingstyle.handler.HitBlockFaceHandler;
+import fuzs.gamblingstyle.registry.ModRegistry;
 import fuzs.puzzleslib.config.AbstractConfig;
 import fuzs.puzzleslib.config.ConfigHolder;
 import fuzs.puzzleslib.config.ConfigHolderImpl;
 import fuzs.puzzleslib.network.NetworkHandler;
 import net.minecraft.data.DataGenerator;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -29,12 +33,20 @@ public class GamblingStyle {
     @SubscribeEvent
     public static void onConstructMod(final FMLConstructModEvent evt) {
         ((ConfigHolderImpl<?, ?>) CONFIG).addConfigs(MOD_ID);
+        ModRegistry.touch();
+        registerHandlers();
+    }
+
+    private static void registerHandlers() {
+        HitBlockFaceHandler hitBlockFaceHandler = new HitBlockFaceHandler();
+        MinecraftForge.EVENT_BUS.addListener(hitBlockFaceHandler::onLeftClickBlock);
     }
 
     @SubscribeEvent
     public static void onGatherData(final GatherDataEvent evt) {
         DataGenerator generator = evt.getGenerator();
         final ExistingFileHelper existingFileHelper = evt.getExistingFileHelper();
+        generator.addProvider(new ModBlockTagsProvider(generator, existingFileHelper, MOD_ID));
         generator.addProvider(new ModLanguageProvider(generator, MOD_ID));
     }
 }

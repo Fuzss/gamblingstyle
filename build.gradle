@@ -78,6 +78,7 @@ dependencies {
     runtimeOnly fg.deobf("curse.maven:catalogue-459701:3559402")
     runtimeOnly fg.deobf("curse.maven:bettermodsbutton-541584:3671308")
     runtimeOnly fg.deobf("curse.maven:configmenusforge-544048:3671318")
+    runtimeOnly fg.deobf("curse.maven:unusualdrill-582838:3688977")
 
     // from local maven, those builds are not obfuscated
     implementation fg.deobf("fuzs.puzzleslib:PuzzlesLib:${puzzlesVersion}")
