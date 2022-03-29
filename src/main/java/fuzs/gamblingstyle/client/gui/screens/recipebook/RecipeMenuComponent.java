@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import fuzs.gamblingstyle.GamblingStyle;
+import fuzs.gamblingstyle.client.handler.RecipeFavoritesManager;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
@@ -12,9 +13,11 @@ import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.crafting.Recipe;
 import org.jetbrains.annotations.Nullable;
@@ -22,9 +25,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class RecipeMenuComponent extends GuiComponent implements Widget, GuiEventListener {
+    public final NonNullList<RecipeSlot> slots = NonNullList.create();
     private int leftPos, topPos;
     private Minecraft minecraft;
-    public final NonNullList<RecipeSlot> slots = NonNullList.create();
     @Nullable
     private RecipeSlot hoveredSlot;
     // using hoveredSlot would probably work, but maybe with some lag/dropped frames or whatever they could be different?
@@ -111,6 +114,7 @@ public class RecipeMenuComponent extends GuiComponent implements Widget, GuiEven
     private void renderFavoriteIcon(PoseStack poseStack, int posX, int posY) {
         poseStack.pushPose();
         float timeOffset = (Util.getMillis() % 2000) / 1000.0F;
+        if (timeOffset >= 1.0F) timeOffset = 2.0F - timeOffset;
         timeOffset = this.easeInOutQuad(timeOffset);
         poseStack.translate(0, timeOffset - 0.5F, 0.0);
         RenderSystem.disableDepthTest();
@@ -122,8 +126,7 @@ public class RecipeMenuComponent extends GuiComponent implements Widget, GuiEven
     }
 
     private float easeInOutQuad(float timeOffset) {
-        timeOffset = Mth.clamp(timeOffset, 0.0F, 2.0F);
-        if (timeOffset >= 1.0F) timeOffset = 2.0F - timeOffset;
+        timeOffset = Mth.clamp(timeOffset, 0.0F, 1.0F);
         timeOffset = timeOffset < 0.5F ? 2.0F * timeOffset * timeOffset : 1.0F - (-2.0F * timeOffset + 2.0F) * (-2.0F * timeOffset + 2.0F) / 2.0F;
         return timeOffset;
     }
@@ -155,15 +158,20 @@ public class RecipeMenuComponent extends GuiComponent implements Widget, GuiEven
         this.lastClickedSlot = null;
         RecipeSlot slot = this.findSlot(mouseX, mouseY);
         if (slot != null) {
+            this.playDownSound(this.minecraft.getSoundManager());
             if (button == 0) {
                 this.lastClickedSlot = slot;
             } else if (button == 1 && slot.hasRecipe()) {
                 Recipe<?> recipe = slot.getRecipe();
-                GamblingStyle.LOGGER.info("{} {} {}", recipe.getId(), recipe.getGroup(), Registry.RECIPE_TYPE.getKey(recipe.getType()));
+                slot.setFavorite(RecipeFavoritesManager.INSTANCE.toggleFavorite(recipe));
             }
             return true;
         }
         return false;
+    }
+
+    public void playDownSound(SoundManager p_93665_) {
+        p_93665_.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
     }
 
     @Nullable

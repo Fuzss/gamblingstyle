@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import fuzs.gamblingstyle.GamblingStyle;
+import fuzs.gamblingstyle.client.handler.RecipeFavoritesManager;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import net.minecraft.client.ClientRecipeBook;
@@ -34,10 +35,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 @SuppressWarnings("ConstantConditions")
 public class ModRecipeBookComponent extends RecipeBookComponent {
@@ -68,6 +66,7 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
    private List<Recipe<?>> uncraftable;
    private final RecipeMenuComponent menuComponent = new RecipeMenuComponent();
    private float scrollOffs;
+   private float lastScrollOffs = -1.0F;
    private boolean scrolling;
 
    protected StateSwitchingButton filterButton;
@@ -109,8 +108,7 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
       this.menuComponent.init(this.minecraft, this.leftPos, this.topPos);
       this.addSlots();
       this.updateCollections();
-      this.scrollOffs = 0.0F;
-      this.scrollTo(0.0F);
+      this.resetScroll();
    }
 
    private void initSearchBox() {
@@ -227,6 +225,8 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
          craftable.addAll(collection.getDisplayRecipes(true));
          uncraftable.addAll(collection.getDisplayRecipes(false));
       }
+      craftable.sort(Comparator.comparing(RecipeFavoritesManager.INSTANCE::isFavorite));
+      uncraftable.sort(Comparator.comparing(RecipeFavoritesManager.INSTANCE::isFavorite));
       this.craftable = ImmutableList.copyOf(craftable);
       this.uncraftable = ImmutableList.copyOf(uncraftable);
    }
@@ -257,23 +257,29 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
    }
 
    public void scrollTo(float scrollOffs) {
+      if (this.lastScrollOffs == scrollOffs) return;
       int i = (this.getRecipesSize() + RECIPES_GRID_X - 1) / RECIPES_GRID_X - RECIPES_GRID_Y;
       int j = (int)((double)(scrollOffs * (float)i) + 0.5D);
       if (j < 0) {
          j = 0;
       }
-
       for(int k = 0; k < RECIPES_GRID_Y; ++k) {
          for(int l = 0; l < RECIPES_GRID_X; ++l) {
             int i1 = l + (k + j) * RECIPES_GRID_X;
             if (i1 >= 0 && i1 < this.getRecipesSize()) {
-               this.menuComponent.setRecipe(l + k * RECIPES_GRID_X, this.getRecipe(i1), this.isRecipeCraftable(i1), Math.random() >= 0.6);
+               this.menuComponent.setRecipe(l + k * RECIPES_GRID_X, this.getRecipe(i1), this.isRecipeCraftable(i1), RecipeFavoritesManager.INSTANCE.isFavorite(this.getRecipe(i1)));
             } else {
                this.menuComponent.clearRecipe(l + k * RECIPES_GRID_X);
             }
          }
       }
+      this.lastScrollOffs = scrollOffs;
+   }
 
+   private void resetScroll() {
+      this.lastScrollOffs = -1.0F;
+      this.scrollOffs = 0.0F;
+      this.scrollTo(0.0F);
    }
 
    public boolean canScroll() {
@@ -407,7 +413,10 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
          return false;
       }
       if (this.insideScrollbar(mouseX, mouseY)) {
-         this.scrolling = this.canScroll();
+         if (this.canScroll()) {
+            this.scrolling = true;
+            this.mouseDragged(mouseX, mouseY, button, 0.0, 0.0);
+         }
          return true;
       }
       return false;
@@ -423,11 +432,7 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
 
    @Override
    public boolean mouseReleased(double mouseX, double mouseY, int button) {
-      if (button == 0) {
-         boolean mouseDragged = this.mouseDragged(mouseX, mouseY, button, 0.0, 0.0);
-         this.scrolling = false;
-         return mouseDragged;
-      }
+      if (button == 0) this.scrolling = false;
       return false;
    }
 
@@ -524,18 +529,15 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
       if (!s.equals(this.lastSearch)) {
          this.updateCollections();
          this.lastSearch = s;
-         this.scrollOffs = 0.0F;
-         this.scrollTo(0.0F);
+         this.resetScroll();
       }
-
    }
 
    @Override
    public void recipesUpdated() {
       if (this.isVisible()) {
          this.updateCollections();
-         this.scrollOffs = 0.0F;
-         this.scrollTo(0.0F);
+         this.resetScroll();
       }
    }
 
@@ -544,7 +546,6 @@ public class ModRecipeBookComponent extends RecipeBookComponent {
       for(Recipe<?> recipe : p_100344_) {
          this.minecraft.player.removeRecipeHighlight(recipe);
       }
-
    }
 
    @Override

@@ -40,6 +40,10 @@ public class RecipeSlot {
         return this.craftable;
     }
 
+    public void setFavorite(boolean favorite) {
+        this.favorite = favorite;
+    }
+
     public boolean isFavorite() {
         return this.favorite;
     }
