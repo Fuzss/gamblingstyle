@@ -9,8 +9,8 @@ import net.minecraft.world.level.Level;
 public class ClientProxy extends ServerProxy {
     @Override
     public void destroyBlock(Level level, BlockPos pos, Player player) {
-        if (player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.gameMode.destroyBlock(pos);
+        if (player instanceof ServerPlayer) {
+            super.destroyBlock(level, pos, player);
         } else {
             Minecraft minecraft = Minecraft.getInstance();
             minecraft.gameMode.destroyBlock(pos);

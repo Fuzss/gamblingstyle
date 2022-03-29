@@ -12,6 +12,8 @@ public class ModLanguageProvider extends LanguageProvider {
     @Override
     protected void addTranslations() {
         this.add(ModRegistry.DRILL_ITEM.get(), "Mechanized Drill");
-        this.add(ModRegistry.SAW_ITEM.get(), "Mechanized Chainsaw");
+        this.add(ModRegistry.CHAINSAW_ITEM.get(), "Mechanized Chainsaw");
+        this.add(ModRegistry.POTENCY_ENCHANTMENT.get(), "Potency");
+        this.add("enchantment.gamblingstyle.potency.desc", "Increases the effective area of ranged digger tools.");
     }
 }

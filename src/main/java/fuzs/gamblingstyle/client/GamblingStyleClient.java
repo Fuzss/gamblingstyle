@@ -32,6 +32,7 @@ public class GamblingStyleClient {
         RangedItemVisualsHandler rangedItemVisualsHandler = new RangedItemVisualsHandler();
         MinecraftForge.EVENT_BUS.addListener(rangedItemVisualsHandler::onClickInput);
         MinecraftForge.EVENT_BUS.addListener(rangedItemVisualsHandler::onHighlightBlock);
+        MinecraftForge.EVENT_BUS.addListener(rangedItemVisualsHandler::onPlaySound);
     }
 
     @SubscribeEvent
@@ -40,6 +41,6 @@ public class GamblingStyleClient {
         MinecraftForge.EVENT_BUS.addListener(rangedItemPropertyFunction::onClientTick);
         MinecraftForge.EVENT_BUS.addListener(rangedItemPropertyFunction::onLeftClickBlock);
         ItemProperties.register(ModRegistry.DRILL_ITEM.get(), new ResourceLocation("active"), rangedItemPropertyFunction);
-        ItemProperties.register(ModRegistry.SAW_ITEM.get(), new ResourceLocation("active"), rangedItemPropertyFunction);
+        ItemProperties.register(ModRegistry.CHAINSAW_ITEM.get(), new ResourceLocation("active"), rangedItemPropertyFunction);
     }
 }
