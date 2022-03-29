@@ -4,6 +4,7 @@ import fuzs.gamblingstyle.GamblingStyle;
 import fuzs.gamblingstyle.capability.LastHitBlockCapability;
 import fuzs.gamblingstyle.capability.LastHitBlockCapabilityImpl;
 import fuzs.gamblingstyle.world.item.DrillItem;
+import fuzs.gamblingstyle.world.item.SawItem;
 import fuzs.puzzleslib.capability.CapabilityController;
 import fuzs.puzzleslib.capability.data.PlayerRespawnStrategy;
 import fuzs.puzzleslib.registry.RegistryManager;
@@ -20,9 +21,11 @@ import net.minecraftforge.registries.RegistryObject;
 
 public class ModRegistry {
     public static final TagKey<Block> MINEABLE_WITH_DRILL_TAG = TagKey.create(Registry.BLOCK_REGISTRY, new ResourceLocation(GamblingStyle.MOD_ID, "mineable/drill"));
+    public static final TagKey<Block> MINEABLE_WITH_SAW_TAG = TagKey.create(Registry.BLOCK_REGISTRY, new ResourceLocation(GamblingStyle.MOD_ID, "mineable/saw"));
 
     private static final RegistryManager REGISTRY = RegistryManager.of(GamblingStyle.MOD_ID);
-    public static final RegistryObject<Item> DRILL_ITEM = REGISTRY.registerItem("drill", () -> new DrillItem(Tiers.DIAMOND, 1, -2.8F, (new Item.Properties()).tab(CreativeModeTab.TAB_TOOLS)));
+    public static final RegistryObject<Item> DRILL_ITEM = REGISTRY.registerItem("drill", () -> new DrillItem(1, -2.8F, Tiers.DIAMOND, new Item.Properties().tab(CreativeModeTab.TAB_TOOLS)));
+    public static final RegistryObject<Item> SAW_ITEM = REGISTRY.registerItem("chainsaw", () -> new SawItem(1, -2.8F, Tiers.DIAMOND, new Item.Properties().tab(CreativeModeTab.TAB_TOOLS)));
 
     private static final CapabilityController CAPABILITIES = CapabilityController.of(GamblingStyle.MOD_ID);
     public static final Capability<LastHitBlockCapability> LAST_HIT_BLOCK_CAPABILITY = CAPABILITIES.registerPlayerCapability("last_hit_block", LastHitBlockCapability.class, player -> new LastHitBlockCapabilityImpl(), PlayerRespawnStrategy.NEVER, new CapabilityToken<LastHitBlockCapability>() {});

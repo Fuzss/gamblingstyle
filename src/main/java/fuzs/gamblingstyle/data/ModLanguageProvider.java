@@ -1,5 +1,6 @@
 package fuzs.gamblingstyle.data;
 
+import fuzs.gamblingstyle.registry.ModRegistry;
 import net.minecraft.data.DataGenerator;
 import net.minecraftforge.common.data.LanguageProvider;
 
@@ -10,7 +11,7 @@ public class ModLanguageProvider extends LanguageProvider {
 
     @Override
     protected void addTranslations() {
-        this.add("gui.recipebook.tooltip.place", "Place ingredients in grid");
-        this.add("gui.recipebook.tooltip.craft", "Craft recipe directly");
+        this.add(ModRegistry.DRILL_ITEM.get(), "Mechanized Drill");
+        this.add(ModRegistry.SAW_ITEM.get(), "Mechanized Chainsaw");
     }
 }

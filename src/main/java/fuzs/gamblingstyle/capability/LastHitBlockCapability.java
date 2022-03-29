@@ -9,5 +9,5 @@ public interface LastHitBlockCapability extends CapabilityComponent {
 
     boolean isDataValid(BlockPos pos);
 
-    Direction getAndClearData();
+    Direction getLastHitBlockDirection();
 }

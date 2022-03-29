@@ -3,7 +3,7 @@ package fuzs.gamblingstyle;
 import fuzs.gamblingstyle.config.ClientConfig;
 import fuzs.gamblingstyle.data.ModBlockTagsProvider;
 import fuzs.gamblingstyle.data.ModLanguageProvider;
-import fuzs.gamblingstyle.handler.HitBlockFaceHandler;
+import fuzs.gamblingstyle.handler.RangedBlockActionsHandler;
 import fuzs.gamblingstyle.registry.ModRegistry;
 import fuzs.puzzleslib.config.AbstractConfig;
 import fuzs.puzzleslib.config.ConfigHolder;
@@ -38,8 +38,9 @@ public class GamblingStyle {
     }
 
     private static void registerHandlers() {
-        HitBlockFaceHandler hitBlockFaceHandler = new HitBlockFaceHandler();
-        MinecraftForge.EVENT_BUS.addListener(hitBlockFaceHandler::onLeftClickBlock);
+        RangedBlockActionsHandler rangedBlockActionsHandler = new RangedBlockActionsHandler();
+        MinecraftForge.EVENT_BUS.addListener(rangedBlockActionsHandler::onLeftClickBlock);
+        MinecraftForge.EVENT_BUS.addListener(rangedBlockActionsHandler::onBreakSpeed);
     }
 
     @SubscribeEvent

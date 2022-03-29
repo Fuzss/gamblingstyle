@@ -1,6 +1,5 @@
 package fuzs.gamblingstyle.data;
 
-import fuzs.gamblingstyle.GamblingStyle;
 import fuzs.gamblingstyle.registry.ModRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.data.DataGenerator;
@@ -20,6 +19,7 @@ public class ModBlockTagsProvider extends TagsProvider<Block> {
     @Override
     protected void addTags() {
         this.tag(ModRegistry.MINEABLE_WITH_DRILL_TAG).addTags(BlockTags.MINEABLE_WITH_PICKAXE, BlockTags.MINEABLE_WITH_SHOVEL);
+        this.tag(ModRegistry.MINEABLE_WITH_SAW_TAG).addTags(BlockTags.MINEABLE_WITH_AXE, BlockTags.MINEABLE_WITH_HOE);
     }
 
     @Override

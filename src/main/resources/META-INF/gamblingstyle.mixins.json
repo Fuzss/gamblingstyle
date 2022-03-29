@@ -7,7 +7,8 @@
   "mixins": [
   ],
   "client": [
-    "client.accessor.CraftingScreenAccessor"
+    "client.accessor.CraftingScreenAccessor",
+    "client.accessor.LevelRendererAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

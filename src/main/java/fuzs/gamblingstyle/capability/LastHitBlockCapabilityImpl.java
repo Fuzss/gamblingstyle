@@ -15,10 +15,8 @@ public class LastHitBlockCapabilityImpl implements LastHitBlockCapability {
     }
 
     @Override
-    public Direction getAndClearData() {
-        Direction lastHitBlockDirection = this.lastHitBlockDirection;
-        this.setLastHitBlockData(BlockPos.ZERO, null);
-        return lastHitBlockDirection;
+    public Direction getLastHitBlockDirection() {
+        return this.lastHitBlockDirection;
     }
 
     @Override

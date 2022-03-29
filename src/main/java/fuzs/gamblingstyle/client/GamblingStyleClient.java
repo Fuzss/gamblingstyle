@@ -1,10 +1,10 @@
 package fuzs.gamblingstyle.client;
 
 import fuzs.gamblingstyle.GamblingStyle;
-import fuzs.gamblingstyle.client.handler.DrillSwingAnimationHandler;
+import fuzs.gamblingstyle.client.handler.RangedItemVisualsHandler;
 import fuzs.gamblingstyle.client.handler.RecipeBookExchangeHandler;
 import fuzs.gamblingstyle.client.handler.RecipeBookMouseHandler;
-import fuzs.gamblingstyle.client.renderer.item.DrillProperties;
+import fuzs.gamblingstyle.client.renderer.item.RangedItemPropertyFunction;
 import fuzs.gamblingstyle.registry.ModRegistry;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.resources.ResourceLocation;
@@ -29,14 +29,17 @@ public class GamblingStyleClient {
         MinecraftForge.EVENT_BUS.addListener(recipeBookMouseHandler::onMouseReleased);
         MinecraftForge.EVENT_BUS.addListener(recipeBookMouseHandler::onMouseScroll);
         MinecraftForge.EVENT_BUS.addListener(recipeBookMouseHandler::onMouseDrag);
-        DrillSwingAnimationHandler drillSwingAnimationHandler = new DrillSwingAnimationHandler();
-        MinecraftForge.EVENT_BUS.addListener(drillSwingAnimationHandler::onClickInput);
+        RangedItemVisualsHandler rangedItemVisualsHandler = new RangedItemVisualsHandler();
+        MinecraftForge.EVENT_BUS.addListener(rangedItemVisualsHandler::onClickInput);
+        MinecraftForge.EVENT_BUS.addListener(rangedItemVisualsHandler::onHighlightBlock);
     }
 
     @SubscribeEvent
     public static void onClientSetup(final FMLClientSetupEvent evt) {
-        DrillProperties drillProperties = new DrillProperties();
-        MinecraftForge.EVENT_BUS.addListener(drillProperties::onClientTick);
-        ItemProperties.register(ModRegistry.DRILL_ITEM.get(), new ResourceLocation("active"), drillProperties);
+        RangedItemPropertyFunction rangedItemPropertyFunction = new RangedItemPropertyFunction();
+        MinecraftForge.EVENT_BUS.addListener(rangedItemPropertyFunction::onClientTick);
+        MinecraftForge.EVENT_BUS.addListener(rangedItemPropertyFunction::onLeftClickBlock);
+        ItemProperties.register(ModRegistry.DRILL_ITEM.get(), new ResourceLocation("active"), rangedItemPropertyFunction);
+        ItemProperties.register(ModRegistry.SAW_ITEM.get(), new ResourceLocation("active"), rangedItemPropertyFunction);
     }
 }
