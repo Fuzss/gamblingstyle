@@ -2,10 +2,8 @@ package fuzs.gamblingstyle.world.item;
 
 import com.google.common.collect.ImmutableSet;
 import fuzs.gamblingstyle.registry.ModRegistry;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Tier;
-import net.minecraft.world.level.block.Block;
 import net.minecraftforge.common.ToolAction;
 import net.minecraftforge.common.ToolActions;
 

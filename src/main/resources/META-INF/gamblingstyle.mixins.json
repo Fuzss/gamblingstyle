@@ -9,6 +9,7 @@
   "client": [
     "client.ClientLevelMixin",
     "client.accessor.CraftingScreenAccessor",
+    "client.accessor.ItemInHandRendererAccessor",
     "client.accessor.LevelRendererAccessor"
   ],
   "injectors": {

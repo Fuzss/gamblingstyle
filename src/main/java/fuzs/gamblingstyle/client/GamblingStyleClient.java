@@ -1,6 +1,7 @@
 package fuzs.gamblingstyle.client;
 
 import fuzs.gamblingstyle.GamblingStyle;
+import fuzs.gamblingstyle.client.handler.AreaBlockHarvestingHandler;
 import fuzs.gamblingstyle.client.handler.RangedItemVisualsHandler;
 import fuzs.gamblingstyle.client.handler.RecipeBookExchangeHandler;
 import fuzs.gamblingstyle.client.handler.RecipeBookMouseHandler;
@@ -33,6 +34,9 @@ public class GamblingStyleClient {
         MinecraftForge.EVENT_BUS.addListener(rangedItemVisualsHandler::onClickInput);
         MinecraftForge.EVENT_BUS.addListener(rangedItemVisualsHandler::onHighlightBlock);
         MinecraftForge.EVENT_BUS.addListener(rangedItemVisualsHandler::onPlaySound);
+        AreaBlockHarvestingHandler areaBlockHarvestingHandler = new AreaBlockHarvestingHandler();
+        MinecraftForge.EVENT_BUS.addListener(areaBlockHarvestingHandler::onLeftClickBlock);
+        MinecraftForge.EVENT_BUS.addListener(areaBlockHarvestingHandler::onClientTick);
     }
 
     @SubscribeEvent

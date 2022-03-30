@@ -38,11 +38,13 @@ public abstract class RangedDiggerItem extends DiggerItem {
 
     @Override
     public boolean onBlockStartBreak(ItemStack stack, BlockPos pos, Player player) {
-        Stream<BlockPos> blocksToHarvest = this.getAllHarvestBlocks(stack, pos, player, false);
-        Stream<BlockPos> blocksToUpdate = this.getAllHarvestBlocks(stack, pos, player, null, false, false);
-        blocksToHarvest.forEach(pos1 -> Proxy.INSTANCE.destroyBlock(player.level, pos1, player));
-        if (player instanceof ServerPlayer serverPlayer) {
-            blocksToUpdate.forEach(pos1 -> serverPlayer.connection.send(new ClientboundBlockUpdatePacket(serverPlayer.level, pos)));
+        if (!player.level.isClientSide) {
+            Stream<BlockPos> blocksToHarvest = this.getAllHarvestBlocks(stack, pos, player, false);
+            Stream<BlockPos> blocksToUpdate = this.getAllHarvestBlocks(stack, pos, player, null, false, false);
+            blocksToHarvest.forEach(pos1 -> Proxy.INSTANCE.destroyBlock(player.level, pos1, player));
+            if (player instanceof ServerPlayer serverPlayer) {
+                blocksToUpdate.forEach(pos1 -> serverPlayer.connection.send(new ClientboundBlockUpdatePacket(serverPlayer.level, pos)));
+            }
         }
         return super.onBlockStartBreak(stack, pos, player);
     }

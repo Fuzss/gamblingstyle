@@ -3,8 +3,8 @@ package fuzs.gamblingstyle.registry;
 import fuzs.gamblingstyle.GamblingStyle;
 import fuzs.gamblingstyle.capability.LastHitBlockCapability;
 import fuzs.gamblingstyle.capability.LastHitBlockCapabilityImpl;
-import fuzs.gamblingstyle.world.item.DrillItem;
 import fuzs.gamblingstyle.world.item.RangedDiggerItem;
+import fuzs.gamblingstyle.world.item.DrillItem;
 import fuzs.gamblingstyle.world.item.SawItem;
 import fuzs.gamblingstyle.world.item.enchantment.PotencyEnchantment;
 import fuzs.puzzleslib.capability.CapabilityController;
@@ -33,7 +33,7 @@ public class ModRegistry {
     public static final TagKey<Block> MINEABLE_WITH_SAW_TAG = TagKey.create(Registry.BLOCK_REGISTRY, new ResourceLocation(GamblingStyle.MOD_ID, "mineable/saw"));
 
     private static final RegistryManager REGISTRY = RegistryManager.of(GamblingStyle.MOD_ID);
-    public static final RegistryObject<Item> DRILL_ITEM = REGISTRY.registerItem("drill", () -> new DrillItem(1, -2.8F, Tiers.DIAMOND, new Item.Properties().tab(CreativeModeTab.TAB_TOOLS)));
+    public static final RegistryObject<Item> DRILL_ITEM = REGISTRY.registerItem("drill", () -> new DrillItem(1, -2.8F, Tiers.STONE, new Item.Properties().tab(CreativeModeTab.TAB_TOOLS)));
     public static final RegistryObject<Item> CHAINSAW_ITEM = REGISTRY.registerItem("chainsaw", () -> new SawItem(1, -2.8F, Tiers.DIAMOND, new Item.Properties().tab(CreativeModeTab.TAB_TOOLS)));
     public static final RegistryObject<Enchantment> POTENCY_ENCHANTMENT = REGISTRY.registerEnchantment("potency", () -> new PotencyEnchantment(Enchantment.Rarity.RARE, EquipmentSlot.MAINHAND));
 
