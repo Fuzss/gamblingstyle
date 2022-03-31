@@ -1,0 +1,19 @@
+{
+  "item.rangeddiggeritem.switch_mode": {
+    "sounds": [
+      {
+        "name": "gamblingstyle:item/rangeddiggeritem/switch_mode1",
+        "volume": 0.5
+      },
+      {
+        "name": "gamblingstyle:item/rangeddiggeritem/switch_mode2",
+        "volume": 0.5
+      },
+      {
+        "name": "gamblingstyle:item/rangeddiggeritem/switch_mode3",
+        "volume": 0.5
+      }
+    ],
+    "subtitle": "subtitles.item.rangeddiggeritem.switch_mode"
+  }
+}

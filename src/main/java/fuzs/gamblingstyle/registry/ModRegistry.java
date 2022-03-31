@@ -12,6 +12,7 @@ import fuzs.puzzleslib.capability.data.PlayerRespawnStrategy;
 import fuzs.puzzleslib.registry.RegistryManager;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.CreativeModeTab;
@@ -36,6 +37,7 @@ public class ModRegistry {
     public static final RegistryObject<Item> DRILL_ITEM = REGISTRY.registerItem("drill", () -> new DrillItem(1, -2.8F, Tiers.STONE, new Item.Properties().tab(CreativeModeTab.TAB_TOOLS)));
     public static final RegistryObject<Item> CHAINSAW_ITEM = REGISTRY.registerItem("chainsaw", () -> new SawItem(1, -2.8F, Tiers.DIAMOND, new Item.Properties().tab(CreativeModeTab.TAB_TOOLS)));
     public static final RegistryObject<Enchantment> POTENCY_ENCHANTMENT = REGISTRY.registerEnchantment("potency", () -> new PotencyEnchantment(Enchantment.Rarity.RARE, EquipmentSlot.MAINHAND));
+    public static final RegistryObject<SoundEvent> SWITCH_MODE_SOUND_EVENT = REGISTRY.registerRawSoundEvent("item.rangeddiggeritem.switch_mode");
 
     private static final CapabilityController CAPABILITIES = CapabilityController.of(GamblingStyle.MOD_ID);
     public static final Capability<LastHitBlockCapability> LAST_HIT_BLOCK_CAPABILITY = CAPABILITIES.registerPlayerCapability("last_hit_block", LastHitBlockCapability.class, player -> new LastHitBlockCapabilityImpl(), PlayerRespawnStrategy.NEVER, new CapabilityToken<LastHitBlockCapability>() {});

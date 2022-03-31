@@ -1,4 +1,12 @@
 {
+  "enchantment.gamblingstyle.potency": "Potency",
+  "enchantment.gamblingstyle.potency.desc": "Increases the effective area of ranged digger tools.",
   "item.gamblingstyle.chainsaw": "Mechanized Chainsaw",
-  "item.gamblingstyle.drill": "Mechanized Drill"
+  "item.gamblingstyle.drill": "Mechanized Drill",
+  "item.gamblingstyle.rangeddiggeritem.mode": "Harvest Mode: %s",
+  "item.gamblingstyle.rangeddiggeritem.mode.cube3": "3x3x3",
+  "item.gamblingstyle.rangeddiggeritem.mode.cube5": "5x5x5",
+  "item.gamblingstyle.rangeddiggeritem.mode.plane3": "3x3",
+  "item.gamblingstyle.rangeddiggeritem.mode.plane5": "5x5",
+  "item.gamblingstyle.rangeddiggeritem.mode.single": "Single"
 }

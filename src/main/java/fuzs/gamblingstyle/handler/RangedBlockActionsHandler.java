@@ -25,11 +25,11 @@ public class RangedBlockActionsHandler {
         if (evt.getPos() == null) return;
         Player player = evt.getPlayer();
         ItemStack stack = player.getMainHandItem();
-        if (stack.getItem() instanceof RangedDiggerItem rangedDiggerItem) {
+        if (stack.getItem() instanceof RangedDiggerItem item) {
             Level level = player.level;
             BlockPos pos = evt.getPos();
             double destroySpeed = level.getBlockState(pos).getDestroySpeed(level, pos);
-            double averageDestroySpeed = rangedDiggerItem.getAllHarvestBlocks(stack, pos, player, true)
+            double averageDestroySpeed = item.getAllHarvestBlocks(stack, pos, player, true)
                     .mapToDouble(pos1 -> level.getBlockState(pos1).getDestroySpeed(level, pos1))
                     .max()
                     .orElse(destroySpeed);

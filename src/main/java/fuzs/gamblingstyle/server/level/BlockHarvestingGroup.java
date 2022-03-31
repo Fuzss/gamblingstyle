@@ -14,12 +14,14 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 public class BlockHarvestingGroup {
+    private final Int2ObjectMap<BlockPos> areaBlocks = new Int2ObjectOpenHashMap<>();
     private final Level level;
     private final Player player;
     public final BlockPos destroyBlockPos;
-    private final Int2ObjectMap<BlockPos> areaBlocks = new Int2ObjectOpenHashMap<>();
+    private Direction blockFace;
     public ItemStack destroyingItem;
     private float destroyProgress;
 
@@ -27,25 +29,34 @@ public class BlockHarvestingGroup {
         this.level = level;
         this.player = player;
         this.destroyBlockPos = destroyBlockPos;
+        this.blockFace = blockFace;
         this.destroyingItem = player.getMainHandItem();
-        this.buildBlockGroup(player, destroyBlockPos, blockFace);
+        this.buildBlockGroup();
     }
 
-    private void buildBlockGroup(Player player, BlockPos centerBlock, Direction blockFace) {
+    private void buildBlockGroup() {
+        this.clearAreaBlocks();
         if (this.destroyingItem.getItem() instanceof RangedDiggerItem item) {
-            List<BlockPos> blocks = item.getAllHarvestBlocks(this.destroyingItem, centerBlock, player, blockFace, false, true).toList();
-            int playerEntityId = player.getId();
+            List<BlockPos> blocks = item.getAllHarvestBlocks(this.destroyingItem, this.destroyBlockPos, this.player, this.blockFace, false, true).toList();
+            int playerEntityId = this.player.getId();
             for (int i = 0; i < blocks.size(); i++) {
                 // there won't be this many entities, so we can safely use large entity ids
                 // not sure if this messes with the size of the Int2ObjectMap, hopefully not haha
                 this.areaBlocks.put(playerEntityId + i + Short.MAX_VALUE, blocks.get(i));
             }
         } else {
-            throw new IllegalStateException("harvesting groups can only be created for area digger items");
+            throw new IllegalStateException("harvesting groups can only be created for ranged digger items");
         }
     }
 
-    public void incrementDestroyProgress() {
+    public void incrementDestroyProgress(BlockPos destroyBlockPos, Direction blockFace) {
+        if (this.blockFace != blockFace) {
+            this.blockFace = blockFace;
+            this.buildBlockGroup();
+        }
+        if (!this.verifyHarvestingData(destroyBlockPos, blockFace)) {
+            this.clearAreaBlocks();
+        }
         this.validateAreaBlocks();
         BlockState blockstate = this.level.getBlockState(this.destroyBlockPos);
         this.destroyProgress += blockstate.getDestroyProgress(this.player, this.level, this.destroyBlockPos);
@@ -60,10 +71,25 @@ public class BlockHarvestingGroup {
                 this.areaBlocks.values().forEach(pos -> Proxy.INSTANCE.destroyBlock(this.level, pos, this.player));
             } else {
                 GamblingStyle.LOGGER.warn("trying to destroy blocks with invalid item");
+                this.clearAreaBlocks();
             }
             return true;
         }
         return false;
+    }
+
+    public boolean verifyHarvestingData(BlockPos destroyBlockPos, Direction blockFace) {
+        boolean validateItem = this.validateItem();
+        if (!validateItem || !this.destroyBlockPos.equals(destroyBlockPos) || this.blockFace != blockFace) {
+            GamblingStyle.LOGGER.warn("data mismatch! validateItem {}, destroyBlockPos {} vs {}, blockFace {} vs {}", validateItem, this.destroyBlockPos, destroyBlockPos, this.blockFace, blockFace);
+            return false;
+        }
+        return true;
+    }
+
+    public void clearAreaBlocks() {
+        this.clearDestroyProgress();
+        this.areaBlocks.clear();
     }
 
     public void clearDestroyProgress() {
@@ -74,6 +100,14 @@ public class BlockHarvestingGroup {
         for (Int2ObjectMap.Entry<BlockPos> entry : this.areaBlocks.int2ObjectEntrySet()) {
             this.level.destroyBlockProgress(entry.getIntKey(), entry.getValue(), destroyProgress);
         }
+    }
+
+    public Stream<BlockPos> getAllAreaBlocks() {
+        return Stream.concat(Stream.of(this.destroyBlockPos), this.areaBlocks.values().stream());
+    }
+
+    public Direction getBlockFace() {
+        return this.blockFace;
     }
 
     private boolean validateItem() {

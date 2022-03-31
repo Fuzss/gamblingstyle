@@ -1,8 +1,8 @@
 package fuzs.gamblingstyle.client;
 
 import fuzs.gamblingstyle.GamblingStyle;
-import fuzs.gamblingstyle.client.handler.AreaBlockHarvestingHandler;
-import fuzs.gamblingstyle.client.handler.RangedItemVisualsHandler;
+import fuzs.gamblingstyle.client.handler.BlockHarvestingHandler;
+import fuzs.gamblingstyle.client.handler.HighlightBlocksHandler;
 import fuzs.gamblingstyle.client.handler.RecipeBookExchangeHandler;
 import fuzs.gamblingstyle.client.handler.RecipeBookMouseHandler;
 import fuzs.gamblingstyle.client.renderer.item.RangedItemPropertyFunction;
@@ -30,13 +30,13 @@ public class GamblingStyleClient {
         MinecraftForge.EVENT_BUS.addListener(recipeBookMouseHandler::onMouseReleased);
         MinecraftForge.EVENT_BUS.addListener(recipeBookMouseHandler::onMouseScroll);
         MinecraftForge.EVENT_BUS.addListener(recipeBookMouseHandler::onMouseDrag);
-        RangedItemVisualsHandler rangedItemVisualsHandler = new RangedItemVisualsHandler();
-        MinecraftForge.EVENT_BUS.addListener(rangedItemVisualsHandler::onClickInput);
-        MinecraftForge.EVENT_BUS.addListener(rangedItemVisualsHandler::onHighlightBlock);
-        MinecraftForge.EVENT_BUS.addListener(rangedItemVisualsHandler::onPlaySound);
-        AreaBlockHarvestingHandler areaBlockHarvestingHandler = new AreaBlockHarvestingHandler();
-        MinecraftForge.EVENT_BUS.addListener(areaBlockHarvestingHandler::onLeftClickBlock);
-        MinecraftForge.EVENT_BUS.addListener(areaBlockHarvestingHandler::onClientTick);
+        HighlightBlocksHandler highlightBlocksHandler = new HighlightBlocksHandler();
+        MinecraftForge.EVENT_BUS.addListener(highlightBlocksHandler::onHighlightBlock);
+        BlockHarvestingHandler blockHarvestingHandler = new BlockHarvestingHandler();
+        MinecraftForge.EVENT_BUS.addListener(blockHarvestingHandler::onLeftClickBlock);
+        MinecraftForge.EVENT_BUS.addListener(blockHarvestingHandler::onClientTick);
+        MinecraftForge.EVENT_BUS.addListener(blockHarvestingHandler::onClickInput);
+        MinecraftForge.EVENT_BUS.addListener(blockHarvestingHandler::onPlaySound);
     }
 
     @SubscribeEvent
