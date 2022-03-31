@@ -36,15 +36,14 @@ public class BlockHarvestingHandler {
         if (!(player instanceof AbstractClientPlayer) || this.minecraft.gameMode.getPlayerMode().isCreative()) return;
         if (player.getMainHandItem().getItem() instanceof RangedDiggerItem) {
             if (!this.minecraft.gameMode.isDestroying() || !this.sameDestroyTarget(evt.getPos())) {
+                this.clearHarvestingGroup();
                 this.harvestingGroup = new BlockHarvestingGroup(this.minecraft.level, player, evt.getPos(), evt.getFace());
+            } else if (this.harvestingGroup == null) {
+                GamblingStyle.LOGGER.warn("harvest group is null");
             } else {
-                if (this.harvestingGroup == null) {
-                    GamblingStyle.LOGGER.warn("harvest group is null");
-                } else {
-                    this.harvestingGroup.incrementDestroyProgress(evt.getPos(), evt.getFace());
-                    if (this.harvestingGroup.tryDestroyBlocks()) {
-                        this.clearHarvestingGroup();
-                    }
+                this.harvestingGroup.incrementDestroyProgress(evt.getPos(), evt.getFace());
+                if (this.harvestingGroup.tryDestroyBlocks()) {
+                    this.clearHarvestingGroup();
                 }
             }
         } else {
@@ -81,15 +80,17 @@ public class BlockHarvestingHandler {
     public void onClickInput(InputEvent.ClickInputEvent evt) {
         if (evt.isAttack() && evt.getHand() == InteractionHand.MAIN_HAND) {
             if (this.minecraft.hitResult != null && this.minecraft.hitResult.getType() == HitResult.Type.BLOCK) {
-                evt.setSwingHand(false);
-                // particles are also cancelled by disabling swing hand, so we add them for all blocks (also center)
-                // check isDestroying to make sure this is the event called from continuous use method
-                if (this.minecraft.gameMode.isDestroying() && this.harvestingGroup != null) {
-                    BlockHitResult hitResult = (BlockHitResult) this.minecraft.hitResult;
-                    this.harvestingGroup.verifyHarvestingData(hitResult.getBlockPos(), hitResult.getDirection());
-                    this.harvestingGroup.getAllAreaBlocks().forEach(pos -> {
-                        this.minecraft.particleEngine.addBlockHitEffects(pos, hitResult.withPosition(pos).withDirection(this.harvestingGroup.getBlockFace()));
-                    });
+                if (this.minecraft.player.getMainHandItem().getItem() instanceof RangedDiggerItem) {
+                    evt.setSwingHand(false);
+                    // particles are also cancelled by disabling swing hand, so we add them for all blocks (also center)
+                    // check isDestroying to make sure this is the event called from continuous use method
+                    if (this.minecraft.gameMode.isDestroying() && this.harvestingGroup != null) {
+                        BlockHitResult hitResult = (BlockHitResult) this.minecraft.hitResult;
+                        this.harvestingGroup.verifyHarvestingData(hitResult.getBlockPos(), hitResult.getDirection());
+                        this.harvestingGroup.getAllAreaBlocks().forEach(pos -> {
+                            this.minecraft.particleEngine.addBlockHitEffects(pos, hitResult.withPosition(pos).withDirection(this.harvestingGroup.getBlockFace()));
+                        });
+                    }
                 }
             }
         }
@@ -98,22 +99,24 @@ public class BlockHarvestingHandler {
     @SubscribeEvent
     public void onPlaySound(final PlaySoundEvent evt) {
         if (this.minecraft.level != null && this.minecraft.hitResult != null && this.minecraft.hitResult.getType() == HitResult.Type.BLOCK) {
-            Level level = this.minecraft.level;
-            SoundInstance soundInstance = evt.getOriginalSound();
-            BlockHitResult hitResult = (BlockHitResult) this.minecraft.hitResult;
-            BlockPos pos = hitResult.getBlockPos();
-            if (isSameBlockSoundInstance(soundInstance, pos, level, this.minecraft.player) && this.harvestingGroup != null) {
-                this.harvestingGroup.verifyHarvestingData(hitResult.getBlockPos(), hitResult.getDirection());
-                List<BlockPos> blocks = this.harvestingGroup.getAllAreaBlocks().toList();
-                blocks.stream()
-                        .skip(level.random.nextInt(blocks.size()))
-                        .findAny()
-                        .ifPresent(pos1 -> {
-                            // get a random sound from all the blocks we are harvesting and play that instead of the clicked block's sound
-                            SoundType soundtype1 = level.getBlockState(pos1).getSoundType(level, pos1, this.minecraft.player);
-                            SimpleSoundInstance soundInstance1 = new SimpleSoundInstance(soundtype1.getHitSound(), SoundSource.BLOCKS, (soundtype1.getVolume() + 1.0F) / 8.0F, soundtype1.getPitch() * 0.5F, pos1);
-                            evt.setSound(soundInstance1);
-                        });
+            if (this.minecraft.player.getMainHandItem().getItem() instanceof RangedDiggerItem) {
+                Level level = this.minecraft.level;
+                SoundInstance soundInstance = evt.getOriginalSound();
+                BlockHitResult hitResult = (BlockHitResult) this.minecraft.hitResult;
+                BlockPos pos = hitResult.getBlockPos();
+                if (isSameBlockSoundInstance(soundInstance, pos, level, this.minecraft.player) && this.harvestingGroup != null) {
+                    this.harvestingGroup.verifyHarvestingData(hitResult.getBlockPos(), hitResult.getDirection());
+                    List<BlockPos> blocks = this.harvestingGroup.getAllAreaBlocks().toList();
+                    blocks.stream()
+                            .skip(level.random.nextInt(blocks.size()))
+                            .findAny()
+                            .ifPresent(pos1 -> {
+                                // get a random sound from all the blocks we are harvesting and play that instead of the clicked block's sound
+                                SoundType soundtype1 = level.getBlockState(pos1).getSoundType(level, pos1, this.minecraft.player);
+                                SimpleSoundInstance soundInstance1 = new SimpleSoundInstance(soundtype1.getHitSound(), SoundSource.BLOCKS, (soundtype1.getVolume() + 1.0F) / 8.0F, soundtype1.getPitch() * 0.5F, pos1);
+                                evt.setSound(soundInstance1);
+                            });
+                }
             }
         }
     }

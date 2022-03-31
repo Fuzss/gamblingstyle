@@ -2,9 +2,13 @@ package fuzs.gamblingstyle.world.item;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import fuzs.gamblingstyle.GamblingStyle;
 import fuzs.gamblingstyle.capability.LastHitBlockCapability;
 import fuzs.gamblingstyle.proxy.Proxy;
 import fuzs.gamblingstyle.registry.ModRegistry;
+import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -31,18 +35,14 @@ import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.ToolAction;
 import net.minecraftforge.common.util.LazyOptional;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.TreeMap;
-import java.util.function.Function;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class RangedDiggerItem extends DiggerItem {
+    public static final int FALLING_HARVEST_LIMIT = 12;
     static final String TAG_HARVEST_MODE = "HarvestMode";
 
     public RangedDiggerItem(float baseAttackDamage, float attackSpeed, Tier tier, TagKey<Block> blocks, Properties properties) {
@@ -98,22 +98,25 @@ public abstract class RangedDiggerItem extends DiggerItem {
             lastHitBlockDirection = this.getLastHitBlockDirection(player, pos);
         }
         if (lastHitBlockDirection != null && this.canHarvestBlockEfficiently(stack, player.level, pos, player)) {
-            RangedDiggerItemMode harvestMode = this.getHarvestMode(stack);
-            List<BlockPos> blocks = getNeighboringBlocksOnAxis(pos, harvestMode.distance, harvestMode.depth, lastHitBlockDirection, allBlocks);
-            List<BlockPos> fallingBlocks = this.collectFallingBlocks(player, blocks);
-            Stream<BlockPos> stream = Stream.concat(blocks.stream(), fallingBlocks.stream());
+//            RangedDiggerItemMode harvestMode = this.getHarvestMode(stack);
+//            List<BlockPos> blocks = getNeighboringBlocksOnAxis(pos, harvestMode.distance, harvestMode.depth, lastHitBlockDirection, allBlocks);
+//            List<BlockPos> fallingBlocks = this.collectFallingBlocks(player, pos, blocks);
+//            Stream<BlockPos> stream = Stream.concat(blocks.stream(), fallingBlocks.stream());
+            List<BlockPos> blocks = getConnectedBlocks2(player.level, pos, allBlocks, 64, 178, 0);
+            Stream<BlockPos> stream = blocks.stream();
             return applyFilter ? stream.filter(pos1 -> this.canHarvestBlockEfficiently(stack, player.level, pos1, player)) : stream;
         }
         return Stream.empty();
     }
 
-    private List<BlockPos> collectFallingBlocks(Player player, List<BlockPos> blocks) {
-        if (blocks.isEmpty()) return Lists.newArrayList();
-        List<BlockPos> topBlocks = blocks.stream().collect(Collectors.groupingBy(Vec3i::getY, TreeMap::new, Collectors.toList())).lastEntry().getValue();
+    private List<BlockPos> collectFallingBlocks(Player player, BlockPos pos, List<BlockPos> blocks) {
+        Map.Entry<Integer, List<BlockPos>> lastEntry = Stream.concat(blocks.stream(), Stream.of(pos)).collect(Collectors.groupingBy(Vec3i::getY, TreeMap::new, Collectors.toList())).lastEntry();
         List<BlockPos> fallingBlocks = Lists.newArrayList();
-        for (BlockPos topBlock : topBlocks) {
+        if (lastEntry == null) return fallingBlocks;
+        for (BlockPos topBlock : lastEntry.getValue()) {
             BlockPos.MutableBlockPos mutable = topBlock.mutable();
-            while (player.level.getBlockState(mutable.move(Direction.UP)).getBlock() instanceof FallingBlock) {
+            int i = 0;
+            while (i++ < FALLING_HARVEST_LIMIT && player.level.getBlockState(mutable.move(Direction.UP)).getBlock() instanceof FallingBlock) {
                 fallingBlocks.add(mutable.immutable());
             }
         }
@@ -136,7 +139,10 @@ public abstract class RangedDiggerItem extends DiggerItem {
         if (stack.hasTag()) {
             CompoundTag tag = stack.getTag();
             if (tag.contains(TAG_HARVEST_MODE)) {
-                return RangedDiggerItemMode.values()[tag.getInt(TAG_HARVEST_MODE)];
+                int harvestModeId = tag.getInt(TAG_HARVEST_MODE);
+                if (harvestModeId < RangedDiggerItemMode.values().length) {
+                    return RangedDiggerItemMode.values()[harvestModeId];
+                }
             }
         }
         return RangedDiggerItemMode.SINGLE;
@@ -154,7 +160,7 @@ public abstract class RangedDiggerItem extends DiggerItem {
     }
 
     private static List<BlockPos> getNeighboringBlocksOnAxis(BlockPos pos, int distance, boolean withDepth, Direction direction, boolean all) {
-        if (distance < 1) return ImmutableList.of();
+        if (distance < 1) return all ? ImmutableList.of(pos) : ImmutableList.of();
         Direction.Axis axis = direction.getAxis();
         BlockPos cubeCenterPos = pos.relative(direction.getOpposite());
         int minHeight;
@@ -170,6 +176,74 @@ public abstract class RangedDiggerItem extends DiggerItem {
         return BlockPos.betweenClosedStream(cubeCenterPos.getX() - distance, minHeight, cubeCenterPos.getZ() - distance, cubeCenterPos.getX() + distance, maxHeight, cubeCenterPos.getZ() + distance).filter(pos1 -> {
             return (withDepth || axis.choose(pos1.getX(), pos1.getY(), pos1.getZ()) == axisCoordinate) && (all || !pos1.equals(pos));
         }).map(BlockPos::immutable).toList();
+    }
+
+//    private static void getConnectedBlocks(Level level, BlockPos pos) {
+//        Long2IntMap knownPositions = new Long2IntOpenHashMap();
+//        List<BlockPos> validPositions = Lists.newArrayList();
+//    }
+//
+//
+//    private static void getConnectedBlocks(Level level, BlockPos start, BlockPos.MutableBlockPos pos, Block block, Long2IntMap knownPositions, List<BlockPos> validPositions, ) {
+//        for (BlockPos offset : CONNECTED_BLOCK_OFFSETS) {
+//            pos.offset(offset);
+//            long asLong = pos.asLong();
+//            if (!knownPositions.containsKey(asLong)) {
+//                knownPositions.add(asLong);
+//                if (level.getBlockState(pos).getBlock() == block) {
+//                    validPositions.add(pos.immutable());
+//                    getConnectedBlocks(level, pos, block, knownPositions, validPositions);
+//                }
+//            }
+//            pos.offset(offset.multiply(-1));
+//        }
+//    }
+
+    public static final List<BlockPos> CONNECTED_BLOCK_OFFSETS = BlockPos.betweenClosedStream(-1, -1, -1, 1, 1, 1)
+            .map(BlockPos::immutable)
+            .sorted(Comparator.<BlockPos>comparingInt(pos -> pos.distManhattan(BlockPos.ZERO)).thenComparing(Comparator.<BlockPos>comparingInt(BlockPos::getY).reversed()))
+            .skip(1)
+            .toList();
+
+    private static List<BlockPos> getConnectedBlocks2(Level level, BlockPos start, boolean allBlocks, int maxDistance, int maxBlocks, int maxFails) {
+        Block block = level.getBlockState(start).getBlock();
+        List<BlockPos> validPositions = Lists.newLinkedList();
+        LongSet knownPositions = new LongOpenHashSet();
+        Queue<Pair<BlockPos, Integer>> positions = new ArrayDeque<>();
+        if (allBlocks) {
+            validPositions.add(start);
+        } else {
+            maxBlocks--;
+        }
+        knownPositions.add(start.asLong());
+        positions.offer(Pair.of(start, 0));
+        int jj = 0;
+        int jjj = 0;
+        main : for (int i = 0; i < maxDistance; i++) {
+            while (!positions.isEmpty()) {
+                Pair<BlockPos, Integer> pair = positions.poll();
+                for (BlockPos pos : CONNECTED_BLOCK_OFFSETS) {
+                    BlockPos offsetPos = pair.left().offset(pos);
+                    long asLong = offsetPos.asLong();
+                    jj++;
+                    if (!knownPositions.contains(asLong)) {
+                        jjj++;
+                        knownPositions.add(asLong);
+                        boolean validBlock = level.getBlockState(offsetPos).getBlock() == block;
+                        int fails = pair.right();
+                        if (validBlock || fails < maxFails) {
+                            if (validBlock) {
+                                validPositions.add(offsetPos);
+                                if (validPositions.size() >= maxBlocks) break main;
+                            }
+                            positions.offer(Pair.of(offsetPos, !validBlock ? ++fails : 0));
+                        }
+                    }
+                }
+            }
+        }
+        GamblingStyle.LOGGER.info("total positions: {}, checked positions: {}, unique positions {}", validPositions.size(), jj, jjj);
+        return ImmutableList.copyOf(validPositions);
     }
 
     public enum RangedDiggerItemMode {
