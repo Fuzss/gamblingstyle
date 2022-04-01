@@ -6,7 +6,8 @@ import fuzs.gamblingstyle.GamblingStyle;
 import fuzs.gamblingstyle.capability.LastHitBlockCapability;
 import fuzs.gamblingstyle.proxy.Proxy;
 import fuzs.gamblingstyle.registry.ModRegistry;
-import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import net.minecraft.ChatFormatting;
@@ -102,7 +103,7 @@ public abstract class RangedDiggerItem extends DiggerItem {
 //            List<BlockPos> blocks = getNeighboringBlocksOnAxis(pos, harvestMode.distance, harvestMode.depth, lastHitBlockDirection, allBlocks);
 //            List<BlockPos> fallingBlocks = this.collectFallingBlocks(player, pos, blocks);
 //            Stream<BlockPos> stream = Stream.concat(blocks.stream(), fallingBlocks.stream());
-            List<BlockPos> blocks = getConnectedBlocks2(player.level, pos, allBlocks, 64, 178, 0);
+            List<BlockPos> blocks = getConnectedBlocks2(player.level, pos, allBlocks, 192);
             Stream<BlockPos> stream = blocks.stream();
             return applyFilter ? stream.filter(pos1 -> this.canHarvestBlockEfficiently(stack, player.level, pos1, player)) : stream;
         }
@@ -178,72 +179,57 @@ public abstract class RangedDiggerItem extends DiggerItem {
         }).map(BlockPos::immutable).toList();
     }
 
-//    private static void getConnectedBlocks(Level level, BlockPos pos) {
-//        Long2IntMap knownPositions = new Long2IntOpenHashMap();
-//        List<BlockPos> validPositions = Lists.newArrayList();
-//    }
-//
-//
-//    private static void getConnectedBlocks(Level level, BlockPos start, BlockPos.MutableBlockPos pos, Block block, Long2IntMap knownPositions, List<BlockPos> validPositions, ) {
-//        for (BlockPos offset : CONNECTED_BLOCK_OFFSETS) {
-//            pos.offset(offset);
-//            long asLong = pos.asLong();
-//            if (!knownPositions.containsKey(asLong)) {
-//                knownPositions.add(asLong);
-//                if (level.getBlockState(pos).getBlock() == block) {
-//                    validPositions.add(pos.immutable());
-//                    getConnectedBlocks(level, pos, block, knownPositions, validPositions);
-//                }
-//            }
-//            pos.offset(offset.multiply(-1));
-//        }
-//    }
-
     public static final List<BlockPos> CONNECTED_BLOCK_OFFSETS = BlockPos.betweenClosedStream(-1, -1, -1, 1, 1, 1)
             .map(BlockPos::immutable)
             .sorted(Comparator.<BlockPos>comparingInt(pos -> pos.distManhattan(BlockPos.ZERO)).thenComparing(Comparator.<BlockPos>comparingInt(BlockPos::getY).reversed()))
             .skip(1)
             .toList();
 
-    private static List<BlockPos> getConnectedBlocks2(Level level, BlockPos start, boolean allBlocks, int maxDistance, int maxBlocks, int maxFails) {
+    private static List<BlockPos> getConnectedBlocks2(Level level, BlockPos start, boolean allBlocks, int maxBlocks) {
         Block block = level.getBlockState(start).getBlock();
         List<BlockPos> validPositions = Lists.newLinkedList();
         LongSet knownPositions = new LongOpenHashSet();
-        Queue<Pair<BlockPos, Integer>> positions = new ArrayDeque<>();
+        Queue<BlockPos> positions = new ArrayDeque<>();
         if (allBlocks) {
             validPositions.add(start);
         } else {
             maxBlocks--;
         }
         knownPositions.add(start.asLong());
-        positions.offer(Pair.of(start, 0));
+        positions.offer(start);
         int jj = 0;
         int jjj = 0;
-        main : for (int i = 0; i < maxDistance; i++) {
-            while (!positions.isEmpty()) {
-                Pair<BlockPos, Integer> pair = positions.poll();
-                for (BlockPos pos : CONNECTED_BLOCK_OFFSETS) {
-                    BlockPos offsetPos = pair.left().offset(pos);
-                    long asLong = offsetPos.asLong();
-                    jj++;
-                    if (!knownPositions.contains(asLong)) {
-                        jjj++;
-                        knownPositions.add(asLong);
-                        boolean validBlock = level.getBlockState(offsetPos).getBlock() == block;
-                        int fails = pair.right();
-                        if (validBlock || fails < maxFails) {
-                            if (validBlock) {
-                                validPositions.add(offsetPos);
-                                if (validPositions.size() >= maxBlocks) break main;
-                            }
-                            positions.offer(Pair.of(offsetPos, !validBlock ? ++fails : 0));
-                        }
+        main : while (!positions.isEmpty()) {
+            BlockPos pos = positions.poll();
+            BlockPos.MutableBlockPos mutable = pos.mutable();
+            for (BlockPos offset : CONNECTED_BLOCK_OFFSETS) {
+                mutable.move(offset);
+                jj++;
+                if (knownPositions.add(mutable.asLong())) {
+                    jjj++;
+                    if (level.getBlockState(mutable).getBlock() == block) {
+                        BlockPos immutable = mutable.immutable();
+                        validPositions.add(immutable);
+                        if (validPositions.size() >= maxBlocks) break main;
+                        positions.offer(immutable);
                     }
                 }
+                mutable.set(pos);
             }
         }
         GamblingStyle.LOGGER.info("total positions: {}, checked positions: {}, unique positions {}", validPositions.size(), jj, jjj);
         return ImmutableList.copyOf(validPositions);
+    }
+
+    public static List<BlockPos> getFurthestBlocks(List<BlockPos> blocks, Direction direction) {
+        // TODO test
+        Long2ObjectMap<PriorityQueue<BlockPos>> columns = new Long2ObjectOpenHashMap<>();
+        Comparator<BlockPos> comparator = Comparator.comparingInt(pos1 -> direction.getAxis().choose(pos1.getX(), pos1.getY(), pos1.getZ()) * -direction.getAxisDirection().getStep());
+        for (BlockPos pos : blocks) {
+            long asLong = BlockPos.asLong(pos.getX() - direction.getStepX() * pos.getX(), pos.getY() - direction.getStepY() * pos.getY(), pos.getZ() - direction.getStepZ() * pos.getZ());
+            columns.computeIfAbsent(asLong, key -> new PriorityQueue<>(comparator)).offer(pos);
+        }
+        return columns.values().stream().map(PriorityQueue::poll).toList();
     }
 
     public enum RangedDiggerItemMode {
