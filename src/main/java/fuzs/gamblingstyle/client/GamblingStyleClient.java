@@ -1,10 +1,7 @@
 package fuzs.gamblingstyle.client;
 
 import fuzs.gamblingstyle.GamblingStyle;
-import fuzs.gamblingstyle.client.handler.BlockHarvestingHandler;
-import fuzs.gamblingstyle.client.handler.HighlightBlocksHandler;
-import fuzs.gamblingstyle.client.handler.RecipeBookExchangeHandler;
-import fuzs.gamblingstyle.client.handler.RecipeBookMouseHandler;
+import fuzs.gamblingstyle.client.handler.*;
 import fuzs.gamblingstyle.client.renderer.item.RangedItemPropertyFunction;
 import fuzs.gamblingstyle.registry.ModRegistry;
 import net.minecraft.client.renderer.item.ItemProperties;
@@ -15,6 +12,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLConstructModEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 
 @Mod.EventBusSubscriber(modid = GamblingStyle.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class GamblingStyleClient {
@@ -37,6 +35,8 @@ public class GamblingStyleClient {
         MinecraftForge.EVENT_BUS.addListener(blockHarvestingHandler::onClientTick);
         MinecraftForge.EVENT_BUS.addListener(blockHarvestingHandler::onClickInput);
         MinecraftForge.EVENT_BUS.addListener(blockHarvestingHandler::onPlaySound);
+        CreativeInventoryScreenHandler creativeInventoryScreenHandler = new CreativeInventoryScreenHandler();
+        MinecraftForge.EVENT_BUS.addListener(creativeInventoryScreenHandler::onScreenOpen);
     }
 
     @SubscribeEvent
@@ -46,5 +46,11 @@ public class GamblingStyleClient {
         MinecraftForge.EVENT_BUS.addListener(rangedItemPropertyFunction::onLeftClickBlock);
         ItemProperties.register(ModRegistry.DRILL_ITEM.get(), new ResourceLocation("active"), rangedItemPropertyFunction);
         ItemProperties.register(ModRegistry.CHAINSAW_ITEM.get(), new ResourceLocation("active"), rangedItemPropertyFunction);
+    }
+
+
+    @SubscribeEvent
+    public static void onLoadComplete(final FMLLoadCompleteEvent evt) {
+        CreativeSearchTreeManager.INSTANCE.load();
     }
 }
