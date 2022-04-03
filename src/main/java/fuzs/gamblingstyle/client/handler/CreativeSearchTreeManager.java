@@ -1,5 +1,6 @@
 package fuzs.gamblingstyle.client.handler;
 
+import fuzs.gamblingstyle.GamblingStyle;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -29,6 +30,7 @@ public class CreativeSearchTreeManager {
     public void load() {
         for (CreativeModeTab tab : CreativeModeTab.TABS) {
             if (tab != null && tab != CreativeModeTab.TAB_HOTBAR && tab != CreativeModeTab.TAB_INVENTORY) {
+                GamblingStyle.LOGGER.info("Creating creative inventory search trees for tab {}", tab.getDisplayName().getString());
                 this.normalTabSearchTrees.put(tab.getId(), this.buildTabSearchTrees(tab, TooltipFlag.Default.NORMAL));
                 this.advancedTabSearchTrees.put(tab.getId(), this.buildTabSearchTrees(tab, TooltipFlag.Default.ADVANCED));
             }

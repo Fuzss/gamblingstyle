@@ -20,6 +20,7 @@ public class TabIconButton extends IconButton {
     public TabIconButton(int x, int y, int width, int height, int xTexStart, int yTexStart, ResourceLocation resourceLocation, int textureWidth, int textureHeight, OnPress onPress, OnTooltip onTooltip) {
         super(x, y, width, height, xTexStart, yTexStart, resourceLocation, textureWidth, textureHeight, onPress, onTooltip, TextComponent.EMPTY);
         this.originalXTexStart = xTexStart;
+        this.visible = false;
         Minecraft minecraft = Minecraft.getInstance();
         this.font = minecraft.font;
         this.itemRenderer = minecraft.getItemRenderer();

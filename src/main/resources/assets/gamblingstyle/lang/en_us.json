@@ -8,5 +8,6 @@
   "item.gamblingstyle.rangeddiggeritem.mode.cube5": "5x5x5",
   "item.gamblingstyle.rangeddiggeritem.mode.plane3": "3x3",
   "item.gamblingstyle.rangeddiggeritem.mode.plane5": "5x5",
-  "item.gamblingstyle.rangeddiggeritem.mode.single": "Single"
+  "item.gamblingstyle.rangeddiggeritem.mode.single": "Single",
+  "inventory.binSlotAll": "Delete All Items"
 }
