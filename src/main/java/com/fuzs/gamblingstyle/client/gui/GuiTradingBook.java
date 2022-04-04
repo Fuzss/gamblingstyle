@@ -143,7 +143,10 @@ public class GuiTradingBook extends Gui implements IGuiExtension {
     public void setRecipes(MerchantRecipeList merchantrecipelist, ContainerVillager container, byte[] favorites) {
 
         this.tradingRecipeList = new TradingRecipeList(merchantrecipelist);
-        this.tradingRecipeList.get(this.selectedTradingRecipe).setSelected(true);
+        if (this.selectedTradingRecipe < this.tradingRecipeList.size())
+            this.tradingRecipeList.get(this.selectedTradingRecipe).setSelected(true);
+        else if (this.tradingRecipeList.size() > 0)
+            this.tradingRecipeList.get(0).setSelected(true);
         for (byte favorite : favorites) {
 
             if (favorite < this.tradingRecipeList.size()) {
