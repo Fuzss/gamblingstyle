@@ -115,6 +115,9 @@ public class ContainerVillager extends ContainerMerchant {
                     if (flag) {
 
                         return ItemStack.EMPTY;
+                    } else {
+
+                        this.onCraftMatrixChanged(this.merchantInventory);
                     }
                 }
             } else if (!this.mergeItemStack(stackAtIndex, 3, 39, false)) {
@@ -162,6 +165,8 @@ public class ContainerVillager extends ContainerMerchant {
 
             this.mergeItemStack(secondItemToBuy, 3, 39, true);
         }
+
+        this.onCraftMatrixChanged(this.merchantInventory);
     }
 
     /**
@@ -240,6 +245,7 @@ public class ContainerVillager extends ContainerMerchant {
                         this.mergeItemStack(itemstack6, 3, 39, true);
                     }
 
+                    this.onCraftMatrixChanged(this.merchantInventory);
                     break;
                 }
             }

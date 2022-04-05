@@ -56,7 +56,7 @@ public class GuiTradingBook extends Gui implements IGuiExtension {
 
     public GuiTradingBook(ITradingInfo.FilterMode filterMode) {
 
-        this.filterButton = new GuiButtonFilter(tradeButtons.length, this.guiLeft + 94, this.guiTop + 8, filterMode);
+        this.filterButton = new GuiButtonFilter(this.tradeButtons.length, this.guiLeft + 94, this.guiTop + 8, filterMode);
         for (int i = 0; i < this.tradeButtons.length; ++i) {
 
             this.tradeButtons[i] = new GuiButtonTradingRecipe(i, this.guiLeft + 10, this.guiTop + 24 + 22 * i);
