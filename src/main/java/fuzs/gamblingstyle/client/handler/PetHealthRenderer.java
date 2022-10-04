@@ -21,6 +21,8 @@ import java.util.Random;
 
 public class PetHealthRenderer {
     public static final PetHealthRenderer INSTANCE = new PetHealthRenderer();
+    private final int heartsPerRow = 5;
+    private final int armorPlatesPerRow = 5;
     private final Random random = new Random();
     protected int tickCount;
 
@@ -32,7 +34,7 @@ public class PetHealthRenderer {
         if (evt.getEntity() instanceof TamableAnimal tamableAnimal && tamableAnimal.isOwnedBy(Minecraft.getInstance().player) || evt.getEntity() instanceof AbstractHorse abstractHorse && Minecraft.getInstance().player.getUUID().equals(abstractHorse.getOwnerUUID())) {
             LivingEntity pet = (LivingEntity) evt.getEntity();
             EntityRenderDispatcher entityRenderDispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
-            if (!this.shouldShowName(pet, entityRenderDispatcher)) return;
+            if (false && !this.shouldShowName(pet, entityRenderDispatcher)) return;
             PoseStack poseStack = evt.getPoseStack();
             poseStack.pushPose();
             float f = pet.getBbHeight() + 0.5F;
@@ -91,19 +93,23 @@ public class PetHealthRenderer {
             // absorption is only synced to the client for player's, so this doesn't work
             int currentAbsorption = Mth.ceil(entity.getAbsorptionAmount());
             float maxHealthWithAbsorption = maxHealth + currentAbsorption;
-            int healthRows = Mth.ceil(maxHealthWithAbsorption / 2.0F / 10.0F);
+            int healthRows = Mth.ceil(maxHealthWithAbsorption / 2.0F / (float) this.heartsPerRow) ;
             int healthRowOffset = Math.max(10 - (healthRows - 2), 3);
             int regenerationOffset = -1;
             if (entity.hasEffect(MobEffects.REGENERATION)) {
                 regenerationOffset = this.tickCount % Mth.ceil(maxHealth + 5.0F);
             }
-            int fullHealthRowsHeight = Math.min(9, healthRowOffset) * Math.max(1, healthRows - 1) + Math.max(0, 9 - healthRowOffset);
+            int fullHealthRowsHeight = Math.min(9, healthRowOffset) * (int) (maxHealthWithAbsorption / 2.0F / (float) this.heartsPerRow) + Math.max(0, 9 - healthRowOffset);
             if (withShadow) {
-                int displayWidth = Math.min(10, (int) Math.ceil(maxHealthWithAbsorption / 2.0F)) * 8 + 1;
-                GuiComponent.fill(poseStack, posX - displayWidth / 2 - 1, posY - 1, posX + displayWidth / 2 + 2, posY + fullHealthRowsHeight + 1, Minecraft.getInstance().options.getBackgroundColor(0.25F));
-                if (healthRows > 1) {
-                    int lastRowDisplayWidth = ((int) Math.ceil(maxHealthWithAbsorption / 2.0F)) % 10 * 8 + 1;
-                    GuiComponent.fill(poseStack, posX - lastRowDisplayWidth / 2 - 1, posY + fullHealthRowsHeight + 1, posX + lastRowDisplayWidth / 2 + 2, posY + fullHealthRowsHeight + healthRowOffset + 1, Minecraft.getInstance().options.getBackgroundColor(0.25F));
+                boolean fullRows = (int) (maxHealthWithAbsorption / 2.0F) / this.heartsPerRow > 0;
+                boolean unfilledRow = (int) (maxHealthWithAbsorption / 2.0F) % this.heartsPerRow > 0;
+                if (fullRows) {
+                    int displayWidth = Math.min(this.heartsPerRow, (int) Math.ceil(maxHealthWithAbsorption / 2.0F)) * 8 + 1;
+                    GuiComponent.fill(poseStack, posX - displayWidth / 2 - 1, posY - 1, posX + displayWidth / 2 + 2, posY + fullHealthRowsHeight + 1 + (unfilledRow ? 0 : 1), Minecraft.getInstance().options.getBackgroundColor(0.25F));
+                }
+                if (unfilledRow) {
+                    int lastRowDisplayWidth = ((int) Math.ceil(maxHealthWithAbsorption / 2.0F)) % this.heartsPerRow * 8;
+                    GuiComponent.fill(poseStack, posX - lastRowDisplayWidth / 2 - 1, posY + fullHealthRowsHeight + 1 + (fullRows ? 0 : -2), posX + lastRowDisplayWidth / 2 + 2, posY + fullHealthRowsHeight + healthRowOffset + (fullRows ? 1 : -1), Minecraft.getInstance().options.getBackgroundColor(0.25F));
                 }
                 poseStack.translate(0.0F, 0.0F, 0.03F);
             }
@@ -122,7 +128,7 @@ public class PetHealthRenderer {
         int armorValue = player.getArmorValue();
         if (armorValue > 0) {
             poseStack.pushPose();
-            int armorPlates = Math.min((int) Math.ceil(armorValue / 4.0F) * 2, 10);
+            int armorPlates = Math.min((int) Math.ceil(armorValue / 4.0F) * 2, this.armorPlatesPerRow);
             if (withShadow) {
                 GuiComponent.fill(poseStack, posX - armorPlates * 4 - 1, posY - 1, posX + armorPlates * 4 + 2, posY + 9 + 1, Minecraft.getInstance().options.getBackgroundColor(0.25F));
                 poseStack.translate(0.0F, 0.0F, 0.03F);
@@ -156,20 +162,20 @@ public class PetHealthRenderer {
         int absorptionHearts = Mth.ceil(currentAbsorption / 2.0D);
         int halfHearts = normalHearts * 2;
 
-        poseStack.translate(0.0F, 0.0F, (Math.ceil((maxHealth + currentAbsorption) / 20.0F) - 1.0F) * 0.03F);
+        poseStack.translate(0.0F, 0.0F, (Math.ceil((maxHealth + currentAbsorption) / (float) this.heartsPerRow) - 1.0F) * 0.03F);
 
         for (int currentHeart = normalHearts + absorptionHearts - 1; currentHeart >= 0; --currentHeart) {
-            int heartRow = currentHeart / 10;
-            int heartColumn = currentHeart % 10;
-            if (heartColumn == 9) {
+            int heartRow = currentHeart / this.heartsPerRow;
+            int heartColumn = currentHeart % this.heartsPerRow;
+            if (heartColumn == this.heartsPerRow - 1) {
                 poseStack.translate(0.0F, 0.0F, -0.03F);
             }
             int heartPosX = posX + heartColumn * 8;
             int heartsInCurrentRow;
-            if (currentHeart < (normalHearts + absorptionHearts) / 10 * 10) {
-                heartsInCurrentRow = 10;
+            if (currentHeart < (normalHearts + absorptionHearts) / this.heartsPerRow * this.heartsPerRow) {
+                heartsInCurrentRow = this.heartsPerRow;
             } else {
-                heartsInCurrentRow = (normalHearts + absorptionHearts) % 10;
+                heartsInCurrentRow = (normalHearts + absorptionHearts) % this.heartsPerRow;
             }
             heartPosX -= (heartsInCurrentRow * 8 + 1) / 2;
             int heartPosY = posY + heartRow * healthRowOffset;
