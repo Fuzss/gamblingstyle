@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -37,6 +38,10 @@ public class GamblingStyleClient {
         MinecraftForge.EVENT_BUS.addListener(blockHarvestingHandler::onPlaySound);
         CreativeInventoryScreenHandler creativeInventoryScreenHandler = new CreativeInventoryScreenHandler();
         MinecraftForge.EVENT_BUS.addListener(creativeInventoryScreenHandler::onScreenOpen);
+        MinecraftForge.EVENT_BUS.addListener(PetHealthRenderer.INSTANCE::onRenderNameplate);
+        MinecraftForge.EVENT_BUS.addListener((final TickEvent.ClientTickEvent evt) -> {
+            if (evt.phase == TickEvent.Phase.END) PetHealthRenderer.INSTANCE.onClientTick$End();
+        });
     }
 
     @SubscribeEvent
