@@ -40,7 +40,8 @@ public class PetHealthRenderer {
             poseStack.translate(0.0D, f, 0.0D);
             poseStack.mulPose(entityRenderDispatcher.cameraOrientation());
             poseStack.scale(-0.0125F, -0.0125F, 0.0125F);
-            this.renderPlayerHealth(poseStack, pet, 0, offsetY, true);
+            int healthHeight = this.renderPlayerHealth(poseStack, pet, 0, offsetY, true);
+            this.renderMobArmor(poseStack, pet, 0, offsetY + healthHeight, true);
             poseStack.popPose();
         }
     }
@@ -51,7 +52,7 @@ public class PetHealthRenderer {
         }
         double d0 = entityRenderDispatcher.distanceToSqr(entity);
         float f = entity.isDiscrete() ? 32.0F : 64.0F;
-        if (d0 >= (double)(f * f)) {
+        if (d0 >= (double) (f * f)) {
             return false;
         } else {
             Minecraft minecraft = Minecraft.getInstance();
@@ -62,7 +63,7 @@ public class PetHealthRenderer {
                 Team team1 = localplayer.getTeam();
                 if (team != null) {
                     Team.Visibility team$visibility = team.getNameTagVisibility();
-                    switch(team$visibility) {
+                    switch (team$visibility) {
                         case ALWAYS:
                             return flag;
                         case NEVER:
@@ -81,8 +82,9 @@ public class PetHealthRenderer {
         }
     }
 
-    public void renderPlayerHealth(PoseStack poseStack, LivingEntity entity, int posX, int posY, boolean withShadow) {
+    public int renderPlayerHealth(PoseStack poseStack, LivingEntity entity, int posX, int posY, boolean withShadow) {
         if (entity != null) {
+            poseStack.pushPose();
             int currentHealth = Mth.ceil(entity.getHealth());
             this.random.setSeed(this.tickCount * 312871L);
             float maxHealth = Math.max((float) entity.getAttributeValue(Attributes.MAX_HEALTH), currentHealth);
@@ -95,8 +97,8 @@ public class PetHealthRenderer {
             if (entity.hasEffect(MobEffects.REGENERATION)) {
                 regenerationOffset = this.tickCount % Mth.ceil(maxHealth + 5.0F);
             }
+            int fullHealthRowsHeight = Math.min(9, healthRowOffset) * Math.max(1, healthRows - 1) + Math.max(0, 9 - healthRowOffset);
             if (withShadow) {
-                int fullHealthRowsHeight = Math.min(9, healthRowOffset) * Math.max(1, healthRows - 1) + Math.max(0, 9 - healthRowOffset);
                 int displayWidth = Math.min(10, (int) Math.ceil(maxHealthWithAbsorption / 2.0F)) * 8 + 1;
                 GuiComponent.fill(poseStack, posX - displayWidth / 2 - 1, posY - 1, posX + displayWidth / 2 + 2, posY + fullHealthRowsHeight + 1, Minecraft.getInstance().options.getBackgroundColor(0.25F));
                 if (healthRows > 1) {
@@ -110,6 +112,40 @@ public class PetHealthRenderer {
             RenderSystem.enableDepthTest();
             this.renderHearts(poseStack, entity, posX, posY, healthRowOffset, regenerationOffset, maxHealth, currentHealth, currentAbsorption);
             RenderSystem.disableDepthTest();
+            poseStack.popPose();
+            return fullHealthRowsHeight + healthRowOffset + 2;
+        }
+        return 0;
+    }
+
+    public void renderMobArmor(PoseStack poseStack, LivingEntity player, int posX, int posY, boolean withShadow) {
+        int armorValue = player.getArmorValue();
+        if (armorValue > 0) {
+            poseStack.pushPose();
+            int armorPlates = Math.min((int) Math.ceil(armorValue / 4.0F) * 2, 10);
+            if (withShadow) {
+                GuiComponent.fill(poseStack, posX - armorPlates * 4 - 1, posY - 1, posX + armorPlates * 4 + 2, posY + 9 + 1, Minecraft.getInstance().options.getBackgroundColor(0.25F));
+                poseStack.translate(0.0F, 0.0F, 0.03F);
+            }
+            posX -= armorPlates * 4;
+            RenderSystem.enableDepthTest();
+            for (int currentArmorPlate = 0; currentArmorPlate < armorPlates; ++currentArmorPlate) {
+
+                int offsetX = posX + currentArmorPlate * 8;
+                if (currentArmorPlate * 2 + 1 < armorValue) {
+                    GuiComponent.blit(poseStack, offsetX, posY, 34, 9, 9, 9, 256, 256);
+                }
+
+                if (currentArmorPlate * 2 + 1 == armorValue) {
+                    GuiComponent.blit(poseStack, offsetX, posY, 25, 9, 9, 9, 256, 256);
+                }
+
+                if (currentArmorPlate * 2 + 1 > armorValue) {
+                    GuiComponent.blit(poseStack, offsetX, posY, 16, 9, 9, 9, 256, 256);
+                }
+            }
+            RenderSystem.disableDepthTest();
+            poseStack.popPose();
         }
     }
 
@@ -169,12 +205,7 @@ public class PetHealthRenderer {
 
     @OnlyIn(Dist.CLIENT)
     static enum HeartType {
-        CONTAINER(0, false),
-        NORMAL(2, true),
-        POISIONED(4, true),
-        WITHERED(6, true),
-        ABSORBING(8, false),
-        FROZEN(9, false);
+        CONTAINER(0, false), NORMAL(2, true), POISIONED(4, true), WITHERED(6, true), ABSORBING(8, false), FROZEN(9, false);
 
         private final int index;
         private final boolean canBlink;
