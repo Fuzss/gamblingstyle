@@ -2,10 +2,16 @@ package fuzs.gamblingstyle.client.handler;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Matrix4f;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
@@ -42,7 +48,7 @@ public class PetHealthRenderer {
             poseStack.translate(0.0D, f, 0.0D);
             poseStack.mulPose(entityRenderDispatcher.cameraOrientation());
             poseStack.scale(-0.0125F, -0.0125F, 0.0125F);
-            int healthHeight = this.renderPlayerHealth(poseStack, pet, 0, offsetY, true);
+            int healthHeight = this.renderPlayerHealth(poseStack, pet, 0, offsetY, true, evt.getMultiBufferSource(), evt.getPackedLight());
             this.renderMobArmor(poseStack, pet, 0, offsetY + healthHeight, true);
             poseStack.popPose();
         }
@@ -84,7 +90,7 @@ public class PetHealthRenderer {
         }
     }
 
-    public int renderPlayerHealth(PoseStack poseStack, LivingEntity entity, int posX, int posY, boolean withShadow) {
+    public int renderPlayerHealth(PoseStack poseStack, LivingEntity entity, int posX, int posY, boolean withShadow, MultiBufferSource bufferSource, int packedLight) {
         if (entity != null) {
             poseStack.pushPose();
             int currentHealth = Mth.ceil(entity.getHealth());
@@ -99,6 +105,36 @@ public class PetHealthRenderer {
             if (entity.hasEffect(MobEffects.REGENERATION)) {
                 regenerationOffset = this.tickCount % Mth.ceil(maxHealth + 5.0F);
             }
+
+            if (true || maxHealthWithAbsorption > 20) {
+                Component component = new TextComponent((int) maxHealthWithAbsorption + "x");
+                Font font = Minecraft.getInstance().font;
+                int width = font.width(component);
+                int totalWidth = width + 2 + 9;
+                if (withShadow) {
+                    GuiComponent.fill(poseStack, posX - totalWidth / 2 - 1, posY - 1, posX + totalWidth / 2 + 1, posY + 9 + 1, Minecraft.getInstance().options.getBackgroundColor(0.25F));
+                    poseStack.translate(0.0F, 0.0F, 0.03F);
+                }
+                Matrix4f matrix4f = poseStack.last().pose();
+                float f1 = Minecraft.getInstance().options.getBackgroundOpacity(0.25F);
+                int j = (int)(f1 * 255.0F) << 24;
+                font.drawInBatch(component, posX - totalWidth / 2, posY + 1, 553648127, false, matrix4f, bufferSource, false, 0, packedLight);
+                if (!entity.isDiscrete()) {
+                    font.drawInBatch(component, posX - totalWidth / 2, posY + 1, -1, false, matrix4f, bufferSource, false, 0, packedLight);
+                }
+                RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+                RenderSystem.setShaderTexture(0, GuiComponent.GUI_ICONS_LOCATION);
+                RenderSystem.enableDepthTest();
+                this.renderHeart(poseStack, HeartType.CONTAINER, posX + totalWidth / 2 - 9, posY, 0, false);
+                this.renderHeart(poseStack, HeartType.forPlayer(entity), posX + totalWidth / 2 - 9, posY, 0, false);
+                RenderSystem.disableDepthTest();
+                poseStack.popPose();
+                return 11;
+            }
+
+
+
+
             int fullHealthRowsHeight = Math.min(9, healthRowOffset) * (int) (maxHealthWithAbsorption / 2.0F / (float) this.heartsPerRow) + Math.max(0, 9 - healthRowOffset);
             if (withShadow) {
                 boolean fullRows = (int) (maxHealthWithAbsorption / 2.0F) / this.heartsPerRow > 0;
@@ -113,6 +149,8 @@ public class PetHealthRenderer {
                 }
                 poseStack.translate(0.0F, 0.0F, 0.03F);
             }
+            RenderSystem.setShader(GameRenderer::getPositionTexShader);
+            RenderSystem.defaultBlendFunc();
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
             RenderSystem.setShaderTexture(0, GuiComponent.GUI_ICONS_LOCATION);
             RenderSystem.enableDepthTest();
@@ -209,9 +247,13 @@ public class PetHealthRenderer {
         GuiComponent.blit(poseStack, posX, posY, heartType.getX(halfHeart, false), textureY, 9, 9, 256, 256);
     }
 
-    @OnlyIn(Dist.CLIENT)
-    static enum HeartType {
-        CONTAINER(0, false), NORMAL(2, true), POISIONED(4, true), WITHERED(6, true), ABSORBING(8, false), FROZEN(9, false);
+    enum HeartType {
+        CONTAINER(0, false),
+        NORMAL(2, true),
+        POISIONED(4, true),
+        WITHERED(6, true),
+        ABSORBING(8, false),
+        FROZEN(9, false);
 
         private final int index;
         private final boolean canBlink;
@@ -221,13 +263,13 @@ public class PetHealthRenderer {
             this.canBlink = p_168730_;
         }
 
-        public int getX(boolean p_168735_, boolean p_168736_) {
+        public int getX(boolean halfHeart, boolean blinking) {
             int i;
             if (this == CONTAINER) {
-                i = p_168736_ ? 1 : 0;
+                i = blinking ? 1 : 0;
             } else {
-                int j = p_168735_ ? 1 : 0;
-                int k = this.canBlink && p_168736_ ? 2 : 0;
+                int j = halfHeart ? 1 : 0;
+                int k = this.canBlink && blinking ? 2 : 0;
                 i = j + k;
             }
 
