@@ -19,8 +19,6 @@ import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.scores.Team;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RenderNameplateEvent;
 
 import java.util.Random;
@@ -122,6 +120,8 @@ public class PetHealthRenderer {
                 if (!entity.isDiscrete()) {
                     font.drawInBatch(component, posX - totalWidth / 2, posY + 1, -1, false, matrix4f, bufferSource, false, 0, packedLight);
                 }
+                RenderSystem.setShader(GameRenderer::getPositionTexShader);
+                RenderSystem.defaultBlendFunc();
                 RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
                 RenderSystem.setShaderTexture(0, GuiComponent.GUI_ICONS_LOCATION);
                 RenderSystem.enableDepthTest();
